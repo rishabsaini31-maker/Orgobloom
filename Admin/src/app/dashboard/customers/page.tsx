@@ -15,6 +15,8 @@ export default function CustomersPage() {
   const {
     data: customersData,
     isLoading,
+    isError,
+    error,
     refetch,
   } = useQuery({
     queryKey: ["customers", filter],
@@ -26,14 +28,26 @@ export default function CustomersPage() {
           }),
   });
 
-  const customers = customersData?.data || [];
+  // Handle different API response formats
+  let customers: any[] = [];
+  if (customersData) {
+    if (Array.isArray(customersData)) {
+      customers = customersData;
+    } else if (Array.isArray(customersData.data)) {
+      customers = customersData.data;
+    } else if (customersData.data && typeof customersData.data === "object") {
+      customers = Object.values(customersData.data);
+    }
+  }
 
-  const filteredCustomers = customers.filter(
-    (customer: any) =>
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (customer.name &&
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase())),
-  );
+  const filteredCustomers = Array.isArray(customers)
+    ? customers.filter(
+        (customer: any) =>
+          customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (customer.name &&
+            customer.name.toLowerCase().includes(searchTerm.toLowerCase())),
+      )
+    : [];
 
   const handleBlockCustomer = async (customerId: string) => {
     setBlockingId(customerId);
@@ -63,8 +77,12 @@ export default function CustomersPage() {
     }
   };
 
-  const blockedCount = customers.filter((c: any) => c.isBlocked).length;
-  const activeCount = customers.length - blockedCount;
+  const blockedCount = Array.isArray(customers)
+    ? customers.filter((c: any) => c.isBlocked).length
+    : 0;
+  const activeCount = Array.isArray(customers)
+    ? customers.length - blockedCount
+    : 0;
 
   return (
     <div>
@@ -131,9 +149,30 @@ export default function CustomersPage() {
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
-      ) : filteredCustomers.length === 0 ? (
+      ) : isError ? (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-700 font-medium mb-2">
+            Error loading customers
+          </p>
+          <p className="text-red-600 text-sm mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to fetch customer data"}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      ) : !Array.isArray(customers) || customers.length === 0 ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">No customers found</p>
+          <p className="text-gray-500">
+            {!Array.isArray(customers)
+              ? "No data available"
+              : "No customers found"}
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto">
