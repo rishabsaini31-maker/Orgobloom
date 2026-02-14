@@ -49,7 +49,7 @@ export const adminApi = {
     api.post(`/admin/payments/${paymentId}/retry`),
   getAppSettings: () => api.get("/admin/settings"),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
-  getCustomers: (params?: any) => api.get("/admin/customers", { params }),
+  getCustomers: (params?: any) => api.get("/customers", { params }),
   getProducts: (params?: any) => api.get("/admin/products", { params }),
   createProduct: (data: any) => api.post("/admin/products", data),
   updateProduct: (id: string, data: any) =>

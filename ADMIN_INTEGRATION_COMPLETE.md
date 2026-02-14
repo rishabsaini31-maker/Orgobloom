@@ -5,7 +5,8 @@
 The Orgobloom Admin Dashboard now includes comprehensive management tools for all core business operations. This document provides a complete guide to all integrated features, APIs, and usage patterns.
 
 **Dashboard URL:** `http://localhost:3001/dashboard`
-**Admin Credentials:** 
+**Admin Credentials:**
+
 - Email: `orgobloom5033@gmail.com`
 - Password: `orgobloom5033@@$`
 
@@ -14,10 +15,12 @@ The Orgobloom Admin Dashboard now includes comprehensive management tools for al
 ## 🎯 Integrated Pages (9 Total)
 
 ### 1. Dashboard (Main Overview)
+
 **Route:** `/dashboard`
 **Purpose:** High-level business overview with key metrics and recent activity
 
 #### Features:
+
 - 🔢 KPI Cards: Total Revenue, Orders, Customers, Average Order Value
 - 📊 Revenue Trend Chart (line graph)
 - 📈 Order Distribution (pie/bar chart)
@@ -26,12 +29,14 @@ The Orgobloom Admin Dashboard now includes comprehensive management tools for al
 - 📊 Order Status Breakdown
 
 #### Key Metrics:
+
 - Total Revenue (last 30 days)
 - Total Orders (last 30 days)
 - Average Order Value
 - Growth percentage vs previous month
 
 #### Components:
+
 - TanStack React Query for data fetching
 - Recharts for visualizations
 - Real-time data updates
@@ -39,10 +44,12 @@ The Orgobloom Admin Dashboard now includes comprehensive management tools for al
 ---
 
 ### 2. Orders Management
+
 **Route:** `/dashboard/orders`
 **Purpose:** Complete order lifecycle management
 
 #### Features:
+
 - 📋 Status Filter Tabs: All, Pending, Processing, Confirmed, Shipped, Delivered, Cancelled
 - 🔍 Search: By Order ID, Email, Customer Name
 - 📊 Status Count Cards: Show count for each status
@@ -57,6 +64,7 @@ The Orgobloom Admin Dashboard now includes comprehensive management tools for al
   - Actions (View)
 
 #### Status Colors:
+
 - **PENDING:** Yellow
 - **PROCESSING:** Blue
 - **CONFIRMED:** Cyan
@@ -65,12 +73,14 @@ The Orgobloom Admin Dashboard now includes comprehensive management tools for al
 - **CANCELLED:** Red
 
 #### Actions:
+
 - Change order status via dropdown
 - View order details (expandable modal)
 - Search and filter in real-time
 - Pagination (50 items per page)
 
 #### API Endpoints Used:
+
 ```
 GET /admin/orders?status={status}
 PATCH /admin/orders/{id}/status
@@ -79,10 +89,12 @@ PATCH /admin/orders/{id}/status
 ---
 
 ### 3. Products Management
+
 **Route:** `/dashboard/products`
 **Purpose:** Complete product catalog management
 
 #### Features:
+
 - ➕ Add New Product Modal with fields:
   - Product Name
   - Description
@@ -99,6 +111,7 @@ PATCH /admin/orders/{id}/status
   - Out of Stock
 
 #### Products Table with columns:
+
 - SKU (monospace font)
 - Product Name
 - Category
@@ -108,11 +121,13 @@ PATCH /admin/orders/{id}/status
 - Actions (Edit, Delete)
 
 #### Stock Level Indicators:
+
 - **In Stock:** Green (qty > 10)
 - **Low Stock:** Orange (qty 1-10)
 - **Out of Stock:** Red (qty = 0)
 
 #### Actions:
+
 - Create new product
 - Edit product details
 - Delete product with confirmation
@@ -121,6 +136,7 @@ PATCH /admin/orders/{id}/status
 - Bulk import via CSV (coming soon)
 
 #### API Endpoints Used:
+
 ```
 GET /admin/products
 POST /admin/products
@@ -131,10 +147,12 @@ DELETE /admin/products/{id}
 ---
 
 ### 4. Customers Management
+
 **Route:** `/dashboard/customers`
 **Purpose:** Customer relationship and fraud risk management
 
 #### Features:
+
 - 🔍 Search: By Email, Name
 - 📊 Filter Tabs: All, Active, Blocked, Problematic
 - 🎯 Risk Score Display (0-5 scale with color coding):
@@ -144,6 +162,7 @@ DELETE /admin/products/{id}
   - 3-5: Red (High Risk)
 
 #### Customers Table with columns:
+
 - Customer ID
 - Name
 - Email
@@ -155,11 +174,13 @@ DELETE /admin/products/{id}
 - Actions (View, Block/Unblock)
 
 #### Customer Status:
+
 - **Active:** Premium member or regular customer
 - **Blocked:** Suspicious activity detected
 - **Problematic:** Needs review
 
 #### Actions:
+
 - View customer profile
 - Block customer (prevent purchases)
 - Unblock previously blocked customer
@@ -168,12 +189,14 @@ DELETE /admin/products/{id}
 - Search in real-time
 
 #### Error Handling:
+
 - Robust API response format detection
 - Multiple fallback data extraction patterns
 - Error boundary with retry button
 - Safe property access with optional chaining
 
 #### API Endpoints Used:
+
 ```
 GET /admin/customers
 POST /customers/{id}/block
@@ -183,10 +206,12 @@ POST /customers/{id}/unblock
 ---
 
 ### 5. Inventory Management
+
 **Route:** `/dashboard/inventory`
 **Purpose:** Real-time inventory tracking and stock management
 
 #### Features:
+
 - 📊 Stats Cards:
   - Low Stock Items (≤10)
   - Out of Stock Items (0)
@@ -196,6 +221,7 @@ POST /customers/{id}/unblock
 - 📋 Filter: All, Low Stock, Out of Stock
 
 #### Inventory Table with columns:
+
 - SKU (monospace)
 - Product Name
 - Category
@@ -206,11 +232,13 @@ POST /customers/{id}/unblock
 - Quick Update Input
 
 #### Stock Status:
+
 - **Out:** 0 units (Red)
 - **Low:** 1-10 units (Orange)
 - **Normal:** >10 units (Green)
 
 #### Actions:
+
 - Update stock quantity with input field
 - Quick "Set" stock button
 - Real-time value calculation
@@ -218,6 +246,7 @@ POST /customers/{id}/unblock
 - Pagination (50 items per page)
 
 #### API Endpoints Used:
+
 ```
 GET /admin/inventory
 PATCH /admin/inventory/{productId}
@@ -226,10 +255,12 @@ PATCH /admin/inventory/{productId}
 ---
 
 ### 6. Payments Management
+
 **Route:** `/dashboard/payments`
 **Purpose:** Payment transaction monitoring and management
 
 #### Features:
+
 - 📊 Summary Cards:
   - Total Transactions Value
   - Completed Payments
@@ -243,6 +274,7 @@ PATCH /admin/inventory/{productId}
   - Failed (Red)
 
 #### Payments Table with columns:
+
 - Transaction ID
 - Customer Email
 - Amount (₹)
@@ -252,6 +284,7 @@ PATCH /admin/inventory/{productId}
 - Actions (View, Retry for failed)
 
 #### Payment Methods:
+
 - Credit/Debit Card
 - Digital Wallet
 - Net Banking
@@ -259,6 +292,7 @@ PATCH /admin/inventory/{productId}
 - COD (Cash on Delivery)
 
 #### Actions:
+
 - View transaction details
 - Retry failed payments
 - View payment receipt
@@ -266,6 +300,7 @@ PATCH /admin/inventory/{productId}
 - Export transaction report
 
 #### API Endpoints Used:
+
 ```
 GET /admin/payments
 PATCH /admin/payments/{id}/status
@@ -275,10 +310,12 @@ POST /admin/payments/{id}/retry
 ---
 
 ### 7. Analytics & Reports
+
 **Route:** `/dashboard/analytics`
 **Purpose:** Advanced business intelligence and trend analysis
 
 #### Features A: Analytics Page
+
 - 📊 Time Range Filters: 7d, 30d, 90d, 1y
 - 📈 Charts:
   - Revenue Trend (line chart)
@@ -289,6 +326,7 @@ POST /admin/payments/{id}/retry
   - Geographic Distribution (map)
 
 #### Key Metrics:
+
 - Conversion Rate
 - Average Order Value
 - Customer Lifetime Value
@@ -296,9 +334,11 @@ POST /admin/payments/{id}/retry
 - Churn Rate
 
 #### Features B: Reports Page
+
 **Route:** `/dashboard/reports`
 
 #### Report Types Available:
+
 1. **Sales Report**
    - Total Revenue
    - Total Orders
@@ -336,17 +376,20 @@ POST /admin/payments/{id}/retry
    - Reorder Points
 
 #### Report Generation:
+
 - Select date range (7d, 30d, 90d, 1y)
 - Choose report type
 - Generate with one click
 - Track generation status (pending/ready/error)
 
 #### Export Options:
+
 - PDF Download
 - CSV Download
 - Email Delivery (scheduled)
 
 #### API Endpoints Used:
+
 ```
 GET /admin/analytics
 GET /admin/analytics/advanced?timeRange={range}
@@ -358,10 +401,12 @@ POST /admin/reports/export
 ---
 
 ### 8. Profile Management
+
 **Route:** `/dashboard/profile`
 **Purpose:** Admin account settings and security
 
 #### Features:
+
 - 👤 Profile Information Tab:
   - Name (editable)
   - Email (editable)
@@ -380,12 +425,14 @@ POST /admin/reports/export
   - Display Settings
 
 #### Actions:
+
 - Update profile information
 - Change password
 - Manage sessions
 - Download activity report
 
 #### API Endpoints Used:
+
 ```
 GET /user/me
 PUT /user/profile
@@ -395,12 +442,14 @@ PUT /user/password
 ---
 
 ### 9. Customize App Settings
+
 **Route:** `/dashboard/customize-app`
 **Purpose:** Business configuration and branding
 
 #### Settings Sections:
 
 **Business Settings:**
+
 - App Name
 - App Logo
 - Tagline
@@ -409,6 +458,7 @@ PUT /user/password
 - Support Email
 
 **Branding:**
+
 - Primary Color
 - Secondary Color
 - Accent Color
@@ -416,6 +466,7 @@ PUT /user/password
 - Font Family
 
 **Financial Settings:**
+
 - Currency (₹)
 - Currency Symbol
 - Tax Rate %
@@ -423,6 +474,7 @@ PUT /user/password
 - Free Shipping Threshold
 
 **Operational Settings:**
+
 - Business Hours
 - Timezone
 - Language
@@ -430,18 +482,21 @@ PUT /user/password
 - Email Notifications enabled/disabled
 
 **Security Settings:**
+
 - Session Timeout
 - Max Login Attempts
 - Password Policy
 - API Key Management
 
 #### Actions:
+
 - Save all settings
 - Preview changes
 - Reset to defaults
 - Export configuration
 
 #### API Endpoints Used:
+
 ```
 GET /admin/settings
 PUT /admin/settings
@@ -452,6 +507,7 @@ PUT /admin/settings
 ## 🔗 Navigation Structure
 
 ### Sidebar Menu Organization:
+
 ```
 ├── Dashboard (main overview)
 ├── Products (catalog management)
@@ -467,6 +523,7 @@ PUT /admin/settings
 ```
 
 ### Breadcrumb Navigation:
+
 - /dashboard → "Dashboard"
 - /dashboard/orders → "Dashboard > Orders"
 - /dashboard/orders/[id] → "Dashboard > Orders > Order #12345"
@@ -476,11 +533,11 @@ PUT /admin/settings
 ## 📱 UI/UX Features
 
 ### Consistent Design Elements:
+
 - **Color Scheme:**
   - Primary: `#2563eb` (Blue-600)
   - Secondary: `#10b981` (Green-600)
   - Danger: `#ef4444` (Red-600)
-  
 - **Components:**
   - Stat Cards (4 column grid on desktop, 2 on tablet, 1 on mobile)
   - Filter Tabs with active states
@@ -491,11 +548,13 @@ PUT /admin/settings
   - Error boundaries with retry buttons
 
 ### Responsive Breakpoints:
+
 - Mobile: < 768px (1-column layout)
 - Tablet: 768px - 1024px (2-column layout)
 - Desktop: > 1024px (3-4 column layout)
 
 ### Loading & Error States:
+
 - Spinner animation while fetching
 - Error cards with retry buttons
 - Empty state messages
@@ -506,15 +565,19 @@ PUT /admin/settings
 ## 🔌 API Integration
 
 ### Base URL:
+
 `http://localhost:5000/api`
 
 ### Authentication:
+
 - JWT Token in Authorization header
 - Auto-refresh on 401
 - Redirect to login on auth failure
 
 ### Response Format Handling:
+
 All pages handle multiple response formats:
+
 ```typescript
 // Format 1: Direct array
 [{id: 1, name: "Item"}]
@@ -527,6 +590,7 @@ All pages handle multiple response formats:
 ```
 
 ### Error Handling:
+
 - Network errors show retry button
 - Validation errors show messages
 - Rate limiting shows cooldown timer
@@ -537,6 +601,7 @@ All pages handle multiple response formats:
 ## 🔒 Permissions & Access Control
 
 ### Admin Role Permissions:
+
 - ✅ View Dashboard
 - ✅ Manage Orders
 - ✅ Manage Products
@@ -549,6 +614,7 @@ All pages handle multiple response formats:
 - ✅ Update Profile
 
 ### Authentication Check:
+
 - Page guards check `isAuthenticated && user.role === "ADMIN"`
 - Automatic redirect to login if unauthorized
 - Token stored in localStorage with auto-refresh
@@ -558,18 +624,21 @@ All pages handle multiple response formats:
 ## 🚀 Performance Optimizations
 
 ### Data Fetching:
+
 - TanStack React Query for caching
 - Background refetching
 - Stale data handling
 - Pagination (50 items per page)
 
 ### Rendering:
+
 - Dynamic imports for code splitting
 - Lazy loading of components
 - Memo components to prevent re-renders
 - Virtual scrolling for large lists (coming soon)
 
 ### Bundle Optimization:
+
 - Tree-shaking enabled
 - CSS purging in Tailwind
 - Image optimization
@@ -580,6 +649,7 @@ All pages handle multiple response formats:
 ## 📊 Database Schema Integration
 
 ### Tables Used:
+
 - **users** - Customer & admin profiles
 - **orders** - Order records
 - **order_items** - Order line items
@@ -588,6 +658,7 @@ All pages handle multiple response formats:
 - **customers** - Customer data with risk scores
 
 ### Key Columns:
+
 - `risk_score` (0-5) - Fraud detection
 - `fraud_status` - Blocked/Active/Flagged
 - `order_status` - Processing workflow
@@ -598,6 +669,7 @@ All pages handle multiple response formats:
 ## 🔄 Workflow Examples
 
 ### Order Processing Workflow:
+
 1. Customer places order (Frontend)
 2. Order appears in Orders page (PENDING)
 3. Admin reviews and changes to PROCESSING
@@ -609,6 +681,7 @@ All pages handle multiple response formats:
 9. Closed after review
 
 ### Product Management Workflow:
+
 1. Admin clicks "+ Add Product"
 2. Fills form (Name, Price, SKU, etc.)
 3. Submits → API creates product
@@ -617,6 +690,7 @@ All pages handle multiple response formats:
 6. Stock updates in Inventory page
 
 ### Customer Fraud Detection Workflow:
+
 1. New customer with unusual behavior
 2. Fraud detection ML module scores customer (3.8/5)
 3. Customer appears in "Problematic" customers
@@ -630,6 +704,7 @@ All pages handle multiple response formats:
 ## 🛠️ Technology Stack
 
 ### Frontend:
+
 - **Framework:** Next.js 14 (React 18)
 - **UI Library:** Tailwind CSS
 - **State Management:** Zustand
@@ -639,6 +714,7 @@ All pages handle multiple response formats:
 - **Notifications:** React Hot Toast
 
 ### Backend API:
+
 - **Framework:** Express.js
 - **Database:** PostgreSQL (Supabase)
 - **ORM:** Drizzle ORM
@@ -650,6 +726,7 @@ All pages handle multiple response formats:
 ## 📝 Usage Examples
 
 ### Creating a New Order:
+
 ```typescript
 // Frontend (done via Frontend app)
 // Admin sees order in Orders page
@@ -662,6 +739,7 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 ```
 
 ### Adding a Product:
+
 ```typescript
 // Click "+ Add Product"
 // Form opens with fields:
@@ -674,6 +752,7 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 ```
 
 ### Blocking a Customer:
+
 ```typescript
 // Find customer in Customers page
 // Click "Block" button
@@ -688,15 +767,18 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 ### Common Issues:
 
 **Issue: "Could not fetch data" error**
+
 - Solution: Verify backend is running on port 5001
 - Check API_URL environment variable
 
 **Issue: Orders page showing empty**
+
 - Solution: Check if orders exist in database
 - Verify API returns correct format
 - Check browser console for errors
 
 **Issue: Login redirects to /login**
+
 - Solution: Token may be expired
 - Clear localStorage and re-login
 - Check backend JWT configuration
@@ -706,18 +788,21 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 ## 📈 Future Enhancements
 
 ### Priority 1 (High Impact):
+
 - [ ] Order details page (/dashboard/orders/[id])
 - [ ] Product image uploads
 - [ ] Bulk operations (CSV import)
 - [ ] Advanced search & filters
 
 ### Priority 2 (Medium Impact):
+
 - [ ] Email notifications
 - [ ] Webhook integrations
 - [ ] API key management
 - [ ] Audit logs
 
 ### Priority 3 (Low Impact):
+
 - [ ] Mobile app
 - [ ] Dark mode toggle
 - [ ] Multi-language support
@@ -728,12 +813,14 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 ## 📞 Support & Documentation
 
 ### Resources:
+
 - API Documentation: [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 - Deployment Guide: [DEPLOYMENT.md](DEPLOYMENT.md)
 - Setup Instructions: [SETUP_GUIDE.md](SETUP_GUIDE.md)
 - Project Overview: [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)
 
 ### Backend Endpoints:
+
 - Fraud Detection: `/api/fraud/score`
 - Customer Management: `/api/admin/customers`
 - Order Management: `/api/admin/orders`
@@ -768,6 +855,7 @@ const handleStatusUpdate = async (orderId, newStatus) => {
 **Status:** ✅ **COMPLETE**
 
 All core admin panel features have been integrated:
+
 - **9 Pages**: Dashboard, Orders, Products, Customers, Inventory, Payments, Analytics, Reports, Profile
 - **Full CRUD**: Create, Read, Update, Delete operations
 - **Advanced Filtering**: Status, search, date range filters

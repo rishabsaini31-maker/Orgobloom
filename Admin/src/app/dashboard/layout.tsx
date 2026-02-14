@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import Sidebar from "@/components/Sidebar";
@@ -13,15 +13,40 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated || user?.role !== "ADMIN") {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && (!isAuthenticated || user?.role !== "ADMIN")) {
       router.push("/login");
     }
-  }, [isAuthenticated, user, router]);
+  }, [isMounted, isAuthenticated, user, router]);
 
+  // Show loading state while hydrating auth from localStorage
+  if (!isMounted) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+          <p className="text-gray-600 text-sm">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading state while redirecting unauthorized users
   if (!isAuthenticated || user?.role !== "ADMIN") {
-    return null;
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-100">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+          <p className="text-gray-600 text-sm">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

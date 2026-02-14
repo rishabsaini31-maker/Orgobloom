@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { customersApi } from "@/lib/api";
+import { adminApi, customersApi } from "@/lib/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
@@ -19,18 +19,15 @@ export default function CustomersPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["customers", filter],
-    queryFn: () =>
-      filter === "problematic"
-        ? customersApi.getProblematic()
-        : customersApi.getAll({
-            filter: filter === "all" ? undefined : filter,
-          }),
+    queryKey: ["customers"],
+    queryFn: () => adminApi.getCustomers(),
+    retry: 2,
   });
 
   // Handle different API response formats
   let customers: any[] = [];
   if (customersData) {
+    console.log("Customers data received:", customersData);
     if (Array.isArray(customersData)) {
       customers = customersData;
     } else if (Array.isArray(customersData.data)) {
@@ -40,14 +37,28 @@ export default function CustomersPage() {
     }
   }
 
-  const filteredCustomers = Array.isArray(customers)
-    ? customers.filter(
-        (customer: any) =>
-          customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (customer.name &&
-            customer.name.toLowerCase().includes(searchTerm.toLowerCase())),
-      )
-    : [];
+  // Filter customers based on selected filter
+  let filteredByStatus = customers;
+  if (filter === "active") {
+    filteredByStatus = customers.filter((c: any) => !c.isBlocked);
+  } else if (filter === "blocked") {
+    filteredByStatus = customers.filter((c: any) => c.isBlocked);
+  } else if (filter === "problematic") {
+    filteredByStatus = customers.filter(
+      (c: any) => (c.issueLevel || "none") !== "none",
+    );
+  }
+
+  const filteredCustomers = filteredByStatus.filter(
+    (customer: any) =>
+      customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.name &&
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (customer.firstName &&
+        customer.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (customer.lastName &&
+        customer.lastName.toLowerCase().includes(searchTerm.toLowerCase())),
+  );
 
   const handleBlockCustomer = async (customerId: string) => {
     setBlockingId(customerId);
@@ -92,19 +103,19 @@ export default function CustomersPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="stat-card">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-gray-600 text-sm mb-2">Total Customers</h3>
           <p className="text-3xl font-bold text-primary-600">
             {customers.length}
           </p>
         </div>
 
-        <div className="stat-card">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-gray-600 text-sm mb-2">Active Customers</h3>
           <p className="text-3xl font-bold text-green-600">{activeCount}</p>
         </div>
 
-        <div className="stat-card">
+        <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
           <h3 className="text-gray-600 text-sm mb-2">Blocked Customers</h3>
           <p className="text-3xl font-bold text-red-600">{blockedCount}</p>
         </div>
@@ -115,7 +126,10 @@ export default function CustomersPage() {
         {(["all", "active", "blocked", "problematic"] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => setFilter(tab)}
+            onClick={() => {
+              setFilter(tab);
+              setSearchTerm("");
+            }}
             className={`px-4 py-2 font-medium text-sm transition border-b-2 ${
               filter === tab
                 ? "border-primary-600 text-primary-600"
@@ -137,7 +151,7 @@ export default function CustomersPage() {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Search by email or name..."
+          placeholder="Search by email, name, or customer info..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
@@ -212,13 +226,22 @@ export default function CustomersPage() {
                     {customer.email}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {customer.name || "-"}
+                    {customer.name ||
+                      `${customer.firstName || ""} ${customer.lastName || ""}`.trim() ||
+                      "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {customer.phone || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
-                    {customer.ordersCount || 0}
+                    <span className="font-medium">
+                      {customer.totalOrders || 0}
+                    </span>
+                    {customer.unPickedOrders > 0 && (
+                      <span className="ml-2 text-xs text-orange-600">
+                        ({customer.unPickedOrders} unpicked)
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex items-center gap-2">
