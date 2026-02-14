@@ -86,6 +86,27 @@ export default function Sidebar() {
         </Link>
 
         <Link
+          href="/dashboard/inventory"
+          className={`sidebar-link ${isActive("/dashboard/inventory") ? "sidebar-link-active" : ""}`}
+        >
+          <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4V5h12v10z" />
+            <path d="M6 7h2v2H6V7zm3 0h2v2H9V7zm3 0h2v2h-2V7zm-3 3h2v2H9v-2zm3 0h2v2h-2v-2z" />
+          </svg>
+          Inventory
+        </Link>
+
+        <Link
+          href="/dashboard/reports"
+          className={`sidebar-link ${isActive("/dashboard/reports") ? "sidebar-link-active" : ""}`}
+        >
+          <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+          </svg>
+          Reports
+        </Link>
+
+        <Link
           href="/dashboard/customize-app"
           className={`sidebar-link ${isActive("/dashboard/customize-app") ? "sidebar-link-active" : ""}`}
         >
@@ -97,6 +118,20 @@ export default function Sidebar() {
             />
           </svg>
           Customize App
+        </Link>
+
+        <Link
+          href="/dashboard/profile"
+          className={`sidebar-link ${isActive("/dashboard/profile") ? "sidebar-link-active" : ""}`}
+        >
+          <svg className="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Profile
         </Link>
 
         <Link

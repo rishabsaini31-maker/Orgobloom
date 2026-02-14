@@ -49,6 +49,15 @@ export const adminApi = {
     api.post(`/admin/payments/${paymentId}/retry`),
   getAppSettings: () => api.get("/admin/settings"),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
+  getCustomers: (params?: any) => api.get("/admin/customers", { params }),
+  getProducts: (params?: any) => api.get("/admin/products", { params }),
+  createProduct: (data: any) => api.post("/admin/products", data),
+  updateProduct: (id: string, data: any) =>
+    api.put(`/admin/products/${id}`, data),
+  deleteProduct: (id: string) => api.delete(`/admin/products/${id}`),
+  getInventory: (params?: any) => api.get("/admin/inventory", { params }),
+  updateInventory: (productId: string, data: any) =>
+    api.patch(`/admin/inventory/${productId}`, data),
 };
 
 // Customers API
