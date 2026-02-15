@@ -90,7 +90,7 @@ router.get("/slug/:slug", async (req: AuthRequest, res: Response, next: NextFunc
 });
 
 // Create product (admin only)
-router.post("/", authenticate, isAdmin, async (req: AuthRequest, res, next) => {
+router.post("/", authenticate, isAdmin, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = productSchema.parse(req.body);
 
