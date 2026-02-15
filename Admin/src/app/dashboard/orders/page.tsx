@@ -2,8 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore";
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState<
@@ -17,6 +18,12 @@ export default function OrdersPage() {
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { token } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     data: ordersData,
@@ -25,22 +32,26 @@ export default function OrdersPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["orders", filter],
+    queryKey: ["orders", filter, token],
     queryFn: () =>
       adminApi.getOrders({
         status: filter === "all" ? undefined : filter,
       }),
+    enabled: mounted && !!token,
+    refetchOnMount: "stale",
+  });
   });
 
   // Handle different API response formats
+  // API returns { orders: [...], pagination: {...} }
   let orders: any[] = [];
   if (ordersData) {
-    if (Array.isArray(ordersData)) {
+    if (ordersData.orders && Array.isArray(ordersData.orders)) {
+      orders = ordersData.orders;
+    } else if (Array.isArray(ordersData)) {
       orders = ordersData;
     } else if (Array.isArray(ordersData.data)) {
       orders = ordersData.data;
-    } else if (ordersData.data && typeof ordersData.data === "object") {
-      orders = Object.values(ordersData.data);
     }
   }
 

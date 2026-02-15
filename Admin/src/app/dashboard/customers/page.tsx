@@ -2,8 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { adminApi, customersApi } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore";
 
 export default function CustomersPage() {
   const [filter, setFilter] = useState<
@@ -11,6 +12,12 @@ export default function CustomersPage() {
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [blockingId, setBlockingId] = useState<string | null>(null);
+  const { token } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     data: customersData,
@@ -19,21 +26,21 @@ export default function CustomersPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["customers"],
+    queryKey: ["customers", token],
     queryFn: () => adminApi.getCustomers(),
+    enabled: mounted && !!token,
     retry: 2,
+    refetchOnMount: "stale",
   });
 
   // Handle different API response formats
+  // API returns { data: [...], total: number }
   let customers: any[] = [];
   if (customersData) {
-    console.log("Customers data received:", customersData);
-    if (Array.isArray(customersData)) {
-      customers = customersData;
-    } else if (Array.isArray(customersData.data)) {
+    if (customersData.data && Array.isArray(customersData.data)) {
       customers = customersData.data;
-    } else if (customersData.data && typeof customersData.data === "object") {
-      customers = Object.values(customersData.data);
+    } else if (Array.isArray(customersData)) {
+      customers = customersData;
     }
   }
 

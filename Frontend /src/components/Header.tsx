@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -27,8 +28,14 @@ export default function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="text-2xl font-bold text-primary-600">
-            Orgobloom
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo.jpg"
+              alt="Orgobloom Logo"
+              width={95}
+              height={110}
+              className="object-contain"
+            />
           </Link>
 
           {/* Navigation */}
@@ -56,6 +63,12 @@ export default function Header() {
               className="text-gray-700 hover:text-primary-600 font-medium"
             >
               Contact
+            </Link>
+            <Link
+              href="/support"
+              className="text-gray-700 hover:text-primary-600 font-medium"
+            >
+              Support
             </Link>
           </nav>
 

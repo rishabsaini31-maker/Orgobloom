@@ -15,32 +15,92 @@ const EmptyProductModal = ({
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    howToUse: "",
+    benefits: "",
+    compositions: "",
     price: "",
     stock: "",
     category: "",
     sku: "",
   });
+  const [images, setImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length + images.length > 6) {
+      toast.error("Maximum 6 images allowed");
+      return;
+    }
+    const newFiles = files.slice(0, 6 - images.length);
+    setImages([...images, ...newFiles]);
+
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreviews((prev) => [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (images.length === 0) {
+      toast.error("Please upload at least 1 image");
+      return;
+    }
+
+    if (images.length > 6) {
+      toast.error("Maximum 6 images allowed");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      const formDataWithImages = new FormData();
+      formDataWithImages.append("name", formData.name);
+      formDataWithImages.append("description", formData.description);
+      formDataWithImages.append("howToUse", formData.howToUse);
+      formDataWithImages.append("benefits", formData.benefits);
+      formDataWithImages.append("compositions", formData.compositions);
+      formDataWithImages.append("price", formData.price);
+      formDataWithImages.append("stock", formData.stock);
+      formDataWithImages.append("category", formData.category);
+      formDataWithImages.append("sku", formData.sku);
+
+      images.forEach((image) => {
+        formDataWithImages.append("images", image);
+      });
+
       await adminApi.createProduct({
         ...formData,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock),
+        images: images.length > 0 ? images : undefined,
       });
       toast.success("Product created successfully");
       onClose();
       setFormData({
         name: "",
         description: "",
+        howToUse: "",
+        benefits: "",
+        compositions: "",
         price: "",
         stock: "",
         category: "",
         sku: "",
       });
+      setImages([]);
+      setImagePreviews([]);
     } catch (error) {
       toast.error("Failed to create product");
     } finally {
@@ -51,76 +111,218 @@ const EmptyProductModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Add New Product</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Product Name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
-            required
-          />
-          <textarea
-            placeholder="Description"
-            value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-            rows={3}
-          />
-          <div className="grid grid-cols-2 gap-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-8 w-full max-w-2xl shadow-lg my-8">
+        <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 max-h-[80vh] overflow-y-auto"
+        >
+          {/* Basic Information */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Name *
+            </label>
             <input
-              type="number"
-              placeholder="Price (₹)"
-              value={formData.price}
+              type="text"
+              placeholder="Enter product name"
+              value={formData.name}
               onChange={(e) =>
-                setFormData({ ...formData, price: e.target.value })
+                setFormData({ ...formData, name: e.target.value })
               }
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-              required
-            />
-            <input
-              type="number"
-              placeholder="Stock Qty"
-              value={formData.stock}
-              onChange={(e) =>
-                setFormData({ ...formData, stock: e.target.value })
-              }
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
               required
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <input
-              type="text"
-              placeholder="Category"
-              value={formData.category}
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              placeholder="Brief overview of the product"
+              value={formData.description}
               onChange={(e) =>
-                setFormData({ ...formData, category: e.target.value })
+                setFormData({ ...formData, description: e.target.value })
               }
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-              required
-            />
-            <input
-              type="text"
-              placeholder="SKU"
-              value={formData.sku}
-              onChange={(e) =>
-                setFormData({ ...formData, sku: e.target.value })
-              }
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              rows={2}
             />
           </div>
-          <div className="flex gap-3 pt-4">
+
+          {/* How to Use */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              How to Use
+            </label>
+            <textarea
+              placeholder="Usage instructions and guidelines"
+              value={formData.howToUse}
+              onChange={(e) =>
+                setFormData({ ...formData, howToUse: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              rows={2}
+            />
+          </div>
+
+          {/* Benefits */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Benefits
+            </label>
+            <textarea
+              placeholder="Key benefits and health advantages"
+              value={formData.benefits}
+              onChange={(e) =>
+                setFormData({ ...formData, benefits: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              rows={2}
+            />
+          </div>
+
+          {/* Compositions */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Compositions
+            </label>
+            <textarea
+              placeholder="Ingredients and components list"
+              value={formData.compositions}
+              onChange={(e) =>
+                setFormData({ ...formData, compositions: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              rows={2}
+            />
+          </div>
+
+          {/* Price and Stock */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Price (₹) *
+              </label>
+              <input
+                type="number"
+                placeholder="Price"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Stock Quantity *
+              </label>
+              <input
+                type="number"
+                placeholder="Stock"
+                value={formData.stock}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Category and SKU */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Category *
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                required
+              >
+                <option value="">Select category</option>
+                <option value="cow">Cow Manure</option>
+                <option value="chicken">Chicken Manure</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                SKU *
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., COW-001 or CHICKEN-002"
+                value={formData.sku}
+                onChange={(e) =>
+                  setFormData({ ...formData, sku: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Unique product code, e.g. COW-001
+              </p>
+            </div>
+          </div>
+
+          {/* Image Upload Section */}
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Product Images (Min: 1, Max: 6) *
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={images.length >= 6}
+              className="w-full text-sm text-gray-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              {images.length}/6 images selected
+            </p>
+          </div>
+
+          {/* Image Previews */}
+          {imagePreviews.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image Previews
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {imagePreviews.map((preview, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={preview}
+                      alt={`Preview ${index + 1}`}
+                      className="w-full h-24 object-cover rounded-lg border border-gray-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-6 border-t">
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 font-medium"
+              disabled={isSubmitting || images.length === 0}
+              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {isSubmitting ? "Creating..." : "Create Product"}
             </button>
@@ -153,6 +355,10 @@ export default function ProductsPage() {
   } = useQuery({
     queryKey: ["products"],
     queryFn: () => adminApi.getProducts(),
+    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Cache is kept for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on mount if data exists
   });
 
   // Handle different API response formats
@@ -167,27 +373,26 @@ export default function ProductsPage() {
     }
   }
 
-  let filteredProducts = Array.isArray(products) ? products : [];
-
-  if (filter !== "all") {
-    filteredProducts = filteredProducts.filter((p: any) =>
-      filter === "active" ? p.isActive !== false : p.isActive === false,
-    );
+  // Filter products
+  let filteredProducts = products;
+  if (filter === "active") {
+    filteredProducts = products.filter((p: any) => p.status === "active");
+  } else if (filter === "inactive") {
+    filteredProducts = products.filter((p: any) => p.status === "inactive");
   }
 
   filteredProducts = filteredProducts.filter(
-    (p: any) =>
-      p.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category?.toLowerCase().includes(searchTerm.toLowerCase()),
+    (product: any) =>
+      product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.sku?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const handleDelete = async (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     setDeletingId(productId);
     try {
-      await adminApi.deleteProduct(productId);
-      toast.success("Product deleted");
+      await adminApi.deleteProduct?.(productId);
+      toast.success("Product deleted successfully");
       refetch();
     } catch (error) {
       toast.error("Failed to delete product");
@@ -196,20 +401,13 @@ export default function ProductsPage() {
     }
   };
 
-  const stats = {
-    total: products.length,
-    active: products.filter((p: any) => p.isActive !== false).length,
-    lowStock: products.filter((p: any) => p.stock <= 10).length,
-    outOfStock: products.filter((p: any) => p.stock === 0).length,
-  };
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Product Management</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold">Products Management</h1>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition font-medium"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
         >
           + Add Product
         </button>
@@ -220,190 +418,110 @@ export default function ProductsPage() {
         onClose={() => setIsAddModalOpen(false)}
       />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: "Total Products", count: stats.total, icon: "📦" },
-          { label: "Active", count: stats.active, icon: "✅" },
-          { label: "Low Stock", count: stats.lowStock, icon: "⚠️" },
-          { label: "Out of Stock", count: stats.outOfStock, icon: "❌" },
-        ].map((stat, idx) => (
-          <div key={idx} className="stat-card">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-gray-600 text-xs mb-1">{stat.label}</h3>
-                <p className="text-2xl font-bold text-primary-600">
-                  {stat.count}
-                </p>
-              </div>
-              <span className="text-xl">{stat.icon}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
-        {(["all", "active", "inactive"] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`px-3 py-2 font-medium text-xs transition border-b-2 ${
-              filter === tab
-                ? "border-primary-600 text-primary-600"
-                : "border-transparent text-gray-600 hover:text-gray-900"
-            }`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Search Bar */}
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search by name, SKU, or category..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
-        />
-      </div>
-
-      {/* Products Table */}
-      {isLoading ? (
-        <div className="flex items-center justify-center py-8">
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
-      ) : isError ? (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <p className="text-red-700 font-medium mb-2">
-            Error loading products
-          </p>
-          <p className="text-red-600 text-sm mb-4">
-            {error instanceof Error
-              ? error.message
-              : "Failed to fetch product data"}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
-          >
-            Retry
-          </button>
-        </div>
-      ) : !Array.isArray(products) || products.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-gray-500">
-            {!Array.isArray(products)
-              ? "No data available"
-              : "No products found"}
-          </p>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  SKU
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Product Name
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Category
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Price
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Stock
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.slice(0, 50).map((product: any) => {
-                const stockStatus =
-                  product.stock === 0
-                    ? "Out of Stock"
-                    : product.stock <= 10
-                      ? "Low Stock"
-                      : "In Stock";
-                const stockColor = {
-                  "Out of Stock": "text-red-600",
-                  "Low Stock": "text-orange-600",
-                  "In Stock": "text-green-600",
-                }[stockStatus];
+      )}
 
-                return (
-                  <tr
-                    key={product.id}
-                    className="border-b border-gray-200 hover:bg-gray-50 transition"
-                  >
-                    <td className="px-4 py-3 text-xs font-mono text-gray-600">
-                      {product.sku}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-medium text-gray-900">
+      {isError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-800">
+            Error loading products:{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
+          </p>
+        </div>
+      )}
+
+      {!isLoading && (
+        <>
+          {/* Search and Filter */}
+          <div className="mb-6 space-y-4">
+            <input
+              type="text"
+              placeholder="Search by product name or SKU..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600"
+            />
+            <div className="flex gap-2 border-b border-gray-200">
+              {(["all", "active", "inactive"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-3 py-2 font-medium text-xs transition border-b-2 ${
+                    filter === f
+                      ? "border-primary-600 text-primary-600"
+                      : "border-transparent text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Products List */}
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                {products.length === 0
+                  ? "No products yet. Click 'Add Product' to get started."
+                  : "No products match your search."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredProducts.map((product: any) => (
+                <div
+                  key={product.id}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-semibold text-gray-900 flex-1">
                       {product.name}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-gray-600">
-                      {product.category}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-semibold text-gray-900">
-                      ₹{(product.price || 0).toLocaleString()}
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        <span className={`font-semibold ${stockColor}`}>
-                          {product.stock}
-                        </span>
-                        <span className="text-gray-500">units</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          product.isActive !== false
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-700"
-                        }`}
+                    </h3>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        product.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {product.status || "active"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {product.description}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
+                    <div>
+                      <p className="text-gray-500">Price</p>
+                      <p className="font-semibold">₹{product.price}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Stock</p>
+                      <p
+                        className={`font-semibold ${product.stock === 0 ? "text-red-600" : "text-gray-900"}`}
                       >
-                        {product.isActive !== false ? "Active" : "Inactive"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs flex gap-2">
-                      <button
-                        onClick={() => toast.success(`Edit ${product.name}`)}
-                        className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(product.id)}
-                        disabled={deletingId === product.id}
-                        className="px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition disabled:opacity-50"
-                      >
-                        {deletingId === product.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {filteredProducts.length > 50 && (
-            <div className="px-4 py-3 text-xs text-gray-600 bg-gray-50 border-t border-gray-200">
-              Showing 50 of {filteredProducts.length} products
+                        {product.stock}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleDeleteProduct(product.id)}
+                      disabled={deletingId === product.id}
+                      className="flex-1 px-3 py-1 text-sm border border-red-300 text-red-600 rounded hover:bg-red-50 transition disabled:opacity-50"
+                    >
+                      {deletingId === product.id ? "Deleting..." : "Delete"}
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

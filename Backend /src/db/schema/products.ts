@@ -1,7 +1,6 @@
 import {
   pgTable,
   text,
-  timestamp,
   real,
   integer,
   boolean,
@@ -31,8 +30,8 @@ export const products = pgTable("products", {
   isActive: boolean("is_active").default(true).notNull(),
   isFeatured: boolean("is_featured").default(false).notNull(),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 export type Product = typeof products.$inferSelect;

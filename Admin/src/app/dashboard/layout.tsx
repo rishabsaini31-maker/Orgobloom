@@ -12,18 +12,26 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, token } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    // Wait for Zustand to hydrate from localStorage
+    const checkAuth = setTimeout(() => {
+      setIsMounted(true);
+    }, 50);
+    return () => clearTimeout(checkAuth);
   }, []);
 
   useEffect(() => {
-    if (isMounted && (!isAuthenticated || user?.role !== "ADMIN")) {
-      router.push("/login");
+    // Check auth after hydration
+    if (isMounted) {
+      // If no token, they're not authenticated
+      if (!token || !isAuthenticated || user?.role !== "ADMIN") {
+        router.push("/login");
+      }
     }
-  }, [isMounted, isAuthenticated, user, router]);
+  }, [isMounted, token, isAuthenticated, user, router]);
 
   // Show loading state while hydrating auth from localStorage
   if (!isMounted) {

@@ -2,8 +2,17 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
+  const { token } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     data: analyticsData,
     isLoading,
@@ -11,19 +20,21 @@ export default function DashboardPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["analytics"],
+    queryKey: ["analytics", token],
     queryFn: adminApi.getAnalytics,
+    enabled: mounted && !!token,
     retry: 2,
+    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Cache is kept for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: "stale", // Refetch if data is stale
   });
 
   // Parse analytics data with multiple format support
   let stats: any = {};
   if (analyticsData) {
-    if (analyticsData.data) {
-      stats = analyticsData.data;
-    } else if (typeof analyticsData === "object") {
-      stats = analyticsData;
-    }
+    // API returns { data: { totalOrders, totalRevenue, ordersByStatus } }
+    stats = analyticsData.data || analyticsData || {};
   }
 
   if (isLoading) {

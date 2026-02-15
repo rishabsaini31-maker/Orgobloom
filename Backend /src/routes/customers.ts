@@ -24,26 +24,21 @@ router.get("/", authenticate, async (req, res) => {
 
     // Enrich with order statistics
     const customersWithStats = await Promise.all(
-      allUsers.map(async (customer) => {
-        // Count unpicked/cancelled orders (delivered but cancelled later or not collected)
-        const unPickedOrders = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(orders)
-          .where(
-            and(
-              eq(orders.userId, customer.id),
-              sql`(status = 'DELIVERED' AND cancelled_at IS NOT NULL) OR status = 'CANCELLED'`,
-            ),
-          );
-
-        // Count total orders
-        const totalOrders = await db
-          .select({ count: sql<number>`count(*)::int` })
+      allUsers.map(async (customer: typeof allUsers[0]) => {
+        // Get all orders for this customer
+        const customerOrders = await db
+          .select()
           .from(orders)
           .where(eq(orders.userId, customer.id));
 
-        const unPickedCount = unPickedOrders[0]?.count || 0;
-        const total = totalOrders[0]?.count || 0;
+        const total = customerOrders.length;
+        
+        // Count unpicked/cancelled orders
+        const unPickedCount = customerOrders.filter(
+          (order) =>
+            order.status === "CANCELLED" ||
+            (order.status === "DELIVERED" && order.cancelledAt !== null)
+        ).length;
 
         return {
           ...customer,
@@ -88,7 +83,7 @@ router.get("/problematic", authenticate, async (req, res) => {
 
     // Get problematic customers
     const problematicCustomers = await Promise.all(
-      allUsers.map(async (customer) => {
+      allUsers.map(async (customer: typeof allUsers[0]) => {
         const unPickedOrders = await db
           .select({ count: sql<number>`count(*)::int` })
           .from(orders)

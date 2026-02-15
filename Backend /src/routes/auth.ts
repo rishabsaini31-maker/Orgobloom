@@ -7,7 +7,6 @@ import { registerSchema, loginSchema } from "@/utils/validations";
 import { ApiError } from "@/middleware/errorHandler";
 import { loginLimiter, registerLimiter } from "@/middleware/rateLimiter";
 import { OAuth2Client } from "google-auth-library";
-import { triggerLoginFraudCheck } from "@/modules/fraud/fraud.integration";
 
 const router = Router();
 
@@ -107,13 +106,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
     // Remove password from response
     const { password, ...userWithoutPassword } = user;
 
-    // Note: Fraud check runs async in background - doesn't block login
-    // This is temporary until the fraud module is fully debugged
-    setImmediate(() => {
-      triggerLoginFraudCheck(req, user.id, user.email).catch((err) => {
-        console.error("[AUTH] Background fraud check failed:", err.message);
-      });
-    });
+    // Note: Fraud check disabled for now
 
     res.json({
       message: "Login successful",
@@ -201,24 +194,9 @@ router.post("/google", registerLimiter, async (req, res, next) => {
     // Remove password from response
     const { password, ...userWithoutPassword } = existingUser;
 
-    // Trigger fraud risk evaluation on login
-    const fraudCheck = await triggerLoginFraudCheck(
-      req,
-      existingUser.id,
-      existingUser.email,
-    );
-
-    // Fetch updated user with fraud status
-    const [updatedUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, existingUser.id));
-
-    const { password: _, ...userWithFraud } = updatedUser;
-
     res.json({
       message: "Google login successful",
-      user: userWithFraud,
+      user: userWithoutPassword,
       token: authToken,
     });
   } catch (error) {

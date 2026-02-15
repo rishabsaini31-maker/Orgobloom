@@ -2,31 +2,53 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { adminApi } from "@/lib/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useAuthStore } from "@/store/authStore";
 
 export default function PaymentsPage() {
   const [filter, setFilter] = useState<
     "all" | "completed" | "pending" | "failed"
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const { token } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const {
     data: paymentsData,
     isLoading,
+    isError,
+    error,
     refetch,
   } = useQuery({
-    queryKey: ["payments", filter],
+    queryKey: ["payments", filter, token],
     queryFn: () => adminApi.getPayments(filter),
+    enabled: mounted && !!token,
+    refetchOnMount: "stale",
   });
 
-  const payments = paymentsData?.data || [];
+  // Handle different API response formats
+  // API returns { data: [...] }
+  let payments: any[] = [];
+  if (paymentsData) {
+    if (paymentsData.data && Array.isArray(paymentsData.data)) {
+      payments = paymentsData.data;
+    } else if (Array.isArray(paymentsData)) {
+      payments = paymentsData;
+    }
+  }
 
-  const filteredPayments = payments.filter(
-    (payment: any) =>
-      payment.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const filteredPayments = Array.isArray(payments)
+    ? payments.filter(
+        (payment: any) =>
+          payment.orderId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          payment.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    : [];
 
   const handleRetryPayment = async (paymentId: string) => {
     try {
@@ -37,6 +59,30 @@ export default function PaymentsPage() {
       toast.error("Failed to retry payment");
     }
   };
+
+  if (isError) {
+    return (
+      <div>
+        <h1 className="text-3xl font-bold mb-8">Payment Management</h1>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <p className="text-red-800 font-semibold mb-2">
+            ❌ Error Loading Payments
+          </p>
+          <p className="text-red-600 text-sm mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load payment data"}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

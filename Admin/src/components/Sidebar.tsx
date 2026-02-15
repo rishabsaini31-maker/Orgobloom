@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,8 +11,16 @@ export default function Sidebar() {
 
   return (
     <aside className="w-64 bg-white shadow-lg">
-      <div className="p-6">
-        <h1 className="text-2xl font-bold text-primary-600">Orgobloom</h1>
+      <div className="p-6 flex flex-col items-center">
+        <Link href="/dashboard" className="mb-3">
+          <Image
+            src="/logo.jpg"
+            alt="Orgobloom Logo"
+            width={150}
+            height={150}
+            className="object-contain"
+          />
+        </Link>
         <p className="text-sm text-gray-600">Admin Panel</p>
       </div>
 

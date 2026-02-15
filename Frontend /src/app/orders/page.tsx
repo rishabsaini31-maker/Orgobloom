@@ -3,65 +3,84 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface Order {
   id: string;
   orderNumber: string;
-  date: string;
+  createdAt: string;
   total: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: string;
   items: number;
 }
 
-const mockOrders: Order[] = [
-  {
-    id: "1",
-    orderNumber: "#ORG-2025-001",
-    date: "2025-02-14",
-    total: 2499,
-    status: "delivered",
-    items: 3,
-  },
-  {
-    id: "2",
-    orderNumber: "#ORG-2025-002",
-    date: "2025-02-10",
-    total: 1299,
-    status: "shipped",
-    items: 1,
-  },
-  {
-    id: "3",
-    orderNumber: "#ORG-2025-003",
-    date: "2025-02-05",
-    total: 3599,
-    status: "processing",
-    items: 5,
-  },
-];
-
 export default function OrdersPage() {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+
+  // Load orders on component mount
+  useEffect(() => {
+    setMounted(true);
+    const loadOrders = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/orders`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setOrders(data.orders);
+        }
+      } catch (error) {
+        console.error("Failed to load orders:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrders();
+  }, []);
 
   const filteredOrders =
     selectedStatus === "all"
-      ? mockOrders
-      : mockOrders.filter((order) => order.status === selectedStatus);
+      ? orders
+      : orders.filter((order) =>
+          order.status.toLowerCase().includes(selectedStatus.toLowerCase()),
+        );
 
   const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
+    const statusMap: Record<string, string> = {
       pending: "bg-gray-100 text-gray-800",
       processing: "bg-blue-100 text-blue-800",
       shipped: "bg-purple-100 text-purple-800",
       delivered: "bg-green-100 text-green-800",
       cancelled: "bg-red-100 text-red-800",
+      confirmed: "bg-green-100 text-green-800",
     };
-    return colors[status] || colors.pending;
-  };
 
-  const router = useRouter();
+    const lowerStatus = status.toLowerCase();
+    return (
+      statusMap[lowerStatus] ||
+      (lowerStatus.includes("confirm")
+        ? statusMap.confirmed
+        : statusMap.pending)
+    );
+  };
 
   return (
     <>
@@ -100,25 +119,38 @@ export default function OrdersPage() {
 
             {/* Filter Buttons */}
             <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-              {["all", "processing", "shipped", "delivered", "cancelled"].map(
-                (status) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
-                      selectedStatus === status
-                        ? "bg-primary-600 text-white"
-                        : "bg-white text-gray-700 border border-gray-300 hover:border-primary-600"
-                    }`}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ),
-              )}
+              {[
+                "all",
+                "confirmed",
+                "processing",
+                "shipped",
+                "delivered",
+                "cancelled",
+              ].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                    selectedStatus === status
+                      ? "bg-primary-600 text-white"
+                      : "bg-white text-gray-700 border border-gray-300 hover:border-primary-600"
+                  }`}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              ))}
             </div>
 
+            {/* Loading State */}
+            {loading && (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <p className="text-gray-600 mt-4">Loading orders...</p>
+              </div>
+            )}
+
             {/* Orders List */}
-            {filteredOrders.length > 0 ? (
+            {!loading && filteredOrders.length > 0 ? (
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
                   <div
@@ -136,7 +168,7 @@ export default function OrdersPage() {
                       <div className="flex-1">
                         <p className="text-sm text-gray-600">Order Date</p>
                         <p className="text-lg font-semibold text-gray-800">
-                          {new Date(order.date).toLocaleDateString()}
+                          {new Date(order.createdAt).toLocaleDateString()}
                         </p>
                       </div>
 
@@ -173,7 +205,7 @@ export default function OrdersPage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : !loading ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                 <svg
                   className="w-16 h-16 mx-auto text-gray-400 mb-4"
@@ -196,7 +228,7 @@ export default function OrdersPage() {
                   Browse Products
                 </Link>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </main>
