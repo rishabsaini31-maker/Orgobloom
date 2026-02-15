@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq, and, ilike, desc } from "drizzle-orm";
@@ -10,7 +10,7 @@ import { ApiError } from "@/middleware/errorHandler";
 const router = Router();
 
 // Get all products (public)
-router.get("/", async (req, res, next) => {
+router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 12;

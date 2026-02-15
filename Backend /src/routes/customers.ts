@@ -1,13 +1,13 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "../db";
 import { users, orders } from "../db/schema";
 import { eq, and, gte, count, sql } from "drizzle-orm";
-import { authenticate } from "../middleware/auth";
+import { authenticate, AuthRequest } from "../middleware/auth";
 
 const router = Router();
 
 // Get all customers with issue tracking
-router.get("/", authenticate, async (req, res) => {
+router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const allUsers = await db
       .select({

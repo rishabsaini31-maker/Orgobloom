@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -6,6 +6,7 @@ import { hashPassword, comparePassword, generateToken } from "@/utils/auth";
 import { registerSchema, loginSchema } from "@/utils/validations";
 import { ApiError } from "@/middleware/errorHandler";
 import { loginLimiter, registerLimiter } from "@/middleware/rateLimiter";
+import { AuthRequest } from "@/middleware/auth";
 import { OAuth2Client } from "google-auth-library";
 
 const router = Router();
@@ -17,7 +18,7 @@ const googleClient = new OAuth2Client(
 );
 
 // Register
-router.post("/register", registerLimiter, async (req, res, next) => {
+router.post("/register", registerLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = registerSchema.parse(req.body);
 
@@ -63,7 +64,7 @@ router.post("/register", registerLimiter, async (req, res, next) => {
 });
 
 // Login
-router.post("/login", loginLimiter, async (req, res, next) => {
+router.post("/login", loginLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const validatedData = loginSchema.parse(req.body);
 
@@ -119,7 +120,7 @@ router.post("/login", loginLimiter, async (req, res, next) => {
 });
 
 // Google OAuth
-router.post("/google", registerLimiter, async (req, res, next) => {
+router.post("/google", registerLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { token } = req.body;
 

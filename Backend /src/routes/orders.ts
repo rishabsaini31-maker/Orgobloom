@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { orders, orderItems, addresses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -9,7 +9,7 @@ import { createId } from "@paralleldrive/cuid2";
 const router = Router();
 
 // Create order
-router.post("/", authenticate, async (req: AuthRequest, res, next) => {
+router.post("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {

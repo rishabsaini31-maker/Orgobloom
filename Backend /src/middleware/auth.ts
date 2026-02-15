@@ -4,6 +4,8 @@ import { User } from "@/db/schema";
 
 export interface AuthRequest extends Request {
   user?: User;
+  body: any;
+  params: any;
 }
 
 export const authenticate = (

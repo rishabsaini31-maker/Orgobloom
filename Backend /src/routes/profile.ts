@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -9,7 +9,7 @@ import { ApiError } from "@/middleware/errorHandler";
 const router = Router();
 
 // Get current user profile
-router.get("/me", authenticate, async (req: AuthRequest, res, next) => {
+router.get("/me", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
 
