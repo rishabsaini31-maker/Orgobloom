@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -42,7 +42,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/", apiLimiter);
 
 // Health check
-app.get("/health", (req, res) => {
+app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
@@ -56,7 +56,7 @@ app.use("/api/orders", ordersRoutes);
 app.use("/api/addresses", addressesRoutes);
 
 // 404 handler
-app.use((req, res) => {
+app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Route not found" });
 });
 

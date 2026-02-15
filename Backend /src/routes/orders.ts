@@ -87,7 +87,7 @@ router.post("/", authenticate, async (req: AuthRequest, res: Response, next: Nex
 });
 
 // Get user orders
-router.get("/", authenticate, async (req: AuthRequest, res, next) => {
+router.get("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -132,7 +132,7 @@ router.get("/", authenticate, async (req: AuthRequest, res, next) => {
 });
 
 // Get order details
-router.get("/:orderId", authenticate, async (req: AuthRequest, res, next) => {
+router.get("/:orderId", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     const orderId = req.params.orderId;
@@ -171,7 +171,7 @@ router.get("/:orderId", authenticate, async (req: AuthRequest, res, next) => {
 router.patch(
   "/:orderId/status",
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;
       const orderId = req.params.orderId;
@@ -207,7 +207,7 @@ router.patch(
 router.post(
   "/:orderId/cancel",
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;
       const orderId = req.params.orderId;

@@ -52,7 +52,7 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
 });
 
 // Get product by ID (public)
-router.get("/:id", async (req, res, next) => {
+router.get("/:id", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const [product] = await db
       .select()
@@ -71,7 +71,7 @@ router.get("/:id", async (req, res, next) => {
 });
 
 // Get product by slug (public)
-router.get("/slug/:slug", async (req, res, next) => {
+router.get("/slug/:slug", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const [product] = await db
       .select()
@@ -126,7 +126,7 @@ router.put(
   "/:id",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const validatedData = productSchema.partial().parse(req.body);
 
@@ -152,7 +152,7 @@ router.delete(
   "/:id",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const [deleted] = await db
         .delete(products)

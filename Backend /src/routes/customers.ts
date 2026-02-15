@@ -65,7 +65,7 @@ router.get("/", authenticate, async (req: AuthRequest, res: Response) => {
 });
 
 // Get special customers (with 2+ unpicked orders)
-router.get("/problematic", authenticate, async (req, res) => {
+router.get("/problematic", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const allUsers = await db
       .select({
@@ -127,7 +127,7 @@ router.get("/problematic", authenticate, async (req, res) => {
 });
 
 // Get customer details with order history
-router.get("/:customerId", authenticate, async (req, res) => {
+router.get("/:customerId", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { customerId } = req.params;
 
@@ -159,7 +159,7 @@ router.get("/:customerId", authenticate, async (req, res) => {
 });
 
 // Block customer
-router.post("/:customerId/block", authenticate, async (req, res) => {
+router.post("/:customerId/block", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { customerId } = req.params;
     const { reason } = req.body;
@@ -188,7 +188,7 @@ router.post("/:customerId/block", authenticate, async (req, res) => {
 });
 
 // Unblock customer
-router.post("/:customerId/unblock", authenticate, async (req, res) => {
+router.post("/:customerId/unblock", authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const { customerId } = req.params;
 

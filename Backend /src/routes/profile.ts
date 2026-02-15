@@ -38,7 +38,7 @@ router.get("/me", authenticate, async (req: AuthRequest, res: Response, next: Ne
 });
 
 // Update profile
-router.put("/profile", authenticate, async (req: AuthRequest, res, next) => {
+router.put("/profile", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { name, phone } = req.body;
     const userId = req.user?.id;
@@ -73,7 +73,7 @@ router.put("/profile", authenticate, async (req: AuthRequest, res, next) => {
 });
 
 // Change password
-router.put("/password", authenticate, async (req: AuthRequest, res, next) => {
+router.put("/password", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const { currentPassword, newPassword } = req.body;
     const userId = req.user?.id;
