@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node -r tsconfig-paths/register dist/server.js",
     "setup": "tsx src/setup.ts",
     "update-admin": "tsx src/update-admin.ts",
     "db:generate": "drizzle-kit generate:pg",
@@ -43,6 +43,7 @@
     "pdfkit": "^0.14.0",
     "postgres": "^3.4.3",
     "razorpay": "^2.9.3",
+    "tsconfig-paths": "^4.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
