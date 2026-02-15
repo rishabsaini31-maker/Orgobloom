@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { orders, products, users } from "@/db/schema";
 import { eq, sql, gte, and, lt } from "drizzle-orm";
@@ -15,7 +15,7 @@ router.get(
   "/orders",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
@@ -56,7 +56,7 @@ router.patch(
   "/orders/:id/status",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { status, trackingNumber, notes } = req.body;
 
@@ -89,7 +89,7 @@ router.get(
   "/analytics",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // Get total revenue using database aggregation (replaces memory filtering)
       const [revenueResult] = await db
@@ -139,7 +139,7 @@ router.get(
   "/analytics/advanced",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const timeRange = (req.query.timeRange as string) || "30d";
       const daysAgo = timeRange === "7d" ? 7 : timeRange === "30d" ? 30 : 90;
@@ -319,7 +319,7 @@ router.get(
   "/payments",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const status = req.query.status as string;
 
@@ -368,7 +368,7 @@ router.post(
   "/payments/:id/retry",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       res.json({ success: true, message: "Payment retry initiated" });
     } catch (error) {
@@ -384,7 +384,7 @@ router.get(
   "/settings",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const settings = {
         appName: "Orgobloom",
@@ -419,7 +419,7 @@ router.put(
   "/settings",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       res.json({
         success: true,
@@ -439,7 +439,7 @@ router.get(
   "/products",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const allProducts = await db.select().from(products);
 
@@ -458,7 +458,7 @@ router.post(
   "/products",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const {
         name,
@@ -528,7 +528,7 @@ router.put(
   "/products/:id",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const {
@@ -574,7 +574,7 @@ router.delete(
   "/products/:id",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
 
@@ -592,7 +592,7 @@ router.patch(
   "/products/:id/status",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       const { isActive, isFeatured } = req.body;
@@ -625,7 +625,7 @@ router.get(
   "/inventory",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const allProducts = await db.select().from(products);
 
@@ -656,7 +656,7 @@ router.patch(
   "/inventory/:productId",
   authenticate,
   isAdmin,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { productId } = req.params;
       const { stock, quantity, action } = req.body;

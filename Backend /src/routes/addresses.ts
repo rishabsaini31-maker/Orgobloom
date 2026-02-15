@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { addresses } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -8,7 +8,7 @@ import { ApiError } from "@/middleware/errorHandler";
 const router = Router();
 
 // Get user addresses
-router.get("/", authenticate, async (req: AuthRequest, res, next) => {
+router.get("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -29,7 +29,7 @@ router.get("/", authenticate, async (req: AuthRequest, res, next) => {
 });
 
 // Create new address
-router.post("/", authenticate, async (req: AuthRequest, res, next) => {
+router.post("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -85,7 +85,7 @@ router.post("/", authenticate, async (req: AuthRequest, res, next) => {
 });
 
 // Update address
-router.put("/:addressId", authenticate, async (req: AuthRequest, res, next) => {
+router.put("/:addressId", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.id;
     const addressId = req.params.addressId;
@@ -153,7 +153,7 @@ router.put("/:addressId", authenticate, async (req: AuthRequest, res, next) => {
 router.delete(
   "/:addressId",
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;
       const addressId = req.params.addressId;
@@ -188,7 +188,7 @@ router.delete(
 router.post(
   "/:addressId/default",
   authenticate,
-  async (req: AuthRequest, res, next) => {
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;
       const addressId = req.params.addressId;
