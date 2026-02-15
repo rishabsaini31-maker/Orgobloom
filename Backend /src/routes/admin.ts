@@ -117,7 +117,7 @@ router.get(
 
       // Convert to object format for response
       const ordersByStatus: Record<string, number> = {};
-      statusGroups.forEach((group) => {
+      statusGroups.forEach((group: any) => {
         ordersByStatus[group.status || "UNKNOWN"] = group.count;
       });
 
@@ -239,22 +239,22 @@ router.get(
       // Build chart data from database results
       const chartData = {
         revenueTrend: {
-          labels: revenueTrend.map((r) => {
+          labels: revenueTrend.map((r: any) => {
             const dateStr = typeof r.date === 'string' ? r.date : (r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date));
             return new Date(dateStr).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
             });
           }),
-          data: revenueTrend.map((r) => Math.round(Number(r.revenue))),
+          data: revenueTrend.map((r: any) => Math.round(Number(r.revenue))),
         },
         orderStatus: {
           labels: ["Pending", "Shipped", "Delivered", "Cancelled"],
           data: [
-            statusBreakdown.find((s) => s.status === "PENDING")?.count || 0,
-            statusBreakdown.find((s) => s.status === "SHIPPED")?.count || 0,
-            statusBreakdown.find((s) => s.status === "DELIVERED")?.count || 0,
-            statusBreakdown.find((s) => s.status === "CANCELLED")?.count || 0,
+            statusBreakdown.find((s: any) => s.status === "PENDING")?.count || 0,
+            statusBreakdown.find((s: any) => s.status === "SHIPPED")?.count || 0,
+            statusBreakdown.find((s: any) => s.status === "DELIVERED")?.count || 0,
+            statusBreakdown.find((s: any) => s.status === "CANCELLED")?.count || 0,
           ],
         },
         categorySales: {
@@ -340,7 +340,7 @@ router.get(
       const allPayments = await query;
 
       // Format the response
-      let paymentsList = allPayments.map((p) => ({
+      let paymentsList = allPayments.map((p: any) => ({
         id: p.id,
         orderId: p.orderId,
         customerName: p.customerName || "Unknown Customer",
@@ -353,7 +353,7 @@ router.get(
 
       // Filter by status if provided
       if (status && status !== "all") {
-        paymentsList = paymentsList.filter((p) => p.status === status);
+        paymentsList = paymentsList.filter((p: any) => p.status === status);
       }
 
       res.json({ data: paymentsList });

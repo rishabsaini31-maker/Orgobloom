@@ -35,7 +35,7 @@ router.get("/", authenticate, async (req, res) => {
         
         // Count unpicked/cancelled orders
         const unPickedCount = customerOrders.filter(
-          (order) =>
+          (order: any) =>
             order.status === "CANCELLED" ||
             (order.status === "DELIVERED" && order.cancelledAt !== null)
         ).length;
