@@ -1,0 +1,12 @@
+{
+  "name": "orgobloom",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "install": "cd Backend && npm install",
+    "build": "cd Backend && npm run build",
+    "start": "cd Backend && npm start",
+    "dev": "cd Backend && npm run dev"
+  },
+  "description": "Orgobloom E-Commerce Platform"
+}
