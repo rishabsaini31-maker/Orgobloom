@@ -40,7 +40,6 @@ export default function OrdersPage() {
     enabled: mounted && !!token,
     refetchOnMount: "stale",
   });
-  });
 
   // Handle different API response formats
   // API returns { orders: [...], pagination: {...} }
