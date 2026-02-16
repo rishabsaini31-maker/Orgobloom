@@ -55,7 +55,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="admin@orgobloom.com"
+                placeholder="orgobloom5033@gmail.com"
               />
             </div>
 
@@ -88,10 +88,12 @@ export default function LoginPage() {
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
             <p className="text-xs font-semibold text-gray-700 mb-2">
-              Default Credentials:
+              Admin Credentials:
             </p>
-            <p className="text-xs text-gray-600">Email: admin@orgobloom.com</p>
-            <p className="text-xs text-gray-600">Password: Admin@123456</p>
+            <p className="text-xs text-gray-600">
+              Email: orgobloom5033@gmail.com
+            </p>
+            <p className="text-xs text-gray-600">Password: orgobloom5033@@$</p>
           </div>
         </div>
       </div>
