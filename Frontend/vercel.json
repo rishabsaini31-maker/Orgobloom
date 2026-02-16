@@ -5,6 +5,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://orgobloom.onrender.com"
+    "NEXT_PUBLIC_API_URL": "https://orgobloom.onrender.com/api"
   }
 }
