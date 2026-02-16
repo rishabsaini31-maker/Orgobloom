@@ -45,12 +45,13 @@ export default function OrdersPage() {
   // API returns { orders: [...], pagination: {...} }
   let orders: any[] = [];
   if (ordersData) {
-    if (ordersData.orders && Array.isArray(ordersData.orders)) {
-      orders = ordersData.orders;
-    } else if (Array.isArray(ordersData)) {
-      orders = ordersData;
-    } else if (Array.isArray(ordersData.data)) {
-      orders = ordersData.data;
+    const responseData = ordersData.data || ordersData;
+    if (responseData.orders && Array.isArray(responseData.orders)) {
+      orders = responseData.orders;
+    } else if (Array.isArray(responseData)) {
+      orders = responseData;
+    } else if (Array.isArray(responseData.data)) {
+      orders = responseData.data;
     }
   }
 

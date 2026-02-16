@@ -35,10 +35,11 @@ export default function PaymentsPage() {
   // API returns { data: [...] }
   let payments: any[] = [];
   if (paymentsData) {
-    if (paymentsData.data && Array.isArray(paymentsData.data)) {
-      payments = paymentsData.data;
-    } else if (Array.isArray(paymentsData)) {
-      payments = paymentsData;
+    const responseData = paymentsData.data || paymentsData;
+    if (responseData.data && Array.isArray(responseData.data)) {
+      payments = responseData.data;
+    } else if (Array.isArray(responseData)) {
+      payments = responseData;
     }
   }
 

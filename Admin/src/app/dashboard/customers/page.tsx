@@ -37,10 +37,11 @@ export default function CustomersPage() {
   // API returns { data: [...], total: number }
   let customers: any[] = [];
   if (customersData) {
-    if (customersData.data && Array.isArray(customersData.data)) {
-      customers = customersData.data;
-    } else if (Array.isArray(customersData)) {
-      customers = customersData;
+    const responseData = customersData.data || customersData;
+    if (responseData.data && Array.isArray(responseData.data)) {
+      customers = responseData.data;
+    } else if (Array.isArray(responseData)) {
+      customers = responseData;
     }
   }
 
