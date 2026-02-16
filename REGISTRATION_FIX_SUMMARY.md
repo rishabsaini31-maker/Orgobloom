@@ -88,7 +88,7 @@
 1. **Start Backend**
 
    ```bash
-   cd "Backend "
+   cd "Backend"
    npm run dev
    ```
 
@@ -97,7 +97,7 @@
 2. **Start Frontend** (new terminal)
 
    ```bash
-   cd "Frontend "
+   cd "Frontend"
    npm run dev
    ```
 
@@ -121,6 +121,7 @@
    - Toast: "Account created successfully!"
 
 5. **Test Invalid Password**
+
    ```
    Password: weak  ← Missing requirements
    ```

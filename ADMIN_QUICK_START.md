@@ -31,7 +31,7 @@ Admin panel will be available at: **http://localhost:3001**
 
 ```bash
 # Navigate to Backend folder
-cd "Backend "
+cd "Backend"
 
 # Install dependencies (if not already done)
 npm install

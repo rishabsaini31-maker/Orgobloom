@@ -22,7 +22,7 @@
 ### Step 1: Start the Backend
 
 ```bash
-cd "Backend "
+cd "Backend"
 npm run dev
 ```
 
@@ -33,7 +33,7 @@ Wait for: `✓ Server running on http://localhost:5000`
 In a new terminal:
 
 ```bash
-cd "Frontend "
+cd "Frontend"
 npm run dev
 ```
 

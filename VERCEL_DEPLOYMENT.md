@@ -56,7 +56,7 @@ NEXT_PUBLIC_API_URL=https://orgobloom.onrender.com
 
 - **Project Name**: `orgobloom-store` (or your preferred name)
 - **Framework Preset**: Next.js
-- **Root Directory**: `Frontend ` ⚠️ IMPORTANT: Click "Edit" and select "Frontend " folder
+- **Root Directory**: `Frontend` ⚠️ IMPORTANT: Click "Edit" and select "Frontend" folder
 - **Build Command**: `npm run build` (should auto-detect)
 - **Output Directory**: `.next` (should auto-detect)
 - **Install Command**: `npm install` (should auto-detect)
@@ -122,7 +122,7 @@ After deployment, you need to update your backend's CORS configuration to allow 
 ### If build fails on Vercel:
 
 - Check the build logs for specific errors
-- Make sure the Root Directory is set correctly (`Admin` or `Frontend `)
+- Make sure the Root Directory is set correctly (`Admin` or `Frontend`)
 - Verify `package.json` has all dependencies
 
 ### If API requests fail:
