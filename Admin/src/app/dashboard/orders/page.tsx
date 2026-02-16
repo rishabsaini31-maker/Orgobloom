@@ -38,7 +38,7 @@ export default function OrdersPage() {
         status: filter === "all" ? undefined : filter,
       }),
     enabled: mounted && !!token,
-    refetchOnMount: "stale",
+    refetchOnMount: true,
   });
 
   // Handle different API response formats

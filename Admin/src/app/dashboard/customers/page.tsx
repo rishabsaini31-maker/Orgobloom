@@ -30,7 +30,7 @@ export default function CustomersPage() {
     queryFn: () => adminApi.getCustomers(),
     enabled: mounted && !!token,
     retry: 2,
-    refetchOnMount: "stale",
+    refetchOnMount: true,
   });
 
   // Handle different API response formats

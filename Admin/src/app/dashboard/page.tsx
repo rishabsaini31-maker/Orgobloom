@@ -27,7 +27,7 @@ export default function DashboardPage() {
     staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Cache is kept for 10 minutes
     refetchOnWindowFocus: false, // Don't refetch on window focus
-    refetchOnMount: "stale", // Refetch if data is stale
+    refetchOnMount: true, // Refetch on mount
   });
 
   // Parse analytics data with multiple format support

@@ -28,7 +28,7 @@ export default function PaymentsPage() {
     queryKey: ["payments", filter, token],
     queryFn: () => adminApi.getPayments(filter),
     enabled: mounted && !!token,
-    refetchOnMount: "stale",
+    refetchOnMount: true,
   });
 
   // Handle different API response formats
