@@ -25,10 +25,15 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       login: async (email, password) => {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-          { email, password },
-        );
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+        console.log("🔍 Login API URL:", `${apiUrl}/auth/login`);
+        console.log("🔍 NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+
+        const response = await axios.post(`${apiUrl}/auth/login`, {
+          email,
+          password,
+        });
         const { user, token } = response.data;
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));

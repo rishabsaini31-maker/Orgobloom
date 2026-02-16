@@ -21,7 +21,11 @@ export default function LoginPage() {
       toast.success("Welcome back!");
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Login failed");
+      console.error("❌ Login error:", error);
+      console.error("❌ Error response:", error.response);
+      toast.error(
+        error.response?.data?.error || error.message || "Login failed",
+      );
     } finally {
       setIsLoading(false);
     }
