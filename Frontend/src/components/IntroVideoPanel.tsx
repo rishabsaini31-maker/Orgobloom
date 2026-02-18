@@ -2,11 +2,17 @@
 
 import { useEffect, useState, useRef } from "react";
 
+// Default video URLs - load immediately without waiting for API
+const DEFAULT_VIDEO_URLS = [
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/a-seamless-animation-sequence-showing-1-a-close-up%20(1).mp4",
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/close-up-of-hands-gently-mixing-organic-fertilizer.mp4",
+];
+
 export default function IntroVideoPanel() {
-  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>(DEFAULT_VIDEO_URLS);
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [fade, setFade] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
