@@ -66,13 +66,13 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="flex-1 flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-6 bg-gradient-to-br from-primary-300 via-primary-200 to-green-300 rounded-3xl transform rotate-6 shadow-xl"></div>
+              <div className="flex-1 flex justify-center mt-8 lg:mt-0">
+                <div className="relative w-full max-w-md mx-auto lg:mx-0">
+                  <div className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-primary-300 via-primary-200 to-green-300 rounded-2xl md:rounded-3xl transform rotate-3 md:rotate-6 shadow-xl"></div>
                   <img
                     src="/images/plant.jpg"
                     alt="Orgobloom Organic Fertilizers"
-                    className="relative rounded-3xl shadow-2xl w-full max-w-lg md:max-w-xl lg:max-w-2xl object-cover"
+                    className="relative rounded-2xl md:rounded-3xl shadow-2xl w-full object-cover"
                   />
                 </div>
               </div>
@@ -237,85 +237,80 @@ export default function HomePage() {
         </section>
 
         {/* Why Choose Us Section */}
-        <section className="py-16 md:py-24 bg-white">
+        <section className="py-12 md:py-24 bg-white overflow-hidden">
           <div className="container mx-auto px-4">
-            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+            <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
               {/* Left: Features */}
               <div className="flex-1 w-full">
                 <span className="text-primary-600 font-bold tracking-widest text-xs">
-                  ―WHY CHOOSE US―
+                  WHY CHOOSE US
                 </span>
-                <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-8 text-gray-900">
+                <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mt-2 mb-6 md:mb-8 text-gray-900">
                   The Orgobloom Difference
                 </h2>
-                <div className="space-y-6">
-                  <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-primary-100 rounded-xl flex items-center justify-center flex-shrink-0">
                       <img
                         src="/images/Gemini_Generated_Image_25mu0525mu0525mu.png"
                         alt="Premium Organic"
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-1 text-gray-900">
+                      <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
                         Premium Organic Inputs
                       </h3>
-                      <p className="text-gray-600 text-sm md:text-base">
+                      <p className="text-gray-600 text-xs md:text-sm lg:text-base">
                         We offer only the highest quality organic fertilizers
-                        and soil enhancers, carefully sourced and tested for
-                        purity and effectiveness.
+                        and soil enhancers, carefully sourced and tested.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
                       <img
                         src="/images/Gemini_Generated_Image_37j78g37j78g37j7.png"
                         alt="Soil Solutions"
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-1 text-gray-900">
+                      <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
                         Complete Soil Solutions
                       </h3>
-                      <p className="text-gray-600 text-sm md:text-base">
-                        From compost and biofertilizers to eco-friendly pest
-                        solutions, Orgobloom is your one-stop shop for all
-                        things soil health.
+                      <p className="text-gray-600 text-xs md:text-sm lg:text-base">
+                        From compost to eco-friendly pest solutions, your one-stop shop for soil health.
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-xl hover:bg-gray-50 transition-colors">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-yellow-100 rounded-xl flex items-center justify-center flex-shrink-0">
                       <img
                         src="/images/Gemini_Generated_Image_irqmktirqmktirqm.png"
                         alt="Expert Guidance"
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-6 h-6 md:w-8 md:h-8 rounded-full object-cover"
                       />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-1 text-gray-900">
+                      <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
                         Expert Guidance
                       </h3>
-                      <p className="text-gray-600 text-sm md:text-base">
-                        Get personalized advice on how to use our products for
-                        your specific crops or garden with tips for sustainable
-                        practices.
+                      <p className="text-gray-600 text-xs md:text-sm lg:text-base">
+                        Get personalized advice for your crops with tips for sustainable practices.
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
               {/* Right: Image */}
-              <div className="flex-1 flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-8 bg-gradient-to-br from-green-300 via-primary-300 to-emerald-300 rounded-3xl transform -rotate-6 shadow-2xl"></div>
+              <div className="flex-1 flex justify-center mt-8 lg:mt-0">
+                <div className="relative w-full max-w-md mx-auto lg:mx-0">
+                  <div className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-green-300 via-primary-300 to-emerald-300 rounded-2xl md:rounded-3xl transform -rotate-3 md:-rotate-6 shadow-xl"></div>
                   <img
                     src="/images/plant2.jpg"
                     alt="Why Choose Orgobloom"
-                    className="relative rounded-3xl shadow-2xl w-full max-w-lg md:max-w-xl lg:max-w-2xl object-cover"
+                    className="relative rounded-2xl md:rounded-3xl shadow-2xl w-full object-cover"
                   />
                 </div>
               </div>
