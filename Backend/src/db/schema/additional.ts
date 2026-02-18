@@ -46,6 +46,8 @@ export const siteMedia = pgTable("site_media", {
     .primaryKey()
     .$defaultFn(() => createId()),
   introVideoUrl: text("intro_video_url"),
+  // Store multiple video URLs as JSON array
+  introVideoUrls: text("intro_video_urls"), // JSON array of video URLs
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

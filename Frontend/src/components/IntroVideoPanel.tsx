@@ -3,27 +3,46 @@
 import { useEffect, useState, useRef } from "react";
 
 export default function IntroVideoPanel() {
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [fade, setFade] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const loadVideo = async () => {
+    const loadVideos = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/site-media/intro-video`,
+          `${process.env.NEXT_PUBLIC_API_URL}/site-media/intro-videos`,
         );
         const data = await response.json();
-        setVideoUrl(data?.url || null);
+        setVideoUrls(data?.videos || []);
       } catch (error) {
-        console.error("Failed to load intro video:", error);
+        console.error("Failed to load intro videos:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    loadVideo();
+    loadVideos();
   }, []);
+
+  // Handle video ended - play next video or restart from beginning
+  const handleVideoEnded = () => {
+    if (videoUrls.length > 1) {
+      setCurrentIndex((prev) => (prev + 1) % videoUrls.length);
+    }
+  };
+
+  // Play video when index changes
+  useEffect(() => {
+    if (videoRef.current && videoUrls.length > 0) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {
+        // Autoplay might be blocked
+      });
+    }
+  }, [currentIndex, videoUrls]);
 
   // Scroll-locked + fade effect
   useEffect(() => {
@@ -38,6 +57,8 @@ export default function IntroVideoPanel() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const currentVideo = videoUrls[currentIndex] || null;
 
   return (
     <section
@@ -54,14 +75,15 @@ export default function IntroVideoPanel() {
         className="absolute inset-0 transition-opacity duration-500"
         style={{ opacity: 1 - fade }}
       >
-        {videoUrl ? (
+        {currentVideo ? (
           <video
-            src={videoUrl}
+            ref={videoRef}
+            src={currentVideo}
             className="h-full w-full object-cover"
             muted
             autoPlay
-            loop
             playsInline
+            onEnded={handleVideoEnded}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-400">
@@ -69,6 +91,25 @@ export default function IntroVideoPanel() {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 pointer-events-none" />
+
+        {/* Video indicators */}
+        {videoUrls.length > 1 && (
+          <div className="absolute bottom-24 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+            {videoUrls.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className={`h-2 w-8 rounded-full transition-all ${
+                  idx === currentIndex
+                    ? "bg-white"
+                    : "bg-white/30 hover:bg-white/50"
+                }`}
+                aria-label={`Go to video ${idx + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="relative z-10 flex h-full items-center">
           <div className="container mx-auto px-6">
             <div className="max-w-2xl">
@@ -82,7 +123,7 @@ export default function IntroVideoPanel() {
                 Scroll down to explore the full catalog and see what makes our
                 products different.
               </p>
-              {!isLoading && !videoUrl && (
+              {!isLoading && videoUrls.length === 0 && (
                 <p className="mt-4 text-sm text-gray-300">
                   Intro video not uploaded yet. Add one in the Admin Settings.
                 </p>

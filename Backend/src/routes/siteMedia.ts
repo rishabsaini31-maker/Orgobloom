@@ -31,18 +31,20 @@ const videoStorage = multer.diskStorage({
 
 const videoUpload = multer({
   storage: videoStorage,
-  limits: { fileSize: 50 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
   fileFilter: (_req, file, cb) => {
-    const isMp4 = file.mimetype === "video/mp4";
-    if (!isMp4) {
-      return cb(new Error("Only MP4 videos are allowed"));
+    const allowedTypes = ["video/mp4", "video/webm", "video/ogg"];
+    const isAllowed = allowedTypes.includes(file.mimetype);
+    if (!isAllowed) {
+      return cb(new Error("Only MP4, WebM, and OGG videos are allowed"));
     }
     cb(null, true);
   },
 });
 
+// Get all intro videos
 router.get(
-  "/intro-video",
+  "/intro-videos",
   async (_req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const [latest] = await db
@@ -51,26 +53,42 @@ router.get(
         .orderBy(desc(siteMedia.updatedAt))
         .limit(1);
 
-      res.json({ url: latest?.introVideoUrl || null });
+      const videoUrls = latest?.introVideoUrls
+        ? JSON.parse(latest.introVideoUrls)
+        : latest?.introVideoUrl
+          ? [latest.introVideoUrl]
+          : [];
+
+      res.json({ videos: videoUrls });
     } catch (error) {
       next(error);
     }
   },
 );
 
+// Upload multiple videos (1-5)
 router.post(
-  "/intro-video",
+  "/intro-videos",
   authenticate,
   isAdmin,
-  videoUpload.single("video"),
+  videoUpload.array("videos", 5),
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const file = req.file;
-      if (!file) {
-        return res.status(400).json({ error: "Intro video file is required" });
+      const files = req.files as Express.Multer.File[];
+
+      if (!files || files.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "At least one video file is required" });
       }
 
-      const publicUrl = `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`;
+      if (files.length > 5) {
+        return res.status(400).json({ error: "Maximum 5 videos allowed" });
+      }
+
+      const videoUrls = files.map((file) => {
+        return `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`;
+      });
 
       const [existing] = await db
         .select()
@@ -82,26 +100,104 @@ router.post(
         const [updated] = await db
           .update(siteMedia)
           .set({
-            introVideoUrl: publicUrl,
+            introVideoUrls: JSON.stringify(videoUrls),
+            introVideoUrl: videoUrls[0], // Keep first video for backward compatibility
             updatedAt: new Date(),
           })
           .where(eq(siteMedia.id, existing.id))
           .returning();
 
-        return res.json({ url: updated?.introVideoUrl || publicUrl });
+        return res.json({
+          videos: videoUrls,
+          message: `${videoUrls.length} video(s) uploaded successfully`,
+        });
       }
 
-      const [created] = await db
-        .insert(siteMedia)
-        .values({
-          id: createId(),
-          introVideoUrl: publicUrl,
-          createdAt: new Date(),
+      await db.insert(siteMedia).values({
+        id: createId(),
+        introVideoUrls: JSON.stringify(videoUrls),
+        introVideoUrl: videoUrls[0],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      return res.status(201).json({
+        videos: videoUrls,
+        message: `${videoUrls.length} video(s) uploaded successfully`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Delete a specific video by index
+router.delete(
+  "/intro-videos/:index",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const index = parseInt(req.params.index);
+
+      const [existing] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      if (!existing || !existing.introVideoUrls) {
+        return res.status(404).json({ error: "No videos found" });
+      }
+
+      const videoUrls: string[] = JSON.parse(existing.introVideoUrls);
+
+      if (index < 0 || index >= videoUrls.length) {
+        return res.status(400).json({ error: "Invalid video index" });
+      }
+
+      // Remove the video at the specified index
+      videoUrls.splice(index, 1);
+
+      const [updated] = await db
+        .update(siteMedia)
+        .set({
+          introVideoUrls:
+            videoUrls.length > 0 ? JSON.stringify(videoUrls) : null,
+          introVideoUrl: videoUrls[0] || null,
           updatedAt: new Date(),
         })
+        .where(eq(siteMedia.id, existing.id))
         .returning();
 
-      return res.status(201).json({ url: created?.introVideoUrl || publicUrl });
+      return res.json({
+        videos: videoUrls,
+        message: "Video deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Legacy endpoint for backward compatibility
+router.get(
+  "/intro-video",
+  async (_req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const [latest] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      const videoUrls = latest?.introVideoUrls
+        ? JSON.parse(latest.introVideoUrls)
+        : latest?.introVideoUrl
+          ? [latest.introVideoUrl]
+          : [];
+
+      res.json({ videos: videoUrls, url: videoUrls[0] || null });
     } catch (error) {
       next(error);
     }
