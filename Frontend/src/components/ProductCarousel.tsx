@@ -24,13 +24,13 @@ export default function ProductCarousel({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const weights = [1, 2, 5, 10, 15, 25];
 
-  // Create image array - using same image multiple times as in original design
-  const images = [
-    product.imageUrl,
-    product.imageUrl,
-    product.imageUrl,
-    product.imageUrl,
-  ].filter(Boolean);
+  // Use images array from product, or fallback to single imageUrl
+  const images =
+    product.images && product.images.length > 0
+      ? product.images.filter(Boolean)
+      : product.imageUrl
+        ? [product.imageUrl]
+        : [];
 
   const goToPrevious = () => {
     setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
@@ -81,7 +81,7 @@ export default function ProductCarousel({
           {/* Thumbnails Navigation */}
           <div className="bg-gradient-to-b from-gray-50 to-white px-6 py-4 border-t border-gray-200">
             <div className="flex justify-center gap-3 overflow-x-auto pb-2">
-              {images.map((img, idx) => (
+              {images.map((img: string, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentImageIndex(idx)}

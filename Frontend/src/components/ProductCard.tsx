@@ -37,7 +37,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       >
         {/* Image Section */}
         <div className="relative h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
-          {product.imageUrl ? (
+          {product.images && product.images.length > 0 ? (
+            <Image
+              src={product.images[0]}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : product.imageUrl ? (
             <Image
               src={product.imageUrl}
               alt={product.name}
