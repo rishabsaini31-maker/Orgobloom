@@ -173,6 +173,10 @@ router.post(
 
       const { email, name, picture, sub: googleId } = payload;
 
+      // Check if this is the admin email
+      const adminEmail = process.env.ADMIN_EMAIL || "orgobloom5033@gmail.com";
+      const isAdmin = email === adminEmail;
+
       // Check if user exists
       let [existingUser] = await db
         .select()
@@ -191,6 +195,8 @@ router.post(
             providerAccountId: googleId,
             image: picture,
             emailVerified: new Date(),
+            // Grant ADMIN role if this is the admin email
+            role: isAdmin ? "ADMIN" : "CUSTOMER",
             // No password for OAuth users
           })
           .returning();
@@ -205,10 +211,22 @@ router.post(
             providerAccountId: googleId,
             image: picture || existingUser.image,
             emailVerified: existingUser.emailVerified || new Date(),
+            // Update role to ADMIN if this is the admin email
+            role: isAdmin ? "ADMIN" : existingUser.role,
           })
           .where(eq(users.id, existingUser.id))
           .returning();
 
+        existingUser = updatedUser;
+      }
+
+      // Ensure admin user always has ADMIN role
+      if (isAdmin && existingUser.role !== "ADMIN") {
+        const [updatedUser] = await db
+          .update(users)
+          .set({ role: "ADMIN" })
+          .where(eq(users.id, existingUser.id))
+          .returning();
         existingUser = updatedUser;
       }
 

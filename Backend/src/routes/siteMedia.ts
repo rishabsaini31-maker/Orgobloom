@@ -61,7 +61,9 @@ router.get(
 
       res.json({ videos: videoUrls });
     } catch (error) {
-      next(error);
+      // Handle database errors gracefully - return empty videos instead of 500
+      console.error("Error fetching intro videos:", error);
+      res.json({ videos: [] });
     }
   },
 );
