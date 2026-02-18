@@ -54,6 +54,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               alt="Orgobloom Logo"
               width={120}
               height={120}
+              style={{ width: 'auto', height: 'auto' }}
               className="object-contain"
             />
           </Link>

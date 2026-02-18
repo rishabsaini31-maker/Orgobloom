@@ -191,9 +191,13 @@ router.get(
         .orderBy(desc(siteMedia.updatedAt))
         .limit(1);
 
-      res.json({ poster: latest?.introVideoPoster || null });
+      // Handle case where introVideoPoster column might not exist
+      const poster = (latest as any)?.introVideoPoster || null;
+      res.json({ poster });
     } catch (error) {
-      next(error);
+      // If column doesn't exist, return null instead of error
+      console.error("Error fetching poster:", error);
+      res.json({ poster: null });
     }
   },
 );
