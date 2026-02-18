@@ -9,6 +9,7 @@ import { errorHandler } from "./middleware/errorHandler";
 import { apiLimiter } from "./middleware/rateLimiter";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import { connectRedis } from "./utils/redis";
 
 // Import routes
 import authRoutes from "./routes/auth";
@@ -98,6 +99,7 @@ app.listen(PORT, async () => {
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL}`);
   console.log(`🔗 Admin URL: ${process.env.ADMIN_URL}`);
   await testDBConnection();
+  await connectRedis();
 });
 
 export default app;
