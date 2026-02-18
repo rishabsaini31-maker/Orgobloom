@@ -55,7 +55,7 @@ export default function ProductCarousel({
                 src={images[currentImageIndex]}
                 alt={product.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                className="object-contain group-hover:scale-105 transition-transform duration-500"
               />
             ) : (
               <div className="text-6xl">🐄</div>
@@ -95,7 +95,7 @@ export default function ProductCarousel({
                     src={img}
                     alt={`${product.name} ${idx + 1}`}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </button>
               ))}
