@@ -13,10 +13,19 @@ export default function IntroVideoPanel() {
   useEffect(() => {
     const loadVideos = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+        console.log("🎬 Loading intro videos from:", apiUrl);
+        
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/site-media/intro-videos`,
+          `${apiUrl}/site-media/intro-videos`,
         );
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log("🎬 Loaded videos:", data?.videos);
         setVideoUrls(data?.videos || []);
       } catch (error) {
         console.error("Failed to load intro videos:", error);
@@ -37,9 +46,10 @@ export default function IntroVideoPanel() {
   // Play video when index changes
   useEffect(() => {
     if (videoRef.current && videoUrls.length > 0) {
+      console.log("🎬 Playing video:", videoUrls[currentIndex]);
       videoRef.current.load();
-      videoRef.current.play().catch(() => {
-        // Autoplay might be blocked
+      videoRef.current.play().catch((err) => {
+        console.warn("Autoplay blocked, user interaction required:", err);
       });
     }
   }, [currentIndex, videoUrls]);
@@ -83,7 +93,10 @@ export default function IntroVideoPanel() {
             muted
             autoPlay
             playsInline
+            loop={videoUrls.length === 1}
             onEnded={handleVideoEnded}
+            onLoadedData={() => console.log("🎬 Video loaded successfully")}
+            onError={(e) => console.error("🎬 Video error:", e)}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-400">
