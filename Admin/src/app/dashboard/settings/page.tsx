@@ -33,24 +33,21 @@ export default function SettingsPage() {
   });
 
   const [unsavedChanges, setUnsavedChanges] = useState(false);
-  const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
-  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [introVideoUrls, setIntroVideoUrls] = useState<string[]>([]);
+  const [videoFiles, setVideoFiles] = useState<FileList | null>(null);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
 
   useEffect(() => {
-    const loadIntroVideo = async () => {
+    const loadIntroVideos = async () => {
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/site-media/intro-video`,
-        );
-        const data = await response.json();
-        setIntroVideoUrl(data?.url || null);
+        const response = await adminApi.getIntroVideos();
+        setIntroVideoUrls(response.data?.videos || []);
       } catch (error) {
-        console.error("Failed to load intro video:", error);
+        console.error("Failed to load intro videos:", error);
       }
     };
 
-    loadIntroVideo();
+    loadIntroVideos();
   }, []);
 
   const handleChange = (field: string, value: any) => {
@@ -80,8 +77,13 @@ export default function SettingsPage() {
   };
 
   const handleVideoUpload = async () => {
-    if (!videoFile) {
-      toast.error("Please select an MP4 video to upload");
+    if (!videoFiles || videoFiles.length === 0) {
+      toast.error("Please select at least one video to upload");
+      return;
+    }
+
+    if (videoFiles.length > 5) {
+      toast.error("Maximum 5 videos allowed");
       return;
     }
 
@@ -89,20 +91,36 @@ export default function SettingsPage() {
 
     try {
       const data = new FormData();
-      data.append("video", videoFile);
-      const response = await adminApi.uploadIntroVideo(data);
-      setIntroVideoUrl(response.data?.url || null);
-      toast.success("Intro video updated");
-      setVideoFile(null);
+      for (let i = 0; i < videoFiles.length; i++) {
+        data.append("videos", videoFiles[i]);
+      }
+      const response = await adminApi.uploadIntroVideos(data);
+      setIntroVideoUrls(response.data?.videos || []);
+      toast.success(response.data?.message || "Videos uploaded successfully");
+      setVideoFiles(null);
+      // Reset file input
+      const fileInput = document.getElementById("video-input") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
     } catch (error: any) {
-      console.error("Intro video upload failed:", error);
+      console.error("Video upload failed:", error);
       toast.error(
         error.response?.data?.error ||
           error.response?.data?.message ||
-          "Failed to upload intro video",
+          "Failed to upload videos",
       );
     } finally {
       setIsUploadingVideo(false);
+    }
+  };
+
+  const handleDeleteVideo = async (index: number) => {
+    try {
+      const response = await adminApi.deleteIntroVideo(index);
+      setIntroVideoUrls(response.data?.videos || []);
+      toast.success("Video deleted successfully");
+    } catch (error: any) {
+      console.error("Video delete failed:", error);
+      toast.error("Failed to delete video");
     }
   };
 
@@ -268,16 +286,18 @@ export default function SettingsPage() {
               </h2>
               <div className="mb-8 rounded-lg border border-gray-200 p-4">
                 <h3 className="text-base font-semibold mb-3">
-                  Intro Video Panel
+                  Intro Video Panel (1-5 Videos)
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Upload a site-wide MP4 intro video shown before the homepage
-                  content.
+                  Upload 1-5 intro videos that will play sequentially on the homepage.
+                  Supported formats: MP4, WebM, OGG. Max 100MB per video.
                 </p>
                 <input
+                  id="video-input"
                   type="file"
-                  accept="video/mp4"
-                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  accept="video/mp4,video/webm,video/ogg"
+                  multiple
+                  onChange={(e) => setVideoFiles(e.target.files)}
                   className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-primary-600 file:px-4 file:py-2 file:text-white hover:file:bg-primary-700"
                 />
                 <div className="mt-4 flex items-center gap-3">
@@ -287,26 +307,41 @@ export default function SettingsPage() {
                     disabled={isUploadingVideo}
                     className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
                   >
-                    {isUploadingVideo ? "Uploading..." : "Upload Video"}
+                    {isUploadingVideo ? "Uploading..." : "Upload Videos"}
                   </button>
-                  {introVideoUrl && (
-                    <a
-                      href={introVideoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-primary-600 hover:underline"
-                    >
-                      View current video
-                    </a>
-                  )}
+                  <span className="text-sm text-gray-500">
+                    {videoFiles ? `${videoFiles.length} file(s) selected` : ""}
+                  </span>
                 </div>
-                {introVideoUrl && (
-                  <div className="mt-4">
-                    <video
-                      src={introVideoUrl}
-                      controls
-                      className="w-full rounded-lg border border-gray-200"
-                    />
+                
+                {/* Current Videos List */}
+                {introVideoUrls.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                      Current Videos ({introVideoUrls.length}/5)
+                    </h4>
+                    <div className="space-y-4">
+                      {introVideoUrls.map((url, index) => (
+                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700">
+                              Video {index + 1}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteVideo(index)}
+                              className="text-sm text-red-600 hover:text-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <video
+                            src={url}
+                            controls
+                            className="w-full max-h-48 rounded-lg bg-gray-100"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

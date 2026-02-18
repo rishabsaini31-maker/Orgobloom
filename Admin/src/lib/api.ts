@@ -53,10 +53,13 @@ export const adminApi = {
     api.post(`/admin/payments/${paymentId}/retry`),
   getAppSettings: () => api.get("/admin/settings"),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
-  uploadIntroVideo: (data: FormData) =>
-    api.post("/site-media/intro-video", data, {
+  uploadIntroVideos: (data: FormData) =>
+    api.post("/site-media/intro-videos", data, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  getIntroVideos: () => api.get("/site-media/intro-videos"),
+  deleteIntroVideo: (index: number) =>
+    api.delete(`/site-media/intro-videos/${index}`),
   getCustomers: (params?: any) => api.get("/customers", { params }),
   getProducts: (params?: any) => api.get("/admin/products", { params }),
   createProduct: (data: any) => api.post("/admin/products", data),
