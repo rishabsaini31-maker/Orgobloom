@@ -9,11 +9,28 @@ import crypto from "crypto";
 
 const router = Router();
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || "",
-  key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-});
+// Lazy initialization of Razorpay to avoid startup errors when credentials are not configured
+let razorpayInstance: Razorpay | null = null;
+
+const getRazorpay = (): Razorpay => {
+  if (!razorpayInstance) {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+      throw new ApiError(
+        "Razorpay credentials not configured. Please set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET environment variables.",
+        503,
+      );
+    }
+
+    razorpayInstance = new Razorpay({
+      key_id: keyId,
+      key_secret: keySecret,
+    });
+  }
+  return razorpayInstance;
+};
 
 // Create Razorpay Order
 router.post(
@@ -34,7 +51,7 @@ router.post(
       }
 
       // Create Razorpay order
-      const razorpayOrder = await razorpay.orders.create({
+      const razorpayOrder = await getRazorpay().orders.create({
         amount: Math.round(amount * 100), // Convert to paise
         currency: "INR",
         receipt: `order_${orderId}_${Date.now()}`,
@@ -135,7 +152,7 @@ router.get(
     try {
       const { paymentId } = req.params;
 
-      const payment = await razorpay.payments.fetch(paymentId);
+      const payment = await getRazorpay().payments.fetch(paymentId);
 
       res.json({
         success: true,
@@ -155,7 +172,7 @@ router.post(
     try {
       const { paymentId, amount, reason } = req.body;
 
-      const refund = await razorpay.payments.refund(paymentId, {
+      const refund = await getRazorpay().payments.refund(paymentId, {
         amount: amount ? Math.round(amount * 100) : undefined,
         notes: {
           reason: reason || "Customer requested refund",
