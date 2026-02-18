@@ -27,10 +27,13 @@ let isConnected = false;
 export const connectRedis = async (): Promise<void> => {
   if (isConnected) return;
 
+  console.log("🔄 Attempting to connect to Redis...");
+  console.log("📍 Redis URL:", redisUrl.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
+
   try {
     await redisClient.connect();
     isConnected = true;
-    console.log("✅ Connected to Redis");
+    console.log("✅ Connected to Redis successfully");
   } catch (error) {
     console.error("⚠️ Redis connection error:", error);
     console.log("⚠️ Continuing without Redis caching");
