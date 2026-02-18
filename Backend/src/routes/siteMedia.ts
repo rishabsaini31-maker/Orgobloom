@@ -42,6 +42,12 @@ const videoUpload = multer({
   },
 });
 
+// Default Supabase video URLs (production-ready)
+const DEFAULT_VIDEO_URLS = [
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/a-seamless-animation-sequence-showing-1-a-close-up%20(1).mp4",
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/close-up-of-hands-gently-mixing-organic-fertilizer.mp4",
+];
+
 // Get all intro videos
 router.get(
   "/intro-videos",
@@ -59,11 +65,16 @@ router.get(
           ? [latest.introVideoUrl]
           : [];
 
+      // Return default Supabase URLs if no custom videos uploaded
+      if (videoUrls.length === 0) {
+        return res.json({ videos: DEFAULT_VIDEO_URLS });
+      }
+
       res.json({ videos: videoUrls });
     } catch (error) {
-      // Handle database errors gracefully - return empty videos instead of 500
+      // Handle database errors gracefully - return default videos instead of 500
       console.error("Error fetching intro videos:", error);
-      res.json({ videos: [] });
+      res.json({ videos: DEFAULT_VIDEO_URLS });
     }
   },
 );
