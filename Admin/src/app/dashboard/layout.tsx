@@ -14,6 +14,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const { isAuthenticated, user, token } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Wait for Zustand to hydrate from localStorage
@@ -32,6 +33,11 @@ export default function DashboardLayout({
       }
     }
   }, [isMounted, token, isAuthenticated, user, router]);
+
+  // Close sidebar when route changes (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [children]);
 
   // Show loading state while hydrating auth from localStorage
   if (!isMounted) {
@@ -58,11 +64,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
+    <div className="flex h-screen bg-gray-100 overflow-hidden">
+      {/* Sidebar - responsive */}
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)} 
+      />
+      
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-6">
+        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">
           {children}
         </main>
       </div>
