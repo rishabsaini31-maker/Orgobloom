@@ -51,12 +51,22 @@ export default function ProductCarousel({
           {/* Main Image */}
           <div className="relative w-full aspect-square bg-gradient-to-br from-primary-50 to-green-50 flex items-center justify-center overflow-hidden group">
             {images[currentImageIndex] ? (
-              <Image
-                src={images[currentImageIndex]}
-                alt={product.name}
-                fill
-                className="object-contain group-hover:scale-105 transition-transform duration-500"
-              />
+              <>
+                {/* Blurred Background */}
+                <Image
+                  src={images[currentImageIndex]}
+                  alt=""
+                  fill
+                  className="object-cover blur-2xl scale-125 opacity-40"
+                  aria-hidden="true"
+                />
+                <Image
+                  src={images[currentImageIndex]}
+                  alt={product.name}
+                  fill
+                  className="object-contain group-hover:scale-105 transition-transform duration-500 relative z-10"
+                />
+              </>
             ) : (
               <div className="text-6xl">🐄</div>
             )}

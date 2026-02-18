@@ -37,20 +37,39 @@ export default function ProductCard({ product }: ProductCardProps) {
       >
         {/* Image Section */}
         <div className="relative h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
+          {/* Blurred Background */}
           {product.images && product.images.length > 0 ? (
-            <Image
-              src={product.images[0]}
-              alt={product.name}
-              fill
-              className="object-contain group-hover:scale-105 transition-transform duration-300"
-            />
+            <>
+              <Image
+                src={product.images[0]}
+                alt=""
+                fill
+                className="object-cover blur-xl scale-110 opacity-50"
+                aria-hidden="true"
+              />
+              <Image
+                src={product.images[0]}
+                alt={product.name}
+                fill
+                className="object-contain group-hover:scale-105 transition-transform duration-300 relative z-10"
+              />
+            </>
           ) : product.imageUrl ? (
-            <Image
-              src={product.imageUrl}
-              alt={product.name}
-              fill
-              className="object-contain group-hover:scale-105 transition-transform duration-300"
-            />
+            <>
+              <Image
+                src={product.imageUrl}
+                alt=""
+                fill
+                className="object-cover blur-xl scale-110 opacity-50"
+                aria-hidden="true"
+              />
+              <Image
+                src={product.imageUrl}
+                alt={product.name}
+                fill
+                className="object-contain group-hover:scale-105 transition-transform duration-300 relative z-10"
+              />
+            </>
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">
               <svg
