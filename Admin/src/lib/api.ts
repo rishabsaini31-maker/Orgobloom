@@ -26,9 +26,17 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
+        // Enhanced error logging for debugging
+        console.error("[AUTH] 401 Unauthorized detected by axios interceptor");
+        console.error("[AUTH] Error response:", error.response);
+        console.error("[AUTH] Error data:", error.response?.data);
+        // Optionally show a toast or alert here
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        // Give user time to see the error before redirect
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
       }
     }
     return Promise.reject(error);

@@ -55,7 +55,20 @@ router.post(
           email: validatedData.email,
           name: validatedData.name,
           password: hashedPassword,
-          phone: validatedData.phone,
+          phone: validatedData.phone ?? null,
+          provider: "email",
+          providerAccountId: null,
+          image: null,
+          emailVerified: null,
+          blockedAt: null,
+          blockedReason: null,
+          riskScore: 0,
+          fraudStatus: "SAFE",
+          codEnabled: true,
+          lastIPAddress: null,
+          deviceFingerprint: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         })
         .returning();
 
@@ -137,7 +150,10 @@ router.post(
       // Debug logging
       console.log("🔍 Login successful for:", user.email);
       console.log("🔑 User role:", user.role);
-      console.log("👤 User data:", JSON.stringify(userWithoutPassword, null, 2));
+      console.log(
+        "👤 User data:",
+        JSON.stringify(userWithoutPassword, null, 2),
+      );
 
       res.json({
         message: "Login successful",
@@ -211,11 +227,20 @@ router.post(
           .update(users)
           .set({
             provider: "google",
-            providerAccountId: googleId,
-            image: picture || existingUser.image,
+            providerAccountId: googleId ?? null,
+            image: (picture || existingUser.image) ?? null,
             emailVerified: existingUser.emailVerified || new Date(),
-            // Update role to ADMIN if this is the admin email
             role: isAdmin ? "ADMIN" : existingUser.role,
+            phone: existingUser.phone ?? null,
+            blockedAt: existingUser.blockedAt ?? null,
+            blockedReason: existingUser.blockedReason ?? null,
+            riskScore: existingUser.riskScore ?? 0,
+            fraudStatus: existingUser.fraudStatus ?? "SAFE",
+            codEnabled: existingUser.codEnabled ?? true,
+            lastIPAddress: existingUser.lastIPAddress ?? null,
+            deviceFingerprint: existingUser.deviceFingerprint ?? null,
+            createdAt: existingUser.createdAt ?? new Date(),
+            updatedAt: new Date(),
           })
           .where(eq(users.id, existingUser.id))
           .returning();
@@ -262,6 +287,110 @@ router.post(
     }
   },
 );
+
+// Google OAuth Redirect (GET)
+router.get("/google", (req, res) => {
+  const admin = req.query.admin === "true";
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:8000/api/auth/google/callback";
+  const scope = [
+    "openid",
+    "email",
+    "profile"
+  ];
+  const url = googleClient.generateAuthUrl({
+    access_type: "offline",
+    prompt: "consent",
+    scope,
+    redirect_uri: redirectUri,
+    state: admin ? "admin" : "customer"
+  });
+  res.redirect(url);
+});
+
+// Google OAuth Callback (GET)
+router.get("/google/callback", async (req, res, next) => {
+  try {
+    const { code, state } = req.query;
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:8000/api/auth/google/callback";
+    if (!code) {
+      return res.status(400).json({ error: "Missing Google code" });
+    }
+    const { tokens } = await googleClient.getToken(code as string);
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token!,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return res.status(401).json({ error: "Invalid Google token" });
+    }
+    const { email, name, picture, sub: googleId } = payload;
+    const adminEmail = process.env.ADMIN_EMAIL || "orgobloom5033@gmail.com";
+    const isAdmin = state === "admin" && email === adminEmail;
+    let [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    if (!existingUser) {
+      const [newUser] = await db
+        .insert(users)
+        .values({
+          email,
+          name: name || email.split("@")[0],
+          provider: "google",
+          providerAccountId: googleId,
+          image: picture,
+          emailVerified: new Date(),
+          role: isAdmin ? "ADMIN" : "CUSTOMER",
+        })
+        .returning();
+      existingUser = newUser;
+    } else if (!existingUser.provider || existingUser.provider === "email") {
+      const [updatedUser] = await db
+        .update(users)
+        .set({
+          provider: "google",
+          providerAccountId: googleId ?? null,
+          image: (picture || existingUser.image) ?? null,
+          emailVerified: existingUser.emailVerified || new Date(),
+          role: isAdmin ? "ADMIN" : existingUser.role,
+          phone: existingUser.phone ?? null,
+          blockedAt: existingUser.blockedAt ?? null,
+          blockedReason: existingUser.blockedReason ?? null,
+          riskScore: existingUser.riskScore ?? 0,
+          fraudStatus: existingUser.fraudStatus ?? "SAFE",
+          codEnabled: existingUser.codEnabled ?? true,
+          lastIPAddress: existingUser.lastIPAddress ?? null,
+          deviceFingerprint: existingUser.deviceFingerprint ?? null,
+          createdAt: existingUser.createdAt ?? new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      existingUser = updatedUser;
+    }
+    if (isAdmin && existingUser.role !== "ADMIN") {
+      const [updatedUser] = await db
+        .update(users)
+        .set({ role: "ADMIN" })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      existingUser = updatedUser;
+    }
+    if (existingUser.isBlocked) {
+      return res.status(403).json({ error: "Your account has been blocked. Please contact support." });
+    }
+    const authToken = generateToken(existingUser);
+    const { password, ...userWithoutPassword } = existingUser;
+    // Redirect to admin dashboard with token (or send token as response)
+    // For demo: send token in query string
+    const frontendUrl = process.env.ADMIN_FRONTEND_URL || "http://localhost:3002/dashboard";
+    res.redirect(`${frontendUrl}?token=${authToken}`);
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Forgot Password - Send verification code
 router.post(

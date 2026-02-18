@@ -17,33 +17,46 @@ export const authenticate = async (
 ): Promise<Response | void> => {
   try {
     const authHeader = req.headers.authorization;
+    console.log("[AUTH] Authorization header:", authHeader);
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.slice(7)
       : authHeader;
 
     if (!token) {
+      console.error("[AUTH] No token provided");
       return res.status(401).json({ error: "Authentication required" });
     }
 
     const jwtSecret = process.env.JWT_SECRET || "default-secret";
-    const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+    try {
+      const decoded = jwt.verify(token, jwtSecret) as { user: { id: string } };
+      console.log("[AUTH] Token decoded:", decoded);
+      // Log values before database query
+      const userId = decoded.user?.id;
+      console.log("[AUTH] Querying user with userId:", userId);
 
-    // Fetch actual user from database to get real role
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, decoded.userId))
-      .limit(1);
+      // Fetch actual user from database to get real role
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
 
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
+      if (!user) {
+        console.error("[AUTH] User not found for userId:", decoded.userId);
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Attach actual user to request
+      (req as AuthRequest).user = user;
+
+      next();
+    } catch (jwtError) {
+      console.error("[AUTH] Token verification failed:", jwtError);
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
-
-    // Attach actual user to request
-    (req as AuthRequest).user = user;
-
-    next();
   } catch (error) {
+    console.error("[AUTH] Unexpected error in authenticate middleware:", error);
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
