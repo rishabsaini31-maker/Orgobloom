@@ -43,7 +43,7 @@ export const authenticate = async (
         .limit(1);
 
       if (!user) {
-        console.error("[AUTH] User not found for userId:", decoded.userId);
+        console.error("[AUTH] User not found for userId:", userId);
         return res.status(401).json({ error: "User not found" });
       }
 
@@ -87,9 +87,9 @@ export const optionalAuth = (
 
     if (token) {
       const jwtSecret = process.env.JWT_SECRET || "default-secret";
-      const decoded = jwt.verify(token, jwtSecret) as { userId: string };
+      const decoded = jwt.verify(token, jwtSecret) as { user: { id: string } };
       (req as AuthRequest).user = {
-        id: decoded.userId,
+        id: decoded.user.id,
         email: "",
         name: "",
         role: "USER",
