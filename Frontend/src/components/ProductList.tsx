@@ -16,10 +16,10 @@ export default function ProductList({ featured }: ProductListProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {[...Array(4)].map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="bg-gray-200 h-64 rounded-lg"></div>
+            <div className="bg-gray-200 h-72 rounded-lg"></div>
             <div className="mt-4 space-y-2">
               <div className="bg-gray-200 h-4 rounded"></div>
               <div className="bg-gray-200 h-4 w-2/3 rounded"></div>
@@ -45,7 +45,7 @@ export default function ProductList({ featured }: ProductListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {products.map((product: any) => (
         <ProductCard key={product.id} product={product} />
       ))}

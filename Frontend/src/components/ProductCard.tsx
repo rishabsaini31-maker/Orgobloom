@@ -36,7 +36,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Image Section */}
-        <div className="relative h-48 bg-gray-100 overflow-hidden flex items-center justify-center">
+        <div className="relative h-64 bg-gray-100 overflow-hidden flex items-center justify-center">
           {/* Blurred Background */}
           {product.images && product.images.length > 0 ? (
             <>
