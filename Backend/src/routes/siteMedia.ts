@@ -74,7 +74,7 @@ router.post(
   videoUpload.array("videos", 5),
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const files = req.files as Express.Multer.File[] | undefined;
+      const files = req.files as { filename: string; originalname: string; mimetype: string }[] | undefined;
 
       if (!files || files.length === 0) {
         return res
