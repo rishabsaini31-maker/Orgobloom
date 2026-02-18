@@ -7,6 +7,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { createId } from "@paralleldrive/cuid2";
+import { uploadToSupabase, deleteFromSupabase, isSupabaseUrl, ensureBucketExists } from "@/utils/supabaseStorage";
 
 const router = Router();
 
@@ -19,15 +20,8 @@ const ensureDir = (dirPath: string) => {
 const videosDir = path.resolve(process.cwd(), "uploads", "videos");
 ensureDir(videosDir);
 
-const videoStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, videosDir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".mp4";
-    cb(null, `${createId()}${ext}`);
-  },
-});
+// Use memory storage for Supabase uploads
+const videoStorage = multer.memoryStorage();
 
 const videoUpload = multer({
   storage: videoStorage,
@@ -68,7 +62,7 @@ router.get(
   },
 );
 
-// Upload multiple videos (1-5)
+// Upload multiple videos (1-5) to Supabase Storage
 router.post(
   "/intro-videos",
   authenticate,
@@ -76,7 +70,7 @@ router.post(
   videoUpload.array("videos", 5),
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const files = req.files as { filename: string; originalname: string; mimetype: string }[] | undefined;
+      const files = req.files as Express.Multer.File[] | undefined;
 
       if (!files || files.length === 0) {
         return res
@@ -88,9 +82,25 @@ router.post(
         return res.status(400).json({ error: "Maximum 5 videos allowed" });
       }
 
-      const videoUrls = files.map((file) => {
-        return `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`;
+      // Ensure Supabase bucket exists
+      await ensureBucketExists();
+
+      // Upload each video to Supabase Storage
+      const uploadPromises = files.map(async (file) => {
+        const ext = path.extname(file.originalname).toLowerCase() || ".mp4";
+        const filename = `${createId()}${ext}`;
+        
+        const { url, error } = await uploadToSupabase(file.buffer, filename, "videos");
+        
+        if (error) {
+          console.error("Error uploading video:", error);
+          throw error;
+        }
+        
+        return url;
       });
+
+      const videoUrls = await Promise.all(uploadPromises);
 
       const [existing] = await db
         .select()
@@ -99,19 +109,18 @@ router.post(
         .limit(1);
 
       if (existing) {
-        const [updated] = await db
+        await db
           .update(siteMedia)
           .set({
             introVideoUrls: JSON.stringify(videoUrls),
             introVideoUrl: videoUrls[0], // Keep first video for backward compatibility
             updatedAt: new Date(),
           })
-          .where(eq(siteMedia.id, existing.id))
-          .returning();
+          .where(eq(siteMedia.id, existing.id));
 
         return res.json({
           videos: videoUrls,
-          message: `${videoUrls.length} video(s) uploaded successfully`,
+          message: `${videoUrls.length} video(s) uploaded to Supabase successfully`,
         });
       }
 
@@ -125,9 +134,10 @@ router.post(
 
       return res.status(201).json({
         videos: videoUrls,
-        message: `${videoUrls.length} video(s) uploaded successfully`,
+        message: `${videoUrls.length} video(s) uploaded to Supabase successfully`,
       });
     } catch (error) {
+      console.error("Error in video upload:", error);
       next(error);
     }
   },
@@ -158,10 +168,21 @@ router.delete(
         return res.status(400).json({ error: "Invalid video index" });
       }
 
+      // Get the URL to delete
+      const urlToDelete = videoUrls[index];
+
+      // Delete from Supabase if it's a Supabase URL
+      if (isSupabaseUrl(urlToDelete)) {
+        const { success, error } = await deleteFromSupabase(urlToDelete);
+        if (!success) {
+          console.error("Failed to delete from Supabase:", error);
+        }
+      }
+
       // Remove the video at the specified index
       videoUrls.splice(index, 1);
 
-      const [updated] = await db
+      await db
         .update(siteMedia)
         .set({
           introVideoUrls:
@@ -169,8 +190,7 @@ router.delete(
           introVideoUrl: videoUrls[0] || null,
           updatedAt: new Date(),
         })
-        .where(eq(siteMedia.id, existing.id))
-        .returning();
+        .where(eq(siteMedia.id, existing.id));
 
       return res.json({
         videos: videoUrls,
