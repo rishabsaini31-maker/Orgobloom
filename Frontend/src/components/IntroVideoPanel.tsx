@@ -8,9 +8,12 @@ const DEFAULT_VIDEO_URLS = [
   "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/close-up-of-hands-gently-mixing-organic-fertilizer.mp4",
 ];
 
+// Default poster image - shows while video loads
+const DEFAULT_POSTER_URL = "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/poster.jpg";
+
 export default function IntroVideoPanel() {
   const [videoUrls, setVideoUrls] = useState<string[]>(DEFAULT_VIDEO_URLS);
-  const [posterUrl, setPosterUrl] = useState<string | null>(null);
+  const [posterUrl, setPosterUrl] = useState<string>(DEFAULT_POSTER_URL);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
