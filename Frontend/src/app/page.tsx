@@ -5,107 +5,126 @@ import ProductList from "@/components/ProductList";
 import Testimonials from "@/components/Testimonials";
 import Newsletter from "@/components/Newsletter";
 import CTASection from "@/components/CTASection";
+import IntroVideoPanel from "@/components/IntroVideoPanel";
 
 export default function HomePage() {
   return (
     <>
       <Header />
-      <main>
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-primary-600 to-primary-700 text-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4">
-              Premium Organic Fertilizers
-            </h1>
-            <p className="text-xl md:text-2xl mb-8">
-              Natural nutrition for healthier plants and sustainable farming
-            </p>
-            <Link
-              href="/products"
-              className="inline-block bg-white text-primary-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors"
-            >
-              Shop Now
-            </Link>
-          </div>
-        </section>
-
-        {/* Features */}
+      <main className="snap-y snap-mandatory scroll-smooth min-h-screen overflow-auto">
+        <div className="border-4 border-primary-600 rounded-b-2xl overflow-hidden">
+          <IntroVideoPanel />
+        </div>
+        {/* All Products Section - Right after video */}
         <section className="py-16 bg-gray-50">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-primary-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">100% Organic</h3>
-                <p className="text-gray-600">
-                  Natural ingredients with no harmful chemicals
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-primary-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.5 9.134a1 1 0 010 1.732l-3.354 1.935-1.18 4.455a1 1 0 01-1.933 0L9.854 12.8 6.5 10.866a1 1 0 010-1.732l3.354-1.935 1.18-4.455A1 1 0 0112 2z"
-                      clipRule="evenodd"
+            <div className="flex items-center justify-between mb-12">
+              <h2 className="text-3xl font-bold">All Products</h2>
+              <Link
+                href="/products"
+                className="text-primary-600 hover:text-primary-700 font-semibold flex items-center gap-2"
+              >
+                View All
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
+            <ProductList featured={false} />
+          </div>
+        </section>
+        <section className="py-20 bg-white">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center gap-10">
+              {/* Left: Heading + Info */}
+              <div className="flex-1">
+                <span className="text-primary-600 font-bold tracking-widest text-xs">
+                  ―FEATURES―
+                </span>
+                <h2 className="text-3xl md:text-4xl font-bold mt-2 mb-8">
+                  Why Choose Us
+                </h2>
+                <div className="space-y-8">
+                  <div className="flex items-start gap-4">
+                    <img
+                      src="/Images/Gemini_Generated_Image_25mu0525mu0525mu.png"
+                      alt="Premium Organic"
+                      className="w-10 h-10 rounded-full bg-primary-50 p-1 shadow object-cover"
                     />
-                  </svg>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-primary-700">
+                        Premium Organic Inputs
+                      </h3>
+                      <p className="text-gray-700">
+                        We offer only the highest quality organic fertilizers
+                        and soil enhancers, carefully sourced and tested for
+                        purity and effectiveness. Your crops and garden get the
+                        best nutrition, naturally.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <img
+                      src="/Images/Gemini_Generated_Image_37j78g37j78g37j7.png"
+                      alt="Soil Solutions"
+                      className="w-10 h-10 rounded-full bg-primary-50 p-1 shadow object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-primary-700">
+                        Everything for Your Soil
+                      </h3>
+                      <p className="text-gray-700">
+                        From compost and biofertilizers to eco-friendly pest
+                        solutions, Orgobloom is your one-stop shop for all
+                        things soil health and plant growth.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <img
+                      src="/Images/Gemini_Generated_Image_irqmktirqmktirqm.png"
+                      alt="Expert Guidance"
+                      className="w-10 h-10 rounded-full bg-primary-50 p-1 shadow object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-primary-700">
+                        Expert Guidance
+                      </h3>
+                      <p className="text-gray-700">
+                        Get personalized advice on how to use our products for
+                        your specific crops or garden. We help you grow better,
+                        with tips for application, timing, and sustainable
+                        practices.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">Nutrient Rich</h3>
-                <p className="text-gray-600">
-                  Packed with essential nutrients for optimal growth
-                </p>
               </div>
-              <div className="text-center">
-                <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-primary-600"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Trusted Quality</h3>
-                <p className="text-gray-600">
-                  Used by thousands of satisfied farmers
-                </p>
+              {/* Right: Image */}
+              <div className="flex-1 flex justify-center">
+                <img
+                  src="/Images/logo.jpg"
+                  alt="Why Choose Orgobloom"
+                  className="rounded-2xl shadow-lg w-full max-w-md object-cover"
+                />
               </div>
             </div>
           </div>
         </section>
-
-        {/* Featured Products */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              Featured Products
-            </h2>
-            <ProductList featured />
-          </div>
-        </section>
-
-        {/* Testimonials Section */}
         <Testimonials />
-
-        {/* Newsletter Section */}
-        <Newsletter />
-
-        {/* CTA Section */}
         <CTASection />
+        <Footer />
       </main>
-      <Footer />
     </>
   );
 }

@@ -3,8 +3,9 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 interface Order {
   id: string;
@@ -16,52 +17,72 @@ interface Order {
 }
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
+
+  const fetchWithTimeout = async (
+    url: string,
+    options: RequestInit,
+    timeoutMs = 8000,
+  ) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
 
   // Load orders on component mount
   useEffect(() => {
-    setMounted(true);
-    const loadOrders = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          setLoading(false);
-          return;
-        }
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/orders`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data.orders);
-        }
-      } catch (error) {
-        console.error("Failed to load orders:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadOrders();
+    setToken(localStorage.getItem("token"));
   }, []);
 
-  const filteredOrders =
-    selectedStatus === "all"
-      ? orders
-      : orders.filter((order) =>
-          order.status.toLowerCase().includes(selectedStatus.toLowerCase()),
-        );
+  const {
+    data: orders = [],
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["orders", token],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const response = await fetchWithTimeout(
+        `${process.env.NEXT_PUBLIC_API_URL}/orders`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to load orders");
+      }
+
+      const data = await response.json();
+      return data.orders as Order[];
+    },
+    staleTime: 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const filteredOrders = useMemo(() => {
+    if (selectedStatus === "all") {
+      return orders;
+    }
+
+    return orders.filter((order) =>
+      order.status.toLowerCase().includes(selectedStatus.toLowerCase()),
+    );
+  }, [orders, selectedStatus]);
 
   const getStatusColor = (status: string) => {
     const statusMap: Record<string, string> = {
@@ -141,16 +162,46 @@ export default function OrdersPage() {
               ))}
             </div>
 
+            {!token && (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <p className="text-gray-600 mb-4">
+                  Please log in to view orders
+                </p>
+                <Link
+                  href="/login"
+                  className="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Go to Login
+                </Link>
+              </div>
+            )}
+
             {/* Loading State */}
-            {loading && (
+            {token && (isLoading || isFetching) && (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
                 <p className="text-gray-600 mt-4">Loading orders...</p>
               </div>
             )}
 
+            {token && isError && (
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                <p className="text-gray-700 mb-4">
+                  {error instanceof Error
+                    ? error.message
+                    : "Unable to load orders"}
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  className="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
+
             {/* Orders List */}
-            {!loading && filteredOrders.length > 0 ? (
+            {token && !isLoading && !isError && filteredOrders.length > 0 ? (
               <div className="space-y-4">
                 {filteredOrders.map((order) => (
                   <div
@@ -205,7 +256,7 @@ export default function OrdersPage() {
                   </div>
                 ))}
               </div>
-            ) : !loading ? (
+            ) : token && !isLoading && !isError ? (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                 <svg
                   className="w-16 h-16 mx-auto text-gray-400 mb-4"

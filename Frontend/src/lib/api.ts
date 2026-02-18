@@ -40,6 +40,9 @@ export const authApi = {
   register: (data: any) => api.post("/auth/register", data),
   login: (data: any) => api.post("/auth/login", data),
   googleLogin: (data: any) => api.post("/auth/google", data),
+  forgotPassword: (data: any) => api.post("/auth/forgot-password", data),
+  resetPassword: (data: any) => api.post("/auth/reset-password", data),
+  post: (endpoint: string, data: any) => api.post(endpoint, data),
 };
 
 // Products API

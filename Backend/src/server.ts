@@ -3,6 +3,8 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
 import { errorHandler } from "./middleware/errorHandler";
 import { apiLimiter } from "./middleware/rateLimiter";
 import { db } from "./db";
@@ -16,20 +18,30 @@ import profileRoutes from "./routes/profile";
 import customersRoutes from "./routes/customers";
 import ordersRoutes from "./routes/orders";
 import addressesRoutes from "./routes/addresses";
+import emailRoutes from "./routes/email";
+import siteMediaRoutes from "./routes/siteMedia";
+import paymentRoutes from "./routes/payments";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const uploadsDir = path.resolve(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // Middleware
 app.use(helmet());
 app.use(
   cors({
     origin: [
-      process.env.FRONTEND_URL || "http://localhost:9090",
-      process.env.ADMIN_URL || "http://localhost:3001",
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      process.env.ADMIN_URL || "http://localhost:3002",
       "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
     ],
     credentials: true,
   }),
@@ -37,6 +49,7 @@ app.use(
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(uploadsDir));
 
 // Apply rate limiting to all routes
 app.use("/api/", apiLimiter);
@@ -54,6 +67,9 @@ app.use("/api/user", profileRoutes);
 app.use("/api/customers", customersRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/addresses", addressesRoutes);
+app.use("/api/email", emailRoutes);
+app.use("/api/site-media", siteMediaRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

@@ -39,10 +39,41 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
-          <p className="text-gray-600 text-sm">Loading dashboard...</p>
+      <div className="w-full">
+        <div className="mb-8">
+          <div className="h-10 w-64 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+            >
+              <div className="h-4 w-24 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse mb-3"></div>
+              <div className="h-8 w-32 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Charts Grid Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div
+              key={i}
+              className="bg-white rounded-lg p-6 shadow-sm border border-gray-200"
+            >
+              <div className="h-6 w-48 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded animate-pulse mb-6"></div>
+              <div className="h-64 bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 rounded animate-pulse"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Loading indicator text */}
+        <div className="fixed bottom-8 right-8 flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg border border-gray-200">
+          <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary-600 border-t-transparent"></div>
+          <span className="text-sm text-gray-600">Loading dashboard...</span>
         </div>
       </div>
     );

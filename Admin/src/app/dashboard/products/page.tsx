@@ -65,26 +65,22 @@ const EmptyProductModal = ({
 
     setIsSubmitting(true);
     try {
-      const formDataWithImages = new FormData();
-      formDataWithImages.append("name", formData.name);
-      formDataWithImages.append("description", formData.description);
-      formDataWithImages.append("howToUse", formData.howToUse);
-      formDataWithImages.append("benefits", formData.benefits);
-      formDataWithImages.append("compositions", formData.compositions);
-      formDataWithImages.append("price", formData.price);
-      formDataWithImages.append("stock", formData.stock);
-      formDataWithImages.append("category", formData.category);
-      formDataWithImages.append("sku", formData.sku);
+      const uploadData = new FormData();
+      images.forEach((image) => uploadData.append("images", image));
 
-      images.forEach((image) => {
-        formDataWithImages.append("images", image);
-      });
+      const uploadResponse = await adminApi.uploadProductImages(uploadData);
+      const uploadedUrls = uploadResponse.data?.urls || [];
+
+      if (!uploadedUrls.length) {
+        throw new Error("Image upload failed");
+      }
 
       await adminApi.createProduct({
         ...formData,
         price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        images: images.length > 0 ? images : undefined,
+        stock: parseInt(formData.stock, 10),
+        imageUrl: uploadedUrls[0],
+        images: uploadedUrls,
       });
       toast.success("Product created successfully");
       onClose();
@@ -101,8 +97,13 @@ const EmptyProductModal = ({
       });
       setImages([]);
       setImagePreviews([]);
-    } catch (error) {
-      toast.error("Failed to create product");
+    } catch (error: any) {
+      console.error("Create product error:", error);
+      toast.error(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to create product",
+      );
     } finally {
       setIsSubmitting(false);
     }

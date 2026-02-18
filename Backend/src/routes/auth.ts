@@ -8,6 +8,15 @@ import { ApiError } from "@/middleware/errorHandler";
 import { loginLimiter, registerLimiter } from "@/middleware/rateLimiter";
 import { AuthRequest } from "@/middleware/auth";
 import { OAuth2Client } from "google-auth-library";
+import { sendEmail } from "@/utils/emailService";
+import { emailTemplates } from "@/templates/emailTemplates";
+import crypto from "crypto";
+
+// In-memory store for password reset codes (email -> { code, expires, attempts })
+const resetCodes: Map<
+  string,
+  { code: string; expires: number; attempts: number }
+> = new Map();
 
 const router = Router();
 
@@ -18,196 +27,426 @@ const googleClient = new OAuth2Client(
 );
 
 // Register
-router.post("/register", registerLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const validatedData = registerSchema.parse(req.body);
+router.post(
+  "/register",
+  registerLimiter,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const validatedData = registerSchema.parse(req.body);
 
-    // Check if user exists
-    const existingUser = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, validatedData.email))
-      .limit(1);
+      // Check if user exists
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, validatedData.email))
+        .limit(1);
 
-    if (existingUser.length > 0) {
-      throw new ApiError("Email already registered", 400);
-    }
+      if (existingUser.length > 0) {
+        throw new ApiError("Email already registered", 400);
+      }
 
-    // Hash password
-    const hashedPassword = await hashPassword(validatedData.password);
+      // Hash password
+      const hashedPassword = await hashPassword(validatedData.password);
 
-    // Create user
-    const [newUser] = await db
-      .insert(users)
-      .values({
-        email: validatedData.email,
-        name: validatedData.name,
-        password: hashedPassword,
-        phone: validatedData.phone,
-      })
-      .returning();
-
-    // Generate token
-    const token = generateToken(newUser);
-
-    // Remove password from response
-    const { password, ...userWithoutPassword } = newUser;
-
-    res.status(201).json({
-      message: "Registration successful",
-      user: userWithoutPassword,
-      token,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Login
-router.post("/login", loginLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const validatedData = loginSchema.parse(req.body);
-
-    // Find user
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, validatedData.email))
-      .limit(1);
-
-    if (!user) {
-      throw new ApiError("Invalid email or password", 401);
-    }
-
-    // Check if user is blocked
-    if (user.isBlocked) {
-      throw new ApiError(
-        "Your account has been blocked. Please contact support.",
-        403,
-      );
-    }
-
-    // Verify password
-    if (!user.password) {
-      throw new ApiError("Please use OAuth login method", 400);
-    }
-
-    const isValidPassword = await comparePassword(
-      validatedData.password,
-      user.password,
-    );
-
-    if (!isValidPassword) {
-      throw new ApiError("Invalid email or password", 401);
-    }
-
-    // Generate token
-    const token = generateToken(user);
-
-    // Remove password from response
-    const { password, ...userWithoutPassword } = user;
-
-    // Note: Fraud check disabled for now
-
-    res.json({
-      message: "Login successful",
-      user: userWithoutPassword,
-      token,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Google OAuth
-router.post("/google", registerLimiter, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const { token } = req.body;
-
-    if (!token) {
-      throw new ApiError("Google token is required", 400);
-    }
-
-    // Verify Google token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    const payload = ticket.getPayload();
-
-    if (!payload || !payload.email) {
-      throw new ApiError("Invalid Google token", 401);
-    }
-
-    const { email, name, picture, sub: googleId } = payload;
-
-    // Check if user exists
-    let [existingUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.email, email))
-      .limit(1);
-
-    // If user doesn't exist, create new user with Google login
-    if (!existingUser) {
+      // Create user
       const [newUser] = await db
         .insert(users)
         .values({
-          email,
-          name: name || email.split("@")[0],
-          provider: "google",
-          providerAccountId: googleId,
-          image: picture,
-          emailVerified: new Date(),
-          // No password for OAuth users
+          email: validatedData.email,
+          name: validatedData.name,
+          password: hashedPassword,
+          phone: validatedData.phone,
         })
         .returning();
 
-      existingUser = newUser;
-    } else if (!existingUser.provider || existingUser.provider === "email") {
-      // Update existing email user to include Google OAuth
-      const [updatedUser] = await db
-        .update(users)
-        .set({
-          provider: "google",
-          providerAccountId: googleId,
-          image: picture || existingUser.image,
-          emailVerified: existingUser.emailVerified || new Date(),
-        })
-        .where(eq(users.id, existingUser.id))
-        .returning();
+      // Generate token
+      const token = generateToken(newUser);
 
-      existingUser = updatedUser;
-    }
-
-    // Check if user is blocked
-    if (existingUser.isBlocked) {
-      throw new ApiError(
-        "Your account has been blocked. Please contact support.",
-        403,
+      // Send welcome email
+      const welcomeEmailContent = emailTemplates.welcomeEmail(
+        newUser.name || "User",
       );
-    }
+      await sendEmail({
+        to: newUser.email,
+        subject: welcomeEmailContent.subject,
+        html: welcomeEmailContent.html,
+        text: welcomeEmailContent.text,
+      }).catch((err) => console.error("Welcome email failed:", err));
 
-    // Generate token
-    const authToken = generateToken(existingUser);
+      // Remove password from response
+      const { password, ...userWithoutPassword } = newUser;
 
-    // Remove password from response
-    const { password, ...userWithoutPassword } = existingUser;
-
-    res.json({
-      message: "Google login successful",
-      user: userWithoutPassword,
-      token: authToken,
-    });
-  } catch (error) {
-    if (error instanceof ApiError) {
+      res.status(201).json({
+        message: "Registration successful",
+        user: userWithoutPassword,
+        token,
+      });
+    } catch (error) {
       next(error);
-    } else {
-      console.error("Google Auth Error:", error);
-      next(new ApiError("Google authentication failed", 401));
     }
-  }
-});
+  },
+);
+
+// Login
+router.post(
+  "/login",
+  loginLimiter,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const validatedData = loginSchema.parse(req.body);
+
+      // Find user
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, validatedData.email))
+        .limit(1);
+
+      if (!user) {
+        throw new ApiError("Invalid email or password", 401);
+      }
+
+      // Check if user is blocked
+      if (user.isBlocked) {
+        throw new ApiError(
+          "Your account has been blocked. Please contact support.",
+          403,
+        );
+      }
+
+      // Verify password
+      if (!user.password) {
+        throw new ApiError("Please use OAuth login method", 400);
+      }
+
+      const isValidPassword = await comparePassword(
+        validatedData.password,
+        user.password,
+      );
+
+      if (!isValidPassword) {
+        throw new ApiError("Invalid email or password", 401);
+      }
+
+      // Generate token
+      const token = generateToken(user);
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+
+      // Note: Fraud check disabled for now
+
+      res.json({
+        message: "Login successful",
+        user: userWithoutPassword,
+        token,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Google OAuth
+router.post(
+  "/google",
+  registerLimiter,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { token } = req.body;
+
+      if (!token) {
+        throw new ApiError("Google token is required", 400);
+      }
+
+      // Verify Google token
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload || !payload.email) {
+        throw new ApiError("Invalid Google token", 401);
+      }
+
+      const { email, name, picture, sub: googleId } = payload;
+
+      // Check if user exists
+      let [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      // If user doesn't exist, create new user with Google login
+      if (!existingUser) {
+        const [newUser] = await db
+          .insert(users)
+          .values({
+            email,
+            name: name || email.split("@")[0],
+            provider: "google",
+            providerAccountId: googleId,
+            image: picture,
+            emailVerified: new Date(),
+            // No password for OAuth users
+          })
+          .returning();
+
+        existingUser = newUser;
+      } else if (!existingUser.provider || existingUser.provider === "email") {
+        // Update existing email user to include Google OAuth
+        const [updatedUser] = await db
+          .update(users)
+          .set({
+            provider: "google",
+            providerAccountId: googleId,
+            image: picture || existingUser.image,
+            emailVerified: existingUser.emailVerified || new Date(),
+          })
+          .where(eq(users.id, existingUser.id))
+          .returning();
+
+        existingUser = updatedUser;
+      }
+
+      // Check if user is blocked
+      if (existingUser.isBlocked) {
+        throw new ApiError(
+          "Your account has been blocked. Please contact support.",
+          403,
+        );
+      }
+
+      // Generate token
+      const authToken = generateToken(existingUser);
+
+      // Remove password from response
+      const { password, ...userWithoutPassword } = existingUser;
+
+      res.json({
+        message: "Google login successful",
+        user: userWithoutPassword,
+        token: authToken,
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        next(error);
+      } else {
+        console.error("Google Auth Error:", error);
+        next(new ApiError("Google authentication failed", 401));
+      }
+    }
+  },
+);
+
+// Forgot Password - Send verification code
+router.post(
+  "/forgot-password",
+  registerLimiter,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new ApiError("Email is required", 400);
+      }
+
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      // Don't reveal if email exists or not (security)
+      if (!user) {
+        return res.json({
+          message: "If this email exists, a verification code has been sent.",
+        });
+      }
+
+      // Generate 6-digit code
+      const verificationCode = Math.floor(
+        100000 + Math.random() * 900000,
+      ).toString();
+
+      // Store code with 10-minute expiry
+      resetCodes.set(email, {
+        code: verificationCode,
+        expires: Date.now() + 600000, // 10 minutes
+        attempts: 0,
+      });
+
+      // Send verification code email
+      const emailContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #667eea;">Password Reset Code</h2>
+          <p>Hi ${user.name},</p>
+          <p>You requested to reset your password. Use this code to proceed:</p>
+          
+          <div style="background: #f0f0f0; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #667eea; letter-spacing: 5px; margin: 0;">${verificationCode}</h1>
+            <p style="color: #999; margin: 10px 0 0 0;">This code expires in 10 minutes</p>
+          </div>
+
+          <p><strong>How to use:</strong></p>
+          <ol>
+            <li>Go to ${process.env.FRONTEND_URL}/forgot-password</li>
+            <li>Enter the code above: <strong>${verificationCode}</strong></li>
+            <li>Create your new password</li>
+          </ol>
+
+          <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+        </div>
+      `;
+
+      await sendEmail({
+        to: user.email,
+        subject: "Your Password Reset Code is: " + verificationCode,
+        html: emailContent,
+        text: `Password Reset Code: ${verificationCode}\n\nThis code expires in 10 minutes. Do not share this code with anyone.`,
+      }).catch((err) => console.error("Email failed:", err));
+
+      res.json({
+        message: "If this email exists, a verification code has been sent.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Verify code
+router.post(
+  "/verify-code",
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        throw new ApiError("Email and code are required", 400);
+      }
+
+      const stored = resetCodes.get(email);
+
+      if (!stored) {
+        throw new ApiError(
+          "No reset code found. Please request a new one.",
+          400,
+        );
+      }
+
+      // Check if code expired
+      if (Date.now() > stored.expires) {
+        resetCodes.delete(email);
+        throw new ApiError(
+          "Verification code has expired. Please request a new one.",
+          400,
+        );
+      }
+
+      // Check attempt limit
+      if (stored.attempts >= 5) {
+        resetCodes.delete(email);
+        throw new ApiError(
+          "Too many failed attempts. Please request a new code.",
+          400,
+        );
+      }
+
+      // Verify code
+      if (stored.code !== code.toString().trim()) {
+        stored.attempts++;
+        throw new ApiError("Invalid verification code", 400);
+      }
+
+      res.json({
+        message: "Code verified successfully",
+        valid: true,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Reset Password with code
+router.post(
+  "/reset-password",
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { email, code, newPassword, confirmPassword } = req.body;
+
+      if (!email || !code || !newPassword || !confirmPassword) {
+        throw new ApiError("All fields are required", 400);
+      }
+
+      // Verify code first
+      const stored = resetCodes.get(email);
+
+      if (!stored) {
+        throw new ApiError(
+          "No reset code found. Please request a new one.",
+          400,
+        );
+      }
+
+      if (Date.now() > stored.expires) {
+        resetCodes.delete(email);
+        throw new ApiError(
+          "Verification code has expired. Please request a new one.",
+          400,
+        );
+      }
+
+      if (stored.code !== code.toString().trim()) {
+        stored.attempts++;
+        throw new ApiError("Invalid verification code", 400);
+      }
+
+      // Validate passwords
+      if (newPassword !== confirmPassword) {
+        throw new ApiError("Passwords do not match", 400);
+      }
+
+      if (newPassword.length < 8) {
+        throw new ApiError("Password must be at least 8 characters", 400);
+      }
+
+      // Find user
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      if (!user) {
+        throw new ApiError("User not found", 404);
+      }
+
+      // Hash new password
+      const hashedPassword = await hashPassword(newPassword);
+
+      // Update password
+      await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, user.id));
+
+      // Clear code
+      resetCodes.delete(email);
+
+      res.json({
+        message:
+          "Password reset successful. Please sign in with your new password.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export default router;

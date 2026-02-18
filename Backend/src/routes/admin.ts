@@ -5,8 +5,42 @@ import { eq, sql, gte, and, lt } from "drizzle-orm";
 import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
 import { generateSlug } from "@/utils/helpers";
 import { createId } from "@paralleldrive/cuid2";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 const router = Router();
+
+const ensureDir = (dirPath: string) => {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
+};
+
+const productImagesDir = path.resolve(process.cwd(), "uploads", "products");
+ensureDir(productImagesDir);
+
+const productImageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, productImagesDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${createId()}${ext}`);
+  },
+});
+
+const productImagesUpload = multer({
+  storage: productImageStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error("Only JPG, PNG, or WebP images are allowed"));
+    }
+    cb(null, true);
+  },
+});
 
 // ==================== ORDERS ====================
 
@@ -179,9 +213,10 @@ router.get(
       const previousRevenue = Number(previousPeriodRevenue?.totalRevenue || 0);
       const revenueGrowth =
         previousRevenue > 0
-          ? (((totalRevenue - previousRevenue) / previousRevenue) * 100).toFixed(
-              1,
-            )
+          ? (
+              ((totalRevenue - previousRevenue) / previousRevenue) *
+              100
+            ).toFixed(1)
           : "0";
 
       // Get order counts for current period using database
@@ -229,18 +264,24 @@ router.get(
         .where(
           and(
             eq(orders.paymentStatus, "COMPLETED"),
-            gte(orders.createdAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+            gte(
+              orders.createdAt,
+              new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            ),
           ),
         )
         .groupBy(sql`DATE(created_at)`);
-
-
 
       // Build chart data from database results
       const chartData = {
         revenueTrend: {
           labels: revenueTrend.map((r: any) => {
-            const dateStr = typeof r.date === 'string' ? r.date : (r.date instanceof Date ? r.date.toISOString().split('T')[0] : String(r.date));
+            const dateStr =
+              typeof r.date === "string"
+                ? r.date
+                : r.date instanceof Date
+                  ? r.date.toISOString().split("T")[0]
+                  : String(r.date);
             return new Date(dateStr).toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -251,10 +292,14 @@ router.get(
         orderStatus: {
           labels: ["Pending", "Shipped", "Delivered", "Cancelled"],
           data: [
-            statusBreakdown.find((s: any) => s.status === "PENDING")?.count || 0,
-            statusBreakdown.find((s: any) => s.status === "SHIPPED")?.count || 0,
-            statusBreakdown.find((s: any) => s.status === "DELIVERED")?.count || 0,
-            statusBreakdown.find((s: any) => s.status === "CANCELLED")?.count || 0,
+            statusBreakdown.find((s: any) => s.status === "PENDING")?.count ||
+              0,
+            statusBreakdown.find((s: any) => s.status === "SHIPPED")?.count ||
+              0,
+            statusBreakdown.find((s: any) => s.status === "DELIVERED")?.count ||
+              0,
+            statusBreakdown.find((s: any) => s.status === "CANCELLED")?.count ||
+              0,
           ],
         },
         categorySales: {
@@ -434,6 +479,28 @@ router.put(
 
 // ==================== PRODUCTS ====================
 
+// Upload product images (admin)
+router.post(
+  "/uploads/products",
+  authenticate,
+  isAdmin,
+  productImagesUpload.array("images", 6),
+  async (req: AuthRequest, res: Response) => {
+    const files = (req.files || []) as Express.Multer.File[];
+
+    if (!files.length) {
+      return res.status(400).json({ error: "No images uploaded" });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const urls = files.map(
+      (file) => `${baseUrl}/uploads/products/${file.filename}`,
+    );
+
+    res.json({ urls });
+  },
+);
+
 // Get all products (admin)
 router.get(
   "/products",
@@ -470,12 +537,25 @@ router.post(
         stock,
         category,
         sku,
+        imageUrl,
+        images,
       } = req.body;
 
+      const parsedPrice =
+        typeof price === "string" ? parseFloat(price) : Number(price);
+      const parsedStock =
+        typeof stock === "string" ? parseInt(stock, 10) : Number(stock);
+
       // Validate required fields
-      if (!name || !price || !stock || !category) {
+      if (!name || !category) {
         return res.status(400).json({
           error: "Missing required fields: name, price, stock, category",
+        });
+      }
+
+      if (Number.isNaN(parsedPrice) || Number.isNaN(parsedStock)) {
+        return res.status(400).json({
+          error: "Price and stock must be valid numbers",
         });
       }
 
@@ -486,8 +566,31 @@ router.post(
         });
       }
 
-      // Generate slug
-      const slug = generateSlug(name);
+      // Generate a unique slug
+      const baseSlug = generateSlug(name);
+      let slug = baseSlug;
+      let attempt = 1;
+
+      while (true) {
+        const [existing] = await db
+          .select({ id: products.id })
+          .from(products)
+          .where(eq(products.slug, slug))
+          .limit(1);
+
+        if (!existing) {
+          break;
+        }
+
+        attempt += 1;
+        slug = `${baseSlug}-${attempt}`;
+
+        if (attempt > 50) {
+          return res.status(400).json({
+            error: "Unable to generate unique product slug",
+          });
+        }
+      }
 
       // Create product
       const [newProduct] = await db
@@ -497,11 +600,16 @@ router.post(
           name,
           slug,
           description: description || "",
-          price: parseFloat(price),
-          stock: parseInt(stock),
+          price: parsedPrice,
+          stock: parsedStock,
           category,
           weight: "1", // Default weight in kg
-          imageUrl: category === "cow" ? "🐄" : "🐔", // Emoji based on category
+          imageUrl:
+            imageUrl ||
+            (category === "cow"
+              ? "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop"
+              : "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=400&fit=crop"),
+          images: Array.isArray(images) ? images : undefined,
           benefits: benefits ? [benefits] : [],
           usage: howToUse || "",
           composition: compositions || "",

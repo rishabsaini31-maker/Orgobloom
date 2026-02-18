@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { adminApi } from "@/lib/api";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("general");
@@ -32,6 +33,25 @@ export default function SettingsPage() {
   });
 
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [introVideoUrl, setIntroVideoUrl] = useState<string | null>(null);
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+
+  useEffect(() => {
+    const loadIntroVideo = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/site-media/intro-video`,
+        );
+        const data = await response.json();
+        setIntroVideoUrl(data?.url || null);
+      } catch (error) {
+        console.error("Failed to load intro video:", error);
+      }
+    };
+
+    loadIntroVideo();
+  }, []);
 
   const handleChange = (field: string, value: any) => {
     setSettings((prev) => ({
@@ -57,6 +77,33 @@ export default function SettingsPage() {
   const handleReset = () => {
     toast.error("Changes discarded");
     setUnsavedChanges(false);
+  };
+
+  const handleVideoUpload = async () => {
+    if (!videoFile) {
+      toast.error("Please select an MP4 video to upload");
+      return;
+    }
+
+    setIsUploadingVideo(true);
+
+    try {
+      const data = new FormData();
+      data.append("video", videoFile);
+      const response = await adminApi.uploadIntroVideo(data);
+      setIntroVideoUrl(response.data?.url || null);
+      toast.success("Intro video updated");
+      setVideoFile(null);
+    } catch (error: any) {
+      console.error("Intro video upload failed:", error);
+      toast.error(
+        error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Failed to upload intro video",
+      );
+    } finally {
+      setIsUploadingVideo(false);
+    }
   };
 
   return (
@@ -219,6 +266,50 @@ export default function SettingsPage() {
               <h2 className="text-lg font-semibold mb-4 flex items-center">
                 <span className="mr-2">⚙️</span> General Settings
               </h2>
+              <div className="mb-8 rounded-lg border border-gray-200 p-4">
+                <h3 className="text-base font-semibold mb-3">
+                  Intro Video Panel
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Upload a site-wide MP4 intro video shown before the homepage
+                  content.
+                </p>
+                <input
+                  type="file"
+                  accept="video/mp4"
+                  onChange={(e) => setVideoFile(e.target.files?.[0] || null)}
+                  className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-lg file:border-0 file:bg-primary-600 file:px-4 file:py-2 file:text-white hover:file:bg-primary-700"
+                />
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleVideoUpload}
+                    disabled={isUploadingVideo}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
+                  >
+                    {isUploadingVideo ? "Uploading..." : "Upload Video"}
+                  </button>
+                  {introVideoUrl && (
+                    <a
+                      href={introVideoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm text-primary-600 hover:underline"
+                    >
+                      View current video
+                    </a>
+                  )}
+                </div>
+                {introVideoUrl && (
+                  <div className="mt-4">
+                    <video
+                      src={introVideoUrl}
+                      controls
+                      className="w-full rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
+              </div>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

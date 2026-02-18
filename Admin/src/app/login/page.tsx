@@ -4,13 +4,45 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
+import { GoogleLogin } from "@react-oauth/google";
+import axios from "axios";
 
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      setIsLoading(true);
+      console.log(
+        "🔍 Google token received:",
+        credentialResponse.credential?.substring(0, 20) + "...",
+      );
+
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/google`,
+        { token: credentialResponse.credential },
+      );
+
+      const { user, token } = response.data;
+      console.log("✅ Google login successful");
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setAuth(user, token);
+      toast.success("Welcome back!");
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.error("❌ Google login error:", error);
+      toast.error(error.response?.data?.error || "Google login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +91,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                placeholder="orgobloom5033@gmail.com"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -90,15 +122,31 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs font-semibold text-gray-700 mb-2">
-              Admin Credentials:
-            </p>
-            <p className="text-xs text-gray-600">
-              Email: orgobloom5033@gmail.com
-            </p>
-            <p className="text-xs text-gray-600">Password: orgobloom5033@@$</p>
+          {/* Google OAuth Button */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  console.error("❌ Google login failed");
+                  toast.error("Google login failed");
+                }}
+              />
+            </div>
           </div>
+
+         
         </div>
       </div>
     </div>

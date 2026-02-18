@@ -9,6 +9,16 @@ import { ApiError } from "@/middleware/errorHandler";
 
 const router = Router();
 
+// Helper function to fix emoji imageUrls
+const fixImageUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  if (url === "🐄")
+    return "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop";
+  if (url === "🐔")
+    return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=400&fit=crop";
+  return url;
+};
+
 // Get all products (public)
 router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -37,8 +47,14 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
     const total = allProducts.length;
     const paginatedProducts = allProducts.slice(offset, offset + limit);
 
+    // Fix emoji imageUrls
+    const productsWithFixedImages = paginatedProducts.map((p) => ({
+      ...p,
+      imageUrl: fixImageUrl(p.imageUrl),
+    }));
+
     res.json({
-      products: paginatedProducts,
+      products: productsWithFixedImages,
       pagination: {
         page,
         limit,
@@ -52,74 +68,93 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
 });
 
 // Get product by ID (public)
-router.get("/:id", async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const [product] = await db
-      .select()
-      .from(products)
-      .where(eq(products.id, req.params.id))
-      .limit(1);
+router.get(
+  "/:id",
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const [product] = await db
+        .select()
+        .from(products)
+        .where(eq(products.id, req.params.id))
+        .limit(1);
 
-    if (!product) {
-      throw new ApiError("Product not found", 404);
+      if (!product) {
+        throw new ApiError("Product not found", 404);
+      }
+
+      const fixedProduct = {
+        ...product,
+        imageUrl: fixImageUrl(product.imageUrl),
+      };
+      res.json({ product: fixedProduct });
+    } catch (error) {
+      next(error);
     }
-
-    res.json({ product });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Get product by slug (public)
-router.get("/slug/:slug", async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const [product] = await db
-      .select()
-      .from(products)
-      .where(eq(products.slug, req.params.slug))
-      .limit(1);
+router.get(
+  "/slug/:slug",
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const [product] = await db
+        .select()
+        .from(products)
+        .where(eq(products.slug, req.params.slug))
+        .limit(1);
 
-    if (!product) {
-      throw new ApiError("Product not found", 404);
+      if (!product) {
+        throw new ApiError("Product not found", 404);
+      }
+
+      const fixedProduct = {
+        ...product,
+        imageUrl: fixImageUrl(product.imageUrl),
+      };
+      res.json({ product: fixedProduct });
+    } catch (error) {
+      next(error);
     }
-
-    res.json({ product });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Create product (admin only)
-router.post("/", authenticate, isAdmin, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const validatedData = productSchema.parse(req.body);
+router.post(
+  "/",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const validatedData = productSchema.parse(req.body);
 
-    // Auto-generate slug if not provided
-    if (!validatedData.slug) {
-      validatedData.slug = generateSlug(validatedData.name);
+      // Auto-generate slug if not provided
+      if (!validatedData.slug) {
+        validatedData.slug = generateSlug(validatedData.name);
+      }
+
+      // Check if slug exists
+      const [existing] = await db
+        .select()
+        .from(products)
+        .where(eq(products.slug, validatedData.slug))
+        .limit(1);
+
+      if (existing) {
+        throw new ApiError("Product with this slug already exists", 400);
+      }
+
+      const [product] = await db
+        .insert(products)
+        .values(validatedData)
+        .returning();
+
+      res.status(201).json({ product });
+    } catch (error) {
+      next(error);
     }
-
-    // Check if slug exists
-    const [existing] = await db
-      .select()
-      .from(products)
-      .where(eq(products.slug, validatedData.slug))
-      .limit(1);
-
-    if (existing) {
-      throw new ApiError("Product with this slug already exists", 400);
-    }
-
-    const [product] = await db
-      .insert(products)
-      .values(validatedData)
-      .returning();
-
-    res.status(201).json({ product });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Update product (admin only)
 router.put(

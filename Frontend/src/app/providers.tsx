@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import GoogleAuthProviderComponent from "@/components/GoogleAuthProvider";
+import LiveChat from "@/components/LiveChat";
 import { useState } from "react";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -19,7 +20,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <GoogleAuthProviderComponent>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <LiveChat />
+      </QueryClientProvider>
     </GoogleAuthProviderComponent>
   );
 }

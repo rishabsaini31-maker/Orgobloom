@@ -41,6 +41,16 @@ export const recentlyViewed = pgTable("recently_viewed", {
   viewedAt: timestamp("viewed_at").defaultNow().notNull(),
 });
 
+export const siteMedia = pgTable("site_media", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  introVideoUrl: text("intro_video_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type OrderStatusHistory = typeof orderStatusHistory.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type RecentlyViewed = typeof recentlyViewed.$inferSelect;
+export type SiteMedia = typeof siteMedia.$inferSelect;

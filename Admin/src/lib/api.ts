@@ -40,6 +40,10 @@ export const adminApi = {
   getOrders: (params?: any) => api.get("/admin/orders", { params }),
   updateOrderStatus: (id: string, data: any) =>
     api.patch(`/admin/orders/${id}/status`, data),
+  uploadProductImages: (data: FormData) =>
+    api.post("/admin/uploads/products", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   getAnalytics: () => api.get("/admin/analytics"),
   getAdvancedAnalytics: (timeRange: string) =>
     api.get("/admin/analytics/advanced", { params: { timeRange } }),
@@ -49,6 +53,10 @@ export const adminApi = {
     api.post(`/admin/payments/${paymentId}/retry`),
   getAppSettings: () => api.get("/admin/settings"),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
+  uploadIntroVideo: (data: FormData) =>
+    api.post("/site-media/intro-video", data, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
   getCustomers: (params?: any) => api.get("/customers", { params }),
   getProducts: (params?: any) => api.get("/admin/products", { params }),
   createProduct: (data: any) => api.post("/admin/products", data),

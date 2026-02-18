@@ -168,6 +168,14 @@ CREATE TABLE IF NOT EXISTS recently_viewed (
     viewed_at timestamp DEFAULT now() NOT NULL
 );
 
+-- Create site_media table
+CREATE TABLE IF NOT EXISTS site_media (
+    id text PRIMARY KEY,
+    intro_video_url text,
+    created_at timestamp DEFAULT now() NOT NULL,
+    updated_at timestamp DEFAULT now() NOT NULL
+);
+
 -- Create fraud_logs table for audit trail and risk scoring
 CREATE TABLE IF NOT EXISTS fraud_logs (
     id text PRIMARY KEY,

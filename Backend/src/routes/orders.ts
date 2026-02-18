@@ -1,171 +1,232 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
-import { orders, orderItems, addresses } from "@/db/schema";
+import { orders, orderItems, addresses, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { authenticate, AuthRequest } from "@/middleware/auth";
 import { ApiError } from "@/middleware/errorHandler";
 import { createId } from "@paralleldrive/cuid2";
+import { sendEmail } from "@/utils/emailService";
+import { emailTemplates } from "@/templates/emailTemplates";
 
 const router = Router();
 
 // Create order
-router.post("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new ApiError("User not authenticated", 401);
+router.post(
+  "/",
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        throw new ApiError("User not authenticated", 401);
+      }
+
+      const {
+        items,
+        address,
+        paymentMethod,
+        subtotal,
+        tax,
+        deliveryCharge,
+        total,
+      } = req.body;
+
+      // Validate required fields
+      if (!items || items.length === 0) {
+        throw new ApiError("Order must contain at least one item", 400);
+      }
+
+      if (!address) {
+        throw new ApiError("Shipping address is required", 400);
+      }
+
+      // Generate order number
+      const orderNumber = `ORG-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+
+      // Store address as JSON string
+      const shippingAddressJSON = JSON.stringify(address);
+
+      // Create order
+      const [createdOrder] = await db
+        .insert(orders)
+        .values({
+          orderNumber,
+          userId,
+          subtotal: subtotal || 0,
+          shippingCost: deliveryCharge || 0,
+          tax: tax || 0,
+          total: total || 0,
+          shippingAddress: shippingAddressJSON,
+          status:
+            paymentMethod === "cod"
+              ? ("CONFIRMED" as const)
+              : ("PENDING" as const),
+          paymentStatus: "PENDING",
+        })
+        .returning();
+
+      // Create order items
+      const orderItemsData = items.map((item: any) => ({
+        orderId: createdOrder.id,
+        productId: item.productId,
+        quantity: item.quantity,
+        price: item.price,
+        weight: item.weight?.toString() || "1",
+      }));
+
+      await db.insert(orderItems).values(orderItemsData);
+
+      // Fetch user details for email
+      const [orderUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
+      // Prepare order items for email
+      const orderItemsForEmail = items.map((item: any) => ({
+        name: item.productName || `Product ${item.productId}`,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
+      // Send order confirmation email to customer
+      if (orderUser?.email) {
+        const orderConfirmationContent = emailTemplates.orderConfirmationEmail(
+          orderUser.name || "User",
+          createdOrder.orderNumber,
+          orderItemsForEmail,
+          createdOrder.total,
+          "5-7 business days",
+        );
+        await sendEmail({
+          to: orderUser.email,
+          subject: orderConfirmationContent.subject,
+          html: orderConfirmationContent.html,
+          text: orderConfirmationContent.text,
+        }).catch((err) =>
+          console.error("Order confirmation email failed:", err),
+        );
+      }
+
+      // Send admin notification email
+      const adminEmail = process.env.ADMIN_EMAIL || "orgobloom5033@gmail.com";
+      const adminNotificationContent = emailTemplates.adminNotificationEmail(
+        "Admin",
+        `New Order: ${createdOrder.orderNumber}`,
+        `New order placed by ${orderUser?.name || orderUser?.email}\n\nOrder Details:\n- Order Number: ${createdOrder.orderNumber}\n- Total: $${createdOrder.total}\n- Items: ${items.length}\n- Status: ${createdOrder.status}\n\nPlease review in the admin panel.`,
+      );
+      await sendEmail({
+        to: adminEmail,
+        subject: adminNotificationContent.subject,
+        html: adminNotificationContent.html,
+        text: adminNotificationContent.text,
+      }).catch((err) => console.error("Admin notification email failed:", err));
+
+      res.status(201).json({
+        success: true,
+        order: {
+          id: createdOrder.id,
+          orderNumber: createdOrder.orderNumber,
+          status: createdOrder.status,
+          total: createdOrder.total,
+          createdAt: createdOrder.createdAt,
+        },
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const {
-      items,
-      address,
-      paymentMethod,
-      subtotal,
-      tax,
-      deliveryCharge,
-      total,
-    } = req.body;
-
-    // Validate required fields
-    if (!items || items.length === 0) {
-      throw new ApiError("Order must contain at least one item", 400);
-    }
-
-    if (!address) {
-      throw new ApiError("Shipping address is required", 400);
-    }
-
-    // Generate order number
-    const orderNumber = `ORG-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
-
-    // Store address as JSON string
-    const shippingAddressJSON = JSON.stringify(address);
-
-    // Create order
-    const [createdOrder] = await db
-      .insert(orders)
-      .values({
-        orderNumber,
-        userId,
-        subtotal: subtotal || 0,
-        shippingCost: deliveryCharge || 0,
-        tax: tax || 0,
-        total: total || 0,
-        shippingAddress: shippingAddressJSON,
-        status:
-          paymentMethod === "cod"
-            ? ("CONFIRMED" as const)
-            : ("PENDING" as const),
-        paymentStatus: "PENDING",
-      })
-      .returning();
-
-    // Create order items
-    const orderItemsData = items.map((item: any) => ({
-      orderId: createdOrder.id,
-      productId: item.productId,
-      quantity: item.quantity,
-      price: item.price,
-      weight: item.weight?.toString() || "1",
-    }));
-
-    await db.insert(orderItems).values(orderItemsData);
-
-    res.status(201).json({
-      success: true,
-      order: {
-        id: createdOrder.id,
-        orderNumber: createdOrder.orderNumber,
-        status: createdOrder.status,
-        total: createdOrder.total,
-        createdAt: createdOrder.createdAt,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Get user orders
-router.get("/", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw new ApiError("User not authenticated", 401);
+router.get(
+  "/",
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        throw new ApiError("User not authenticated", 401);
+      }
+
+      const userOrders = await db
+        .select({
+          id: orders.id,
+          orderNumber: orders.orderNumber,
+          total: orders.total,
+          status: orders.status,
+          paymentStatus: orders.paymentStatus,
+          createdAt: orders.createdAt,
+          shippingAddress: orders.shippingAddress,
+        })
+        .from(orders)
+        .where(eq(orders.userId, userId));
+
+      // Get items for each order
+      const ordersWithItems = await Promise.all(
+        userOrders.map(async (order: (typeof userOrders)[0]) => {
+          const items = await db
+            .select()
+            .from(orderItems)
+            .where(eq(orderItems.orderId, order.id));
+
+          return {
+            ...order,
+            items: items.length,
+            itemsList: items,
+          };
+        }),
+      );
+
+      res.json({
+        orders: ordersWithItems,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const userOrders = await db
-      .select({
-        id: orders.id,
-        orderNumber: orders.orderNumber,
-        total: orders.total,
-        status: orders.status,
-        paymentStatus: orders.paymentStatus,
-        createdAt: orders.createdAt,
-        shippingAddress: orders.shippingAddress,
-      })
-      .from(orders)
-      .where(eq(orders.userId, userId));
-
-    // Get items for each order
-    const ordersWithItems = await Promise.all(
-      userOrders.map(async (order: typeof userOrders[0]) => {
-        const items = await db
-          .select()
-          .from(orderItems)
-          .where(eq(orderItems.orderId, order.id));
-
-        return {
-          ...order,
-          items: items.length,
-          itemsList: items,
-        };
-      }),
-    );
-
-    res.json({
-      orders: ordersWithItems,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Get order details
-router.get("/:orderId", authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.id;
-    const orderId = req.params.orderId;
+router.get(
+  "/:orderId",
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.id;
+      const orderId = req.params.orderId;
 
-    if (!userId) {
-      throw new ApiError("User not authenticated", 401);
+      if (!userId) {
+        throw new ApiError("User not authenticated", 401);
+      }
+
+      const [order] = await db
+        .select()
+        .from(orders)
+        .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
+
+      if (!order) {
+        throw new ApiError("Order not found", 404);
+      }
+
+      const orderItemsList = await db
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, orderId));
+
+      res.json({
+        order: {
+          ...order,
+          shippingAddress: JSON.parse(order.shippingAddress),
+          items: orderItemsList,
+        },
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const [order] = await db
-      .select()
-      .from(orders)
-      .where(and(eq(orders.id, orderId), eq(orders.userId, userId)));
-
-    if (!order) {
-      throw new ApiError("Order not found", 404);
-    }
-
-    const orderItemsList = await db
-      .select()
-      .from(orderItems)
-      .where(eq(orderItems.orderId, orderId));
-
-    res.json({
-      order: {
-        ...order,
-        shippingAddress: JSON.parse(order.shippingAddress),
-        items: orderItemsList,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Update order status (for future use - not exposed to frontend)
 router.patch(
