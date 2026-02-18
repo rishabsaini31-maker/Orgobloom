@@ -6,6 +6,19 @@ const nextConfig = {
         protocol: "https",
         hostname: "**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8000",
+      },
+      {
+        protocol: "https",
+        hostname: "*.onrender.com",
+      },
+      {
+        protocol: "https",
+        hostname: "*.vercel.app",
+      },
     ],
   },
   env: {
