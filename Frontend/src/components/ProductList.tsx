@@ -16,13 +16,14 @@ export default function ProductList({ featured }: ProductListProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+        {[...Array(2)].map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="bg-gray-200 h-72 rounded-lg"></div>
-            <div className="mt-4 space-y-2">
-              <div className="bg-gray-200 h-4 rounded"></div>
-              <div className="bg-gray-200 h-4 w-2/3 rounded"></div>
+            <div className="bg-gray-200 h-64 md:h-80 rounded-2xl"></div>
+            <div className="mt-4 space-y-3 px-2">
+              <div className="bg-gray-200 h-4 rounded w-3/4"></div>
+              <div className="bg-gray-200 h-4 rounded w-1/2"></div>
+              <div className="bg-gray-200 h-10 rounded mt-4"></div>
             </div>
           </div>
         ))}
@@ -32,7 +33,11 @@ export default function ProductList({ featured }: ProductListProps) {
 
   if (error) {
     return (
-      <div className="text-center text-red-600">Failed to load products</div>
+      <div className="text-center py-12">
+        <div className="bg-red-50 text-red-600 px-6 py-4 rounded-xl inline-block">
+          Failed to load products. Please try again.
+        </div>
+      </div>
     );
   }
 
@@ -40,12 +45,38 @@ export default function ProductList({ featured }: ProductListProps) {
 
   if (products.length === 0) {
     return (
-      <div className="text-center text-gray-600">No products available</div>
+      <div className="text-center py-12">
+        <div className="bg-gray-50 text-gray-600 px-6 py-8 rounded-xl">
+          <svg
+            className="w-16 h-16 mx-auto text-gray-300 mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+            />
+          </svg>
+          <p className="text-lg font-medium">No products available</p>
+          <p className="text-sm text-gray-500 mt-1">
+            Check back soon for new products!
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div
+      className={`grid gap-6 md:gap-8 max-w-5xl mx-auto ${
+        products.length === 1
+          ? "grid-cols-1 max-w-md"
+          : "grid-cols-1 sm:grid-cols-2"
+      }`}
+    >
       {products.map((product: any) => (
         <ProductCard key={product.id} product={product} />
       ))}

@@ -13,6 +13,8 @@ export default function Header() {
   const { getTotalItems } = useCartStore();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const cartCount = getTotalItems();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -20,69 +22,57 @@ export default function Header() {
     if (searchQuery.trim()) {
       router.push(`/products?search=${encodeURIComponent(searchQuery)}`);
       setSearchQuery("");
+      setMobileSearchOpen(false);
     }
   };
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/products", label: "Products" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
+    { href: "/support", label: "Support" },
+  ];
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
+          <Link href="/" className="flex items-center flex-shrink-0">
             <Image
-              src="/logo.jpg"
+              src="/images/logo.jpg"
               alt="Orgobloom Logo"
-              width={95}
-              height={110}
-              className="object-contain"
+              width={70}
+              height={80}
+              className="object-contain md:w-[85px] md:h-[100px]"
             />
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className="text-gray-700 hover:text-primary-600 font-medium"
-            >
-              Home
-            </Link>
-            <Link
-              href="/products"
-              className="text-gray-700 hover:text-primary-600 font-medium"
-            >
-              Products
-            </Link>
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-primary-600 font-medium"
-            >
-              About
-            </Link>
-            <Link
-              href="/contact"
-              className="text-gray-700 hover:text-primary-600 font-medium"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/support"
-              className="text-gray-700 hover:text-primary-600 font-medium"
-            >
-              Support
-            </Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-gray-700 hover:text-primary-600 font-medium text-sm xl:text-base transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Search Bar */}
+          {/* Desktop Search Bar */}
           <form
             onSubmit={handleSearch}
-            className="hidden md:flex items-center bg-gray-100 rounded-lg px-4 py-2"
+            className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 lg:px-4 lg:py-2"
           >
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-gray-100 focus:outline-none text-gray-700 placeholder-gray-500 flex-1"
+              className="bg-gray-100 focus:outline-none text-gray-700 placeholder-gray-500 w-32 lg:w-48 xl:w-56 text-sm"
             />
             <button
               type="submit"
@@ -105,17 +95,14 @@ export default function Header() {
           </form>
 
           {/* Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile Search */}
+          <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
+            {/* Mobile Search Toggle */}
             <button
-              onClick={() => {
-                const modal = document.getElementById("mobile-search-modal");
-                if (modal) modal.classList.remove("hidden");
-              }}
-              className="md:hidden text-gray-700"
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className="md:hidden text-gray-700 p-2"
             >
               <svg
-                className="w-6 h-6"
+                className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -129,9 +116,10 @@ export default function Header() {
               </svg>
             </button>
 
-            <Link href="/cart" className="relative">
+            {/* Cart */}
+            <Link href="/cart" className="relative p-2">
               <svg
-                className="w-6 h-6 text-gray-700"
+                className="w-5 h-5 md:w-6 md:h-6 text-gray-700"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -144,68 +132,150 @@ export default function Header() {
                 />
               </svg>
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-0 -right-0 bg-primary-600 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center font-bold">
                   {cartCount}
                 </span>
               )}
             </Link>
 
-            {isAuthenticated ? (
-              <ProfileDropdown />
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-gray-700 hover:text-primary-600"
+            {/* Auth Buttons - Desktop */}
+            <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
+              {isAuthenticated ? (
+                <ProfileDropdown />
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-gray-700 hover:text-primary-600 font-medium text-sm"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="bg-primary-600 text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-primary-700 text-sm font-medium"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden text-gray-700 p-2"
+            >
+              {mobileMenuOpen ? (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Login
-                </Link>
-                <Link
-                  href="/register"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700"
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  Sign Up
-                </Link>
-              </>
-            )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Search Modal */}
-      <div
-        id="mobile-search-modal"
-        className="hidden md:hidden border-t border-gray-200"
-      >
-        <form
-          onSubmit={handleSearch}
-          className="container mx-auto px-4 py-4 flex gap-2"
-        >
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary-600"
-          />
-          <button
-            type="submit"
-            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
-          >
-            Search
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const modal = document.getElementById("mobile-search-modal");
-              if (modal) modal.classList.add("hidden");
-            }}
-            className="text-gray-700"
-          >
-            ✕
-          </button>
-        </form>
-      </div>
+      {/* Mobile Search Bar */}
+      {mobileSearchOpen && (
+        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 bg-gray-100 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-700 text-sm font-medium"
+            >
+              Search
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Mobile Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden border-t border-gray-100 bg-white">
+          <nav className="container mx-auto px-4 py-4">
+            <div className="space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 hover:text-primary-600 rounded-lg font-medium transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Mobile Auth Buttons */}
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3 px-4 py-2">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-600 font-bold">
+                      {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-3 px-4">
+                  <Link
+                    href="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 text-center py-2.5 border border-primary-600 text-primary-600 rounded-lg font-medium"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex-1 text-center py-2.5 bg-primary-600 text-white rounded-lg font-medium"
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
