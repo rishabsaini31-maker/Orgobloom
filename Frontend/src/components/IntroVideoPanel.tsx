@@ -15,15 +15,13 @@ export default function IntroVideoPanel() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
         console.log("🎬 Loading intro videos from:", apiUrl);
-        
-        const response = await fetch(
-          `${apiUrl}/site-media/intro-videos`,
-        );
-        
+
+        const response = await fetch(`${apiUrl}/site-media/intro-videos`);
+
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log("🎬 Loaded videos:", data?.videos);
         setVideoUrls(data?.videos || []);
@@ -93,10 +91,15 @@ export default function IntroVideoPanel() {
             muted
             autoPlay
             playsInline
+            preload="auto"
             loop={videoUrls.length === 1}
             onEnded={handleVideoEnded}
             onLoadedData={() => console.log("🎬 Video loaded successfully")}
             onError={(e) => console.error("🎬 Video error:", e)}
+            controls={false}
+            webkit-playsinline="true"
+            x5-video-player-type="h5"
+            x5-video-player-fullscreen="true"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-400">
@@ -124,15 +127,15 @@ export default function IntroVideoPanel() {
         )}
 
         <div className="relative z-10 flex h-full items-center">
-          <div className="container mx-auto px-6">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.3em] text-primary-200 mb-4">
+              <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary-200 mb-2 sm:mb-4">
                 Welcome to Orgobloom
               </p>
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+              <h2 className="text-2xl sm:text-4xl md:text-6xl font-bold leading-tight mb-4 sm:mb-6">
                 Watch how we craft premium organic fertilizers
               </h2>
-              <p className="text-lg md:text-2xl text-gray-200">
+              <p className="text-base sm:text-lg md:text-2xl text-gray-200">
                 Scroll down to explore the full catalog and see what makes our
                 products different.
               </p>
