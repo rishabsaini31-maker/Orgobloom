@@ -23,13 +23,24 @@ export default function LoginPage() {
         credentialResponse.credential?.substring(0, 20) + "...",
       );
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      console.log("🔍 API URL:", apiUrl);
+
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/google`,
+        `${apiUrl}/auth/google`,
         { token: credentialResponse.credential },
       );
 
       const { user, token } = response.data;
       console.log("✅ Google login successful");
+      console.log("👤 User data:", JSON.stringify(user, null, 2));
+      console.log("🔑 User role:", user?.role);
+
+      if (user?.role !== "ADMIN") {
+        console.warn("⚠️ User is not ADMIN. Role:", user?.role);
+        toast.error("Access denied. Admin privileges required.");
+        return;
+      }
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
@@ -38,6 +49,7 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (error: any) {
       console.error("❌ Google login error:", error);
+      console.error("❌ Error response:", error.response?.data);
       toast.error(error.response?.data?.error || "Google login failed");
     } finally {
       setIsLoading(false);

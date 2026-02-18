@@ -13,26 +13,44 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const { isAuthenticated, user, token } = useAuthStore();
-  const [isMounted, setIsMounted] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Wait for Zustand to hydrate from localStorage
   useEffect(() => {
-    // Wait for Zustand to hydrate from localStorage
-    const checkAuth = setTimeout(() => {
-      setIsMounted(true);
-    }, 50);
-    return () => clearTimeout(checkAuth);
+    // Use a short timeout to ensure hydration is complete
+    const timer = setTimeout(() => {
+      setIsHydrated(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
+  // Check auth after hydration
   useEffect(() => {
-    // Check auth after hydration
-    if (isMounted) {
-      // If no token, they're not authenticated
-      if (!token || !isAuthenticated || user?.role !== "ADMIN") {
-        router.push("/login");
-      }
+    if (!isHydrated) return;
+
+    console.log("🔍 Dashboard auth check:", {
+      token: token ? "exists" : "missing",
+      isAuthenticated,
+      userRole: user?.role,
+    });
+
+    // If no token or not authenticated, redirect to login
+    if (!token) {
+      console.log("❌ No token, redirecting to login");
+      router.push("/login");
+      return;
     }
-  }, [isMounted, token, isAuthenticated, user, router]);
+
+    // Check if user has ADMIN role
+    if (user?.role !== "ADMIN") {
+      console.log("❌ User is not ADMIN:", user?.role);
+      router.push("/login");
+      return;
+    }
+
+    console.log("✅ Auth check passed");
+  }, [isHydrated, token, isAuthenticated, user, router]);
 
   // Close sidebar when route changes (mobile)
   useEffect(() => {
@@ -40,7 +58,7 @@ export default function DashboardLayout({
   }, [children]);
 
   // Show loading state while hydrating auth from localStorage
-  if (!isMounted) {
+  if (!isHydrated) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="flex flex-col items-center">
@@ -52,7 +70,7 @@ export default function DashboardLayout({
   }
 
   // Show loading state while redirecting unauthorized users
-  if (!isAuthenticated || user?.role !== "ADMIN") {
+  if (!token || !user || user?.role !== "ADMIN") {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
         <div className="flex flex-col items-center">
@@ -66,11 +84,8 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar - responsive */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-      />
-      
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
