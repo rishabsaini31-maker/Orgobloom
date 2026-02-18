@@ -180,6 +180,105 @@ router.delete(
   },
 );
 
+// Get intro video poster/thumbnail
+router.get(
+  "/intro-video-poster",
+  async (_req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const [latest] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      res.json({ poster: latest?.introVideoPoster || null });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Image storage for posters
+const imagesDir = path.resolve(process.cwd(), "uploads", "images");
+ensureDir(imagesDir);
+
+const imageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, imagesDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `intro-poster${ext}`);
+  },
+});
+
+const imageUpload = multer({
+  storage: imageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const isAllowed = allowedTypes.includes(file.mimetype);
+    if (!isAllowed) {
+      return cb(new Error("Only JPEG, PNG, and WebP images are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+// Upload intro video poster
+router.post(
+  "/intro-video-poster",
+  authenticate,
+  isAdmin,
+  imageUpload.single("poster"),
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: "Poster image is required" });
+      }
+
+      const posterUrl = `${req.protocol}://${req.get("host")}/uploads/images/${file.filename}`;
+
+      const [existing] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      if (existing) {
+        await db
+          .update(siteMedia)
+          .set({
+            introVideoPoster: posterUrl,
+            updatedAt: new Date(),
+          })
+          .where(eq(siteMedia.id, existing.id));
+
+        return res.json({
+          poster: posterUrl,
+          message: "Poster uploaded successfully",
+        });
+      }
+
+      await db.insert(siteMedia).values({
+        id: createId(),
+        introVideoPoster: posterUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      return res.status(201).json({
+        poster: posterUrl,
+        message: "Poster uploaded successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // Legacy endpoint for backward compatibility
 router.get(
   "/intro-video",

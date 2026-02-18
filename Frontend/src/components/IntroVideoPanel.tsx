@@ -4,8 +4,10 @@ import { useEffect, useState, useRef } from "react";
 
 export default function IntroVideoPanel() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [posterUrl, setPosterUrl] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [fade, setFade] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -32,6 +34,16 @@ export default function IntroVideoPanel() {
         const data = await response.json();
         console.log("🎬 Loaded videos:", data?.videos);
         setVideoUrls(data?.videos || []);
+        
+        // Load poster/thumbnail
+        if (data?.videos?.length > 0) {
+          // Try to get thumbnail from API or use video URL as poster
+          const posterResponse = await fetch(`${apiUrl}/site-media/intro-video-poster`);
+          if (posterResponse.ok) {
+            const posterData = await posterResponse.json();
+            setPosterUrl(posterData?.poster || null);
+          }
+        }
       } catch (error) {
         console.error("Failed to load intro videos:", error);
       } finally {
@@ -159,17 +171,33 @@ export default function IntroVideoPanel() {
       >
         {currentVideo ? (
           <div className="relative h-full w-full">
+            {/* Poster Image - shows immediately, fades out when video is ready */}
+            {posterUrl && !isVideoReady && (
+              <img
+                src={posterUrl}
+                alt="Video thumbnail"
+                className="absolute inset-0 h-full w-full object-cover z-10"
+              />
+            )}
+            
             <video
               ref={videoRef}
               src={currentVideo}
-              className="h-full w-full object-cover"
+              poster={posterUrl || undefined}
+              className={`h-full w-full object-cover transition-opacity duration-500 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
               muted={isMuted}
               autoPlay
               playsInline
               preload="auto"
               loop={videoUrls.length === 1}
               onEnded={handleVideoEnded}
-              onLoadedData={() => console.log("🎬 Video loaded successfully")}
+              onLoadedData={() => {
+                console.log("🎬 Video loaded successfully");
+                setIsVideoReady(true);
+              }}
+              onCanPlay={() => {
+                setIsVideoReady(true);
+              }}
               onLoadedMetadata={handleLoadedMetadata}
               onTimeUpdate={handleTimeUpdate}
               onError={(e) => console.error("🎬 Video error:", e)}
