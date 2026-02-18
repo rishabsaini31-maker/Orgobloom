@@ -134,7 +134,10 @@ router.post(
       // Remove password from response
       const { password, ...userWithoutPassword } = user;
 
-      // Note: Fraud check disabled for now
+      // Debug logging
+      console.log("🔍 Login successful for:", user.email);
+      console.log("🔑 User role:", user.role);
+      console.log("👤 User data:", JSON.stringify(userWithoutPassword, null, 2));
 
       res.json({
         message: "Login successful",

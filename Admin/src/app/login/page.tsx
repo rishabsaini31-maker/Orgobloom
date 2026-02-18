@@ -61,12 +61,33 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      console.log("🔍 Login API URL:", `${apiUrl}/auth/login`);
+      
+      const response = await axios.post(`${apiUrl}/auth/login`, {
+        email,
+        password,
+      });
+
+      const { user, token } = response.data;
+      console.log("✅ Login successful");
+      console.log("👤 User data:", JSON.stringify(user, null, 2));
+      console.log("🔑 User role:", user?.role);
+
+      if (user?.role !== "ADMIN") {
+        console.warn("⚠️ User is not ADMIN. Role:", user?.role);
+        toast.error("Access denied. Admin privileges required.");
+        return;
+      }
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setAuth(user, token);
       toast.success("Welcome back!");
       router.push("/dashboard");
     } catch (error: any) {
       console.error("❌ Login error:", error);
-      console.error("❌ Error response:", error.response);
+      console.error("❌ Error response:", error.response?.data);
       toast.error(
         error.response?.data?.error || error.message || "Login failed",
       );
