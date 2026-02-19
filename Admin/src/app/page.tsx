@@ -28,18 +28,13 @@ export default function HomePage() {
 
       {/* Content */}
       <div className="text-center relative z-10 px-4">
-        {/* Logo/Icon */}
+        {/* Logo */}
         <div className="mb-8 flex justify-center">
-          <div className="relative">
-            <div className="absolute inset-0 bg-white opacity-20 blur-xl rounded-full"></div>
-            <div className="relative w-32 h-32 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden p-2">
-              <img
-                src="/logo.jpg"
-                alt="Orgobloom Logo"
-                className="w-full h-full object-contain"
-              />
-            </div>
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Orgobloom Logo"
+            className="w-40 h-auto object-contain"
+          />
         </div>
 
         {/* Welcome Text */}
