@@ -5,27 +5,445 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 255, 255, 255;
+  --scroll-behavior: smooth;
+  /* Smooth transition timing */
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+  /* Enable smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scroll snap support */
+  scroll-snap-type: proximity;
+  /* Optimize rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
+  /* Smooth font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Enable smooth scrolling */
+  overflow-x: hidden;
+  /* Smooth scroll behavior */
+  scroll-behavior: smooth;
+}
+
+/* Optimize all elements for smooth animations */
+*,
+*::before,
+*::after {
+  /* Use content-visibility for performance */
+  content-visibility: auto;
+  /* Smooth transitions with optimized timing */
+  transition-timing-function: var(--ease-smooth);
+}
+
+/* Optimize images and media for smooth loading */
+img,
+video,
+canvas {
+  /* Prevent layout shifts */
+  max-width: 100%;
+  /* Smooth loading */
+  opacity: 1;
+  transition: opacity 0.3s var(--ease-smooth);
+}
+
+/* Smooth scroll for all anchor links */
+html {
+  scroll-padding-top: 80px;
+}
+
+/* Custom scrollbar for webkit browsers - thinner and smoother */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2563eb, #059669);
+  border-radius: 20px;
+  /* Smooth scrollbar hover */
+  transition: background 0.3s var(--ease-smooth);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #1d4ed8, #047857);
+}
+
+/* Hide scrollbar for cleaner look but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ultra smooth fade-in animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth slide-in animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Smooth scale animation with bounce */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Gentle pulse animation */
+@keyframes gentlePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
+/* Smooth float animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Smooth fade in for page loads */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Smooth slide up for sections */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth reveal animation */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Animation utility classes with smooth timing */
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s var(--ease-out-expo) forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.7s var(--ease-out-expo) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s var(--ease-bounce) forwards;
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 3s var(--ease-smooth) infinite;
+}
+
+.animate-float {
+  animation: float 4s var(--ease-smooth) infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s var(--ease-smooth) forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s var(--ease-out-expo) forwards;
+}
+
+.animate-reveal {
+  animation: reveal 1s var(--ease-out-expo) forwards;
+}
+
+/* Stagger animation delays */
+.delay-100 {
+  animation-delay: 100ms;
+}
+.delay-200 {
+  animation-delay: 200ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}
+.delay-400 {
+  animation-delay: 400ms;
+}
+.delay-500 {
+  animation-delay: 500ms;
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition-colors;
+    @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-medium;
+    transition: all 0.4s var(--ease-out-expo);
+    box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.3);
+  }
+  
+  .btn-primary:hover {
+    @apply bg-primary-700;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.4);
+  }
+  
+  .btn-primary:active {
+    transform: translateY(0) scale(0.98);
   }
 
   .btn-secondary {
-    @apply bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors;
+    @apply bg-gray-100 text-gray-800 px-6 py-3 rounded-lg font-medium;
+    transition: all 0.3s var(--ease-smooth);
+  }
+  
+  .btn-secondary:hover {
+    @apply bg-gray-200;
+    transform: translateY(-1px);
   }
 
   .card {
-    @apply bg-white rounded-lg shadow-md p-6;
+    @apply bg-white rounded-xl shadow-md p-6;
+    transition: all 0.5s var(--ease-out-expo);
+  }
+  
+  .card:hover {
+    @apply shadow-xl;
+    transform: translateY(-4px);
   }
 
   .input-field {
-    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+    @apply w-full px-4 py-3 border border-gray-200 rounded-lg;
+    transition: all 0.3s var(--ease-smooth);
   }
+  
+  .input-field:focus {
+    @apply ring-2 ring-primary-500 border-transparent;
+    transform: scale(1.01);
+  }
+
+  /* Smooth card hover effect */
+  .card-hover {
+    transition: all 0.5s var(--ease-out-expo);
+  }
+  
+  .card-hover:hover {
+    @apply -translate-y-2 shadow-2xl;
+  }
+
+  /* Smooth button press effect */
+  .btn-press {
+    transition: transform 0.15s var(--ease-bounce);
+  }
+  
+  .btn-press:active {
+    @apply scale-95;
+  }
+
+  /* Smooth link hover */
+  .link-hover {
+    @apply relative;
+  }
+  
+  .link-hover::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600;
+    transition: width 0.4s var(--ease-out-expo);
+  }
+  
+  .link-hover:hover::after {
+    @apply w-full;
+  }
+  
+  /* Smooth section transitions */
+  .section-transition {
+    transition: all 0.8s var(--ease-out-expo);
+  }
+  
+  /* Smooth hover lift */
+  .hover-lift {
+    transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Smooth page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s var(--ease-out-expo), transform 0.5s var(--ease-out-expo);
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-smooth);
+}
+
+/* Smooth scroll container */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Smooth fade in on scroll */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Smooth stagger animation for children */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s var(--ease-out-expo) forwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Smooth glassmorphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s var(--ease-smooth);
+}
+
+.glass:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+/* Smooth gradient animation */
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 8s var(--ease-smooth) infinite;
+}
+
+/* Smooth text reveal */
+@keyframes textReveal {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.text-reveal {
+  overflow: hidden;
+}
+
+.text-reveal span {
+  display: inline-block;
+  animation: textReveal 0.8s var(--ease-out-expo) forwards;
 }

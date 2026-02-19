@@ -41,7 +41,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* Logo */}
@@ -61,7 +61,7 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-gray-700 hover:text-primary-600 font-medium text-sm xl:text-base transition-colors"
+                className="text-gray-700 hover:text-primary-600 font-medium text-sm xl:text-base link-hover py-1"
               >
                 {link.label}
               </Link>
@@ -211,178 +211,178 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar */}
-      {mobileSearchOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3">
-          <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-gray-100 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-700 text-sm font-medium"
-            >
-              Search
-            </button>
-          </form>
-        </div>
-      )}
+      <div
+        className={`md:hidden border-t border-gray-100 bg-white px-4 overflow-hidden transition-all duration-300 ease-out ${mobileSearchOpen ? "max-h-20 opacity-100 py-3" : "max-h-0 opacity-0 py-0"}`}
+      >
+        <form onSubmit={handleSearch} className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-gray-100 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+            autoFocus
+          />
+          <button
+            type="submit"
+            className="bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-700 text-sm font-medium"
+          >
+            Search
+          </button>
+        </form>
+      </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white">
-          <nav className="container mx-auto px-4 py-4">
-            <div className="space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block py-3 px-4 text-gray-700 hover:bg-gray-50 hover:text-primary-600 rounded-lg font-medium transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+      <div
+        className={`lg:hidden border-t border-gray-100 bg-white overflow-hidden transition-all duration-500 ease-out ${mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
+      >
+        <nav className="container mx-auto px-4 py-4">
+          <div className="space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="block py-3 px-4 text-gray-700 hover:bg-gray-50 hover:text-primary-600 rounded-lg font-medium transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
 
-            {/* Mobile Auth Buttons */}
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              {!isHydrated ? (
-                <div className="flex gap-3 px-4">
-                  <div className="flex-1 h-10 bg-gray-200 animate-pulse rounded"></div>
-                  <div className="flex-1 h-10 bg-gray-200 animate-pulse rounded"></div>
-                </div>
-              ) : isAuthenticated ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3 px-4 py-2">
-                    <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                      <span className="text-primary-600 font-bold">
-                        {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {user?.name || "User"}
-                      </p>
-                      <p className="text-sm text-gray-500">{user?.email}</p>
-                    </div>
+          {/* Mobile Auth Buttons */}
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            {!isHydrated ? (
+              <div className="flex gap-3 px-4">
+                <div className="flex-1 h-10 bg-gray-200 animate-pulse rounded"></div>
+                <div className="flex-1 h-10 bg-gray-200 animate-pulse rounded"></div>
+              </div>
+            ) : isAuthenticated ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-3 px-4 py-2">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <span className="text-primary-600 font-bold">
+                      {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                    </span>
                   </div>
-                  <Link
-                    href="/profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                      />
-                    </svg>
-                    My Profile
-                  </Link>
-                  <Link
-                    href="/orders"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                    My Orders
-                  </Link>
-                  <Link
-                    href="/addresses"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                    </svg>
-                    Addresses
-                  </Link>
-                  <button
-                    onClick={() => {
-                      useAuthStore.getState().logout();
-                      setMobileMenuOpen(false);
-                      router.push("/");
-                    }}
-                    className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                      />
-                    </svg>
-                    Logout
-                  </button>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {user?.name || "User"}
+                    </p>
+                    <p className="text-sm text-gray-500">{user?.email}</p>
+                  </div>
                 </div>
-              ) : (
-                <div className="flex gap-3 px-4">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 text-center py-2.5 border border-primary-600 text-primary-600 rounded-lg font-medium"
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex-1 text-center py-2.5 bg-primary-600 text-white rounded-lg font-medium"
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  My Profile
+                </Link>
+                <Link
+                  href="/orders"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    Sign Up
-                  </Link>
-                </div>
-              )}
-            </div>
-          </nav>
-        </div>
-      )}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    />
+                  </svg>
+                  My Orders
+                </Link>
+                <Link
+                  href="/addresses"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  Addresses
+                </Link>
+                <button
+                  onClick={() => {
+                    useAuthStore.getState().logout();
+                    setMobileMenuOpen(false);
+                    router.push("/");
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg w-full"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-3 px-4">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center py-2.5 border border-primary-600 text-primary-600 rounded-lg font-medium"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 text-center py-2.5 bg-primary-600 text-white rounded-lg font-medium"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+          </div>
+        </nav>
+      </div>
     </header>
   );
 }
