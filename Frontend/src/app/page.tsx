@@ -165,13 +165,18 @@ export default function HomePage() {
               <div className="flex-1 flex justify-center mt-8 lg:mt-0">
                 <div className="relative w-full max-w-md mx-auto lg:mx-0">
                   {/* Decorative background with shadow */}
-                  <div className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-primary-300 via-primary-200 to-green-300 rounded-2xl md:rounded-3xl transform rotate-3 md:rotate-6 shadow-2xl"></div>
-                  {/* Main image with drop shadow */}
-                  <img
-                    src="/images/plant.jpg"
-                    alt="Orgobloom Organic Fertilizers"
-                    className="relative rounded-2xl md:rounded-3xl w-full object-cover drop-shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
-                  />
+                  <div
+                    className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-primary-300 via-primary-200 to-green-300 rounded-2xl md:rounded-3xl transform rotate-3 md:rotate-6"
+                    style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }}
+                  ></div>
+                  {/* Main image with prominent shadow */}
+                  <div style={{ boxShadow: '0 35px 60px -15px rgba(0, 0, 0, 0.4)' }} className="relative rounded-2xl md:rounded-3xl overflow-hidden">
+                    <img
+                      src="/images/plant.jpg"
+                      alt="Orgobloom Organic Fertilizers"
+                      className="w-full object-cover"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -426,13 +431,18 @@ export default function HomePage() {
               <div className="flex-1 flex justify-center mt-8 lg:mt-0">
                 <div className="relative w-full max-w-md mx-auto lg:mx-0">
                   {/* Decorative background with shadow */}
-                  <div className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-green-300 via-primary-300 to-emerald-300 rounded-2xl md:rounded-3xl transform -rotate-3 md:-rotate-6 shadow-2xl"></div>
-                  {/* Main image with drop shadow */}
-                  <img
-                    src="/images/plant2.jpg"
-                    alt="Why Choose Orgobloom"
-                    className="relative rounded-2xl md:rounded-3xl w-full object-cover drop-shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]"
-                  />
+                  <div
+                    className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-green-300 via-primary-300 to-emerald-300 rounded-2xl md:rounded-3xl transform -rotate-3 md:-rotate-6"
+                    style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }}
+                  ></div>
+                  {/* Main image with prominent shadow */}
+                  <div style={{ boxShadow: '0 35px 60px -15px rgba(0, 0, 0, 0.4)' }} className="relative rounded-2xl md:rounded-3xl overflow-hidden">
+                    <img
+                      src="/images/plant2.jpg"
+                      alt="Why Choose Orgobloom"
+                      className="w-full object-cover"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
