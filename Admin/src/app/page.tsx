@@ -32,8 +32,12 @@ export default function HomePage() {
         <div className="mb-8 flex justify-center">
           <div className="relative">
             <div className="absolute inset-0 bg-white opacity-20 blur-xl rounded-full"></div>
-            <div className="relative w-24 h-24 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center shadow-2xl">
-              <div className="text-4xl font-bold text-primary-600">🌿</div>
+            <div className="relative w-24 h-24 bg-white bg-opacity-90 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden">
+              <img
+                src="/logo.jpg"
+                alt="Orgobloom Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
         </div>
