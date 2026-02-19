@@ -1,3 +1,15 @@
+/**
+ * Production-Ready Site Media Routes
+ *
+ * Features:
+ * 1. Rate Limiting for uploads
+ * 2. Virus Scanning integration
+ * 3. Storage Quota management
+ * 4. File cleanup (delete from disk)
+ * 5. Resumable uploads support
+ * 6. Cloud storage abstraction
+ */
+
 import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { siteMedia } from "@/db/schema";
@@ -7,8 +19,27 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { createId } from "@paralleldrive/cuid2";
+import {
+  checkUploadRateLimit,
+  scanForViruses,
+  checkStorageQuota,
+  deleteFileFromDisk,
+  cleanupOrphanedFiles,
+  getStorageProvider,
+  initResumableUpload,
+  getUploadInfo,
+  saveChunk,
+  assembleChunks,
+  cleanupExpiredUploads,
+  formatBytes,
+  mediaConfig,
+} from "@/utils/mediaStorage";
 
 const router = Router();
+
+// ===========================
+// Helper Functions
+// ===========================
 
 const ensureDir = (dirPath: string) => {
   if (!fs.existsSync(dirPath)) {
@@ -18,6 +49,13 @@ const ensureDir = (dirPath: string) => {
 
 const videosDir = path.resolve(process.cwd(), "uploads", "videos");
 ensureDir(videosDir);
+
+const imagesDir = path.resolve(process.cwd(), "uploads", "images");
+ensureDir(imagesDir);
+
+// ===========================
+// Video Upload Configuration
+// ===========================
 
 const videoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -31,7 +69,7 @@ const videoStorage = multer.diskStorage({
 
 const videoUpload = multer({
   storage: videoStorage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+  limits: { fileSize: mediaConfig.quota.maxFileSizeMB * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowedTypes = ["video/mp4", "video/webm", "video/ogg"];
     const isAllowed = allowedTypes.includes(file.mimetype);
@@ -42,11 +80,45 @@ const videoUpload = multer({
   },
 });
 
-// Default Supabase video URLs (production-ready)
+// ===========================
+// Image Upload Configuration
+// ===========================
+
+const imageStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, imagesDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `intro-poster${ext}`);
+  },
+});
+
+const imageUpload = multer({
+  storage: imageStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    const isAllowed = allowedTypes.includes(file.mimetype);
+    if (!isAllowed) {
+      return cb(new Error("Only JPEG, PNG, and WebP images are allowed"));
+    }
+    cb(null, true);
+  },
+});
+
+// ===========================
+// Default Videos (Production)
+// ===========================
+
 const DEFAULT_VIDEO_URLS = [
   "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/a-seamless-animation-sequence-showing-1-a-close-up%20(1).mp4",
   "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/close-up-of-hands-gently-mixing-organic-fertilizer.mp4",
 ];
+
+// ===========================
+// Routes
+// ===========================
 
 // Get all intro videos
 router.get(
@@ -65,21 +137,220 @@ router.get(
           ? [latest.introVideoUrl]
           : [];
 
-      // Return default Supabase URLs if no custom videos uploaded
       if (videoUrls.length === 0) {
         return res.json({ videos: DEFAULT_VIDEO_URLS });
       }
 
       res.json({ videos: videoUrls });
     } catch (error) {
-      // Handle database errors gracefully - return default videos instead of 500
       console.error("Error fetching intro videos:", error);
       res.json({ videos: DEFAULT_VIDEO_URLS });
     }
   },
 );
 
-// Upload multiple videos (1-5)
+// Get storage usage
+router.get(
+  "/storage-usage",
+  authenticate,
+  isAdmin,
+  async (_req: AuthRequest, res: Response) => {
+    const { getGlobalStorageUsage } = await import("@/utils/mediaStorage");
+    const quota = await getGlobalStorageUsage();
+    res.json({
+      used: formatBytes(quota.usedBytes),
+      max: formatBytes(quota.maxBytes),
+      available: formatBytes(quota.availableBytes),
+      usagePercent: quota.usagePercent.toFixed(2),
+    });
+  },
+);
+
+// Initialize resumable upload
+router.post(
+  "/resumable/init",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { filename, totalSize, mimeType } = req.body;
+
+      if (!filename || !totalSize || !mimeType) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      // Check storage quota
+      const quotaCheck = await checkStorageQuota(totalSize, req.user?.id);
+      if (!quotaCheck.allowed) {
+        return res.status(413).json({ error: quotaCheck.reason });
+      }
+
+      // Check rate limit
+      const ip = req.ip || "unknown";
+      const rateCheck = checkUploadRateLimit(ip, req.user?.id, totalSize);
+      if (!rateCheck.allowed) {
+        return res.status(429).json({
+          error: rateCheck.reason,
+          retryAfter: rateCheck.retryAfter,
+        });
+      }
+
+      const info = initResumableUpload(
+        filename,
+        totalSize,
+        mimeType,
+        req.user?.id,
+      );
+
+      res.json({
+        uploadId: info.uploadId,
+        chunkSize: info.chunkSize,
+        totalChunks: info.totalChunks,
+      });
+    } catch (error) {
+      console.error("Error initializing resumable upload:", error);
+      res.status(500).json({ error: "Failed to initialize upload" });
+    }
+  },
+);
+
+// Upload chunk
+router.post(
+  "/resumable/chunk",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { uploadId, chunkIndex } = req.body;
+
+      if (!uploadId || chunkIndex === undefined) {
+        return res.status(400).json({ error: "Missing required fields" });
+      }
+
+      const info = getUploadInfo(uploadId);
+      if (!info) {
+        return res.status(404).json({ error: "Upload session not found" });
+      }
+
+      // Get chunk data from request
+      const chunkData = req.file?.buffer;
+      if (!chunkData) {
+        return res.status(400).json({ error: "No chunk data provided" });
+      }
+
+      const result = saveChunk(uploadId, parseInt(chunkIndex), chunkData);
+
+      res.json({
+        success: result.success,
+        uploadedChunks: result.uploadedChunks,
+        isComplete: result.isComplete,
+      });
+    } catch (error) {
+      console.error("Error uploading chunk:", error);
+      res.status(500).json({ error: "Failed to upload chunk" });
+    }
+  },
+);
+
+// Complete resumable upload
+router.post(
+  "/resumable/complete",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { uploadId } = req.body;
+
+      if (!uploadId) {
+        return res.status(400).json({ error: "Missing uploadId" });
+      }
+
+      const info = getUploadInfo(uploadId);
+      if (!info) {
+        return res.status(404).json({ error: "Upload session not found" });
+      }
+
+      // Assemble chunks into final file
+      const finalFilename = `${createId()}${path.extname(info.filename)}`;
+      const finalPath = path.join(videosDir, finalFilename);
+
+      assembleChunks(uploadId, finalPath);
+
+      // Scan for viruses
+      const scanResult = await scanForViruses(finalPath);
+      if (!scanResult.isClean) {
+        await deleteFileFromDisk(finalPath);
+        return res.status(400).json({
+          error: "File failed virus scan",
+          threat: scanResult.threat,
+        });
+      }
+
+      // Upload to cloud storage if configured
+      const storageProvider = getStorageProvider();
+      const cloudResult = await storageProvider.upload(
+        finalPath,
+        `videos/${finalFilename}`,
+        info.mimeType,
+      );
+
+      // Delete local file if using cloud storage
+      if (mediaConfig.cloud.provider !== "local") {
+        await deleteFileFromDisk(finalPath);
+      }
+
+      // Save to database
+      const videoUrl = cloudResult.url;
+
+      const [existing] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      if (existing) {
+        const existingUrls = existing.introVideoUrls
+          ? JSON.parse(existing.introVideoUrls)
+          : [];
+        const newUrls = [...existingUrls, videoUrl];
+
+        await db
+          .update(siteMedia)
+          .set({
+            introVideoUrls: JSON.stringify(newUrls),
+            introVideoUrl: newUrls[0],
+            updatedAt: new Date(),
+          })
+          .where(eq(siteMedia.id, existing.id));
+
+        return res.json({
+          url: videoUrl,
+          videos: newUrls,
+          message: "Video uploaded successfully",
+        });
+      }
+
+      await db.insert(siteMedia).values({
+        id: createId(),
+        introVideoUrls: JSON.stringify([videoUrl]),
+        introVideoUrl: videoUrl,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      res.status(201).json({
+        url: videoUrl,
+        videos: [videoUrl],
+        message: "Video uploaded successfully",
+      });
+    } catch (error) {
+      console.error("Error completing upload:", error);
+      res.status(500).json({ error: "Failed to complete upload" });
+    }
+  },
+);
+
+// Upload multiple videos (1-5) - Standard upload with all features
 router.post(
   "/intro-videos",
   authenticate,
@@ -87,7 +358,15 @@ router.post(
   videoUpload.array("videos", 5),
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const files = req.files as { filename: string; originalname: string; mimetype: string }[] | undefined;
+      const files = req.files as
+        | {
+            filename: string;
+            originalname: string;
+            mimetype: string;
+            path: string;
+            size: number;
+          }[]
+        | undefined;
 
       if (!files || files.length === 0) {
         return res
@@ -96,13 +375,72 @@ router.post(
       }
 
       if (files.length > 5) {
+        // Clean up uploaded files
+        for (const file of files) {
+          await deleteFileFromDisk(file.path);
+        }
         return res.status(400).json({ error: "Maximum 5 videos allowed" });
       }
 
-      const videoUrls = files.map((file) => {
-        return `${req.protocol}://${req.get("host")}/uploads/videos/${file.filename}`;
-      });
+      // Check rate limit
+      const ip = req.ip || "unknown";
+      const totalSize = files.reduce((sum, f) => sum + f.size, 0);
+      const rateCheck = checkUploadRateLimit(ip, req.user?.id, totalSize);
+      if (!rateCheck.allowed) {
+        // Clean up uploaded files
+        for (const file of files) {
+          await deleteFileFromDisk(file.path);
+        }
+        return res.status(429).json({
+          error: rateCheck.reason,
+          retryAfter: rateCheck.retryAfter,
+        });
+      }
 
+      // Check storage quota
+      const quotaCheck = await checkStorageQuota(totalSize, req.user?.id);
+      if (!quotaCheck.allowed) {
+        // Clean up uploaded files
+        for (const file of files) {
+          await deleteFileFromDisk(file.path);
+        }
+        return res.status(413).json({ error: quotaCheck.reason });
+      }
+
+      // Scan all files for viruses
+      for (const file of files) {
+        const scanResult = await scanForViruses(file.path);
+        if (!scanResult.isClean) {
+          // Clean up all uploaded files
+          for (const f of files) {
+            await deleteFileFromDisk(f.path);
+          }
+          return res.status(400).json({
+            error: `File ${file.originalname} failed virus scan`,
+            threat: scanResult.threat,
+          });
+        }
+      }
+
+      // Upload to cloud storage if configured
+      const storageProvider = getStorageProvider();
+      const videoUrls: string[] = [];
+
+      for (const file of files) {
+        const cloudResult = await storageProvider.upload(
+          file.path,
+          `videos/${file.filename}`,
+          file.mimetype,
+        );
+        videoUrls.push(cloudResult.url);
+
+        // Delete local file if using cloud storage
+        if (mediaConfig.cloud.provider !== "local") {
+          await deleteFileFromDisk(file.path);
+        }
+      }
+
+      // Update database
       const [existing] = await db
         .select()
         .from(siteMedia)
@@ -114,7 +452,7 @@ router.post(
           .update(siteMedia)
           .set({
             introVideoUrls: JSON.stringify(videoUrls),
-            introVideoUrl: videoUrls[0], // Keep first video for backward compatibility
+            introVideoUrl: videoUrls[0],
             updatedAt: new Date(),
           })
           .where(eq(siteMedia.id, existing.id))
@@ -144,7 +482,7 @@ router.post(
   },
 );
 
-// Delete a specific video by index
+// Delete a specific video by index (with file cleanup)
 router.delete(
   "/intro-videos/:index",
   authenticate,
@@ -169,7 +507,24 @@ router.delete(
         return res.status(400).json({ error: "Invalid video index" });
       }
 
-      // Remove the video at the specified index
+      const videoToDelete = videoUrls[index];
+
+      // Delete from cloud storage
+      try {
+        const url = new URL(videoToDelete);
+        const key = url.pathname
+          .replace("/uploads/", "")
+          .replace("/videos/", "videos/");
+        const storageProvider = getStorageProvider();
+        await storageProvider.delete(key);
+      } catch (e) {
+        // If URL parsing fails, try to delete from local disk
+        const filename = path.basename(videoToDelete);
+        const localPath = path.join(videosDir, filename);
+        await deleteFileFromDisk(localPath);
+      }
+
+      // Remove from array
       videoUrls.splice(index, 1);
 
       const [updated] = await db
@@ -193,6 +548,46 @@ router.delete(
   },
 );
 
+// Cleanup orphaned files (admin only)
+router.post(
+  "/cleanup",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
+    try {
+      const { olderThanDays = 7 } = req.body;
+      const result = await cleanupOrphanedFiles(olderThanDays);
+
+      res.json({
+        message: `Cleaned up ${result.deleted.length} orphaned files`,
+        deleted: result.deleted,
+        errors: result.errors,
+      });
+    } catch (error) {
+      console.error("Error cleaning up orphaned files:", error);
+      res.status(500).json({ error: "Failed to cleanup orphaned files" });
+    }
+  },
+);
+
+// Cleanup expired resumable uploads (admin only)
+router.post(
+  "/cleanup-expired",
+  authenticate,
+  isAdmin,
+  async (_req: AuthRequest, res: Response) => {
+    try {
+      const cleaned = cleanupExpiredUploads();
+      res.json({
+        message: `Cleaned up ${cleaned} expired upload sessions`,
+      });
+    } catch (error) {
+      console.error("Error cleaning up expired uploads:", error);
+      res.status(500).json({ error: "Failed to cleanup expired uploads" });
+    }
+  },
+);
+
 // Get intro video poster/thumbnail
 router.get(
   "/intro-video-poster",
@@ -204,43 +599,14 @@ router.get(
         .orderBy(desc(siteMedia.updatedAt))
         .limit(1);
 
-      // Handle case where introVideoPoster column might not exist
       const poster = (latest as any)?.introVideoPoster || null;
       res.json({ poster });
     } catch (error) {
-      // If column doesn't exist, return null instead of error
       console.error("Error fetching poster:", error);
       res.json({ poster: null });
     }
   },
 );
-
-// Image storage for posters
-const imagesDir = path.resolve(process.cwd(), "uploads", "images");
-ensureDir(imagesDir);
-
-const imageStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, imagesDir);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `intro-poster${ext}`);
-  },
-});
-
-const imageUpload = multer({
-  storage: imageStorage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (_req, file, cb) => {
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    const isAllowed = allowedTypes.includes(file.mimetype);
-    if (!isAllowed) {
-      return cb(new Error("Only JPEG, PNG, and WebP images are allowed"));
-    }
-    cb(null, true);
-  },
-});
 
 // Upload intro video poster
 router.post(
@@ -256,7 +622,41 @@ router.post(
         return res.status(400).json({ error: "Poster image is required" });
       }
 
-      const posterUrl = `${req.protocol}://${req.get("host")}/uploads/images/${file.filename}`;
+      // Check rate limit
+      const ip = req.ip || "unknown";
+      const rateCheck = checkUploadRateLimit(ip, req.user?.id, file.size);
+      if (!rateCheck.allowed) {
+        await deleteFileFromDisk(file.path);
+        return res.status(429).json({
+          error: rateCheck.reason,
+          retryAfter: rateCheck.retryAfter,
+        });
+      }
+
+      // Scan for viruses
+      const scanResult = await scanForViruses(file.path);
+      if (!scanResult.isClean) {
+        await deleteFileFromDisk(file.path);
+        return res.status(400).json({
+          error: "File failed virus scan",
+          threat: scanResult.threat,
+        });
+      }
+
+      // Upload to cloud storage
+      const storageProvider = getStorageProvider();
+      const cloudResult = await storageProvider.upload(
+        file.path,
+        `images/${file.filename}`,
+        file.mimetype,
+      );
+
+      const posterUrl = cloudResult.url;
+
+      // Delete local file if using cloud storage
+      if (mediaConfig.cloud.provider !== "local") {
+        await deleteFileFromDisk(file.path);
+      }
 
       const [existing] = await db
         .select()

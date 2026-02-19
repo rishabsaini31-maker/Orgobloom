@@ -1,63 +1,112 @@
 "use client";
 
 import { useState } from "react";
-import toast from "react-hot-toast";
 
 export default function LiveChat() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
   return (
-    <>
-      {/* Chat Button - Fixed Position */}
-      <button
-        onClick={() => {
-          setIsOpen(true);
-          setIsMinimized(false);
-        }}
-        className={`fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg hover:bg-primary-700 transition-all flex items-center justify-center ${
-          isOpen && !isMinimized ? "hidden" : ""
-        }`}
-        title="Live Chat"
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+    <div
+      style={{
+        position: "fixed",
+        bottom: "24px",
+        right: "24px",
+        zIndex: 99999,
+      }}
+    >
+      {/* Chat Button */}
+      {!isOpen || isMinimized ? (
+        <button
+          onClick={() => {
+            setIsOpen(true);
+            setIsMinimized(false);
+          }}
+          style={{
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
+            backgroundColor: "#16a34a",
+            color: "white",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.3s",
+          }}
+          title="Live Chat"
+          onMouseOver={(e) =>
+            (e.currentTarget.style.backgroundColor = "#15803d")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.backgroundColor = "#16a34a")
+          }
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-          />
-        </svg>
-      </button>
+          <svg
+            style={{ width: "28px", height: "28px" }}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+        </button>
+      ) : null}
 
       {/* Chat Window */}
-      {isOpen && (
+      {isOpen && !isMinimized && (
         <div
-          className={`fixed z-50 bg-white rounded-lg shadow-2xl transition-all ${
-            isMinimized
-              ? "bottom-6 right-6 w-64 h-14"
-              : "bottom-6 right-6 w-96 h-[500px] flex flex-col"
-          }`}
+          style={{
+            width: "350px",
+            height: "450px",
+            backgroundColor: "white",
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
         >
           {/* Header */}
-          <div className="bg-primary-600 text-white p-4 rounded-t-lg flex items-center justify-between">
+          <div
+            style={{
+              backgroundColor: "#16a34a",
+              color: "white",
+              padding: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
             <div>
-              <h3 className="font-bold">Live Chat Support</h3>
-              <p className="text-xs text-primary-100">Coming Soon</p>
+              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "bold" }}>
+                Live Chat Support
+              </h3>
+              <p style={{ margin: 0, fontSize: "12px", opacity: 0.8 }}>
+                Coming Soon
+              </p>
             </div>
-            <div className="flex gap-2">
+            <div style={{ display: "flex", gap: "8px" }}>
               <button
-                onClick={() => setIsMinimized(!isMinimized)}
-                className="hover:bg-primary-700 p-1 rounded"
-                title={isMinimized ? "Maximize" : "Minimize"}
+                onClick={() => setIsMinimized(true)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "white",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
+                title="Minimize"
               >
                 <svg
-                  className="w-5 h-5"
+                  style={{ width: "20px", height: "20px" }}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -66,21 +115,23 @@ export default function LiveChat() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d={
-                      isMinimized
-                        ? "M12 19V5m0 0l-7 7m7-7l7 7"
-                        : "M12 5v14m0 0l-7-7m7 7l7-7"
-                    }
+                    d="M12 5v14m0 0l-7-7m7 7l7-7"
                   />
                 </svg>
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="hover:bg-primary-700 p-1 rounded"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "white",
+                  cursor: "pointer",
+                  padding: "4px",
+                }}
                 title="Close"
               >
                 <svg
-                  className="w-5 h-5"
+                  style={{ width: "20px", height: "20px" }}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -97,40 +148,85 @@ export default function LiveChat() {
           </div>
 
           {/* Content */}
-          {!isMinimized && (
-            <div className="flex-1 p-6 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4">
-                <svg
-                  className="w-8 h-8 text-primary-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <h4 className="text-lg font-bold text-gray-900 mb-2">
-                Coming Soon!
-              </h4>
-              <p className="text-gray-600 text-sm mb-4">
-                Our live chat support team is working to bring you the best
-                customer support experience.
-              </p>
-              <p className="text-primary-600 text-xs font-medium">
-                📧 Email us at support@orgobloom.com
-              </p>
-              <p className="text-gray-500 text-xs mt-3">
-                We're available Monday - Friday, 9 AM - 6 PM IST
-              </p>
+          <div
+            style={{
+              flex: 1,
+              padding: "24px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                backgroundColor: "#dcfce7",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <svg
+                style={{ width: "32px", height: "32px", color: "#16a34a" }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
             </div>
-          )}
+            <h4
+              style={{
+                margin: "0 0 8px 0",
+                fontSize: "18px",
+                fontWeight: "bold",
+                color: "#111827",
+              }}
+            >
+              Coming Soon!
+            </h4>
+            <p
+              style={{
+                margin: "0 0 16px 0",
+                fontSize: "14px",
+                color: "#6b7280",
+              }}
+            >
+              Our live chat support team is working to bring you the best
+              customer support experience.
+            </p>
+            <p
+              style={{
+                margin: 0,
+                fontSize: "12px",
+                color: "#16a34a",
+                fontWeight: "500",
+              }}
+            >
+              📧 Email us at support@orgobloom.com
+            </p>
+            <p
+              style={{
+                margin: "12px 0 0 0",
+                fontSize: "12px",
+                color: "#9ca3af",
+              }}
+            >
+              We're available Monday - Friday, 9 AM - 6 PM IST
+            </p>
+          </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

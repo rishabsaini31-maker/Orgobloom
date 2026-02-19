@@ -41,178 +41,185 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 transition-all duration-300">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-14 md:h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center flex-shrink-0">
-            <Image
-              src="/images/logo.jpg"
-              alt="Orgobloom Logo"
-              width={70}
-              height={80}
-              className="object-contain md:w-[85px] md:h-[100px]"
-            />
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-gray-700 hover:text-primary-600 font-medium text-sm xl:text-base link-hover py-1"
-              >
-                {link.label}
+    <>
+      {/* Only render after hydration to avoid SSR mismatch */}
+      {isHydrated && (
+        <header className="bg-white/95 backdrop-blur-md shadow-md fixed top-0 left-0 w-full z-50 transition-all duration-300">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between h-16 md:h-20">
+              {/* Logo */}
+              <Link href="/" className="flex items-center flex-shrink-0">
+                <Image
+                  src="/images/logo.jpg"
+                  alt="Orgobloom Logo"
+                  width={150}
+                  height={150}
+                  className="object-contain md:w-[90px] md:h-[90px]"
+                />
               </Link>
-            ))}
-          </nav>
 
-          {/* Desktop Search Bar */}
-          <form
-            onSubmit={handleSearch}
-            className="hidden md:flex items-center bg-gray-100 rounded-lg px-3 py-2 lg:px-4 lg:py-2"
-          >
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-gray-100 focus:outline-none text-gray-700 placeholder-gray-500 w-32 lg:w-48 xl:w-56 text-sm"
-            />
-            <button
-              type="submit"
-              className="text-gray-600 hover:text-primary-600 ml-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-gray-700 hover:text-primary-600 font-medium text-sm lg:text-base transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Desktop Search */}
+              <form
+                onSubmit={handleSearch}
+                className="hidden md:flex items-center"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
-          </form>
-
-          {/* Actions */}
-          <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
-            {/* Mobile Search Toggle */}
-            <button
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="md:hidden text-gray-700 p-2"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
-
-            {/* Cart */}
-            <Link href="/cart" className="relative p-2">
-              <svg
-                className="w-5 h-5 md:w-6 md:h-6 text-gray-700"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              {cartCount > 0 && (
-                <span className="absolute -top-0 -right-0 bg-primary-600 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center font-bold">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Auth Buttons - Desktop */}
-            <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
-              {!isHydrated ? (
-                <div className="flex items-center space-x-2">
-                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-white border-2 border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-gray-700 placeholder-gray-500 w-40 lg:w-56 xl:w-64 text-sm px-4 py-2 rounded-l-lg transition-all"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-lg transition-colors"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                  </button>
                 </div>
-              ) : isAuthenticated ? (
-                <ProfileDropdown />
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-gray-700 hover:text-primary-600 font-medium text-sm"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="bg-primary-600 text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-primary-700 text-sm font-medium"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </div>
+              </form>
 
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden text-gray-700 p-2"
-            >
-              {mobileMenuOpen ? (
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              {/* Actions */}
+              <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
+                {/* Mobile Search Toggle */}
+                <button
+                  onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                  className="md:hidden text-gray-700 p-2"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </button>
+
+                {/* Cart */}
+                <Link href="/cart" className="relative p-2">
+                  <svg
+                    className="w-5 h-5 md:w-6 md:h-6 text-gray-700"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                    />
+                  </svg>
+                  {cartCount > 0 && (
+                    <span className="absolute -top-0 -right-0 bg-primary-600 text-white text-xs rounded-full h-4 w-4 md:h-5 md:w-5 flex items-center justify-center font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* Auth Buttons - Desktop */}
+                <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
+                  {!isHydrated ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                      <div className="h-8 w-20 bg-gray-200 animate-pulse rounded"></div>
+                    </div>
+                  ) : isAuthenticated ? (
+                    <ProfileDropdown />
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="text-gray-700 hover:text-primary-600 font-medium text-sm"
+                      >
+                        Login
+                      </Link>
+                      <Link
+                        href="/register"
+                        className="bg-primary-600 text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-primary-700 text-sm font-medium"
+                      >
+                        Sign Up
+                      </Link>
+                    </>
+                  )}
+                </div>
+
+                {/* Mobile Menu Toggle */}
+                <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="lg:hidden text-gray-700 p-2"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              )}
-            </button>
+                  {mobileMenuOpen ? (
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-6 h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </header>
+      )}
 
       {/* Mobile Search Bar */}
       <div
-        className={`md:hidden border-t border-gray-100 bg-white px-4 overflow-hidden transition-all duration-300 ease-out ${mobileSearchOpen ? "max-h-20 opacity-100 py-3" : "max-h-0 opacity-0 py-0"}`}
+        className={`md:hidden border-t border-gray-200 bg-white px-4 overflow-hidden transition-all duration-300 ease-out fixed top-16 left-0 right-0 z-40 shadow-md ${mobileSearchOpen ? "max-h-20 opacity-100 py-3" : "max-h-0 opacity-0 py-0"}`}
       >
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
@@ -220,7 +227,7 @@ export default function Header() {
             placeholder="Search products..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-gray-100 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+            className="flex-1 bg-white border-2 border-gray-300 focus:border-primary-500 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-200 text-sm"
             autoFocus
           />
           <button
@@ -234,7 +241,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden border-t border-gray-100 bg-white overflow-hidden transition-all duration-500 ease-out ${mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
+        className={`lg:hidden border-t border-gray-200 bg-white overflow-hidden transition-all duration-500 ease-out fixed top-16 left-0 right-0 z-40 shadow-lg ${mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <nav className="container mx-auto px-4 py-4">
           <div className="space-y-1">
@@ -383,6 +390,6 @@ export default function Header() {
           </div>
         </nav>
       </div>
-    </header>
+    </>
   );
 }
