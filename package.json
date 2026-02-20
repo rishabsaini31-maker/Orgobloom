@@ -8,10 +8,5 @@
     "start": "cd Backend && npm start",
     "dev": "cd Backend && npm run dev"
   },
-  "description": "Orgobloom E-Commerce Platform",
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.56.0",
-    "@typescript-eslint/parser": "^8.56.0",
-    "eslint": "^9.0.0"
-  }
+  "description": "Orgobloom E-Commerce Platform"
 }
