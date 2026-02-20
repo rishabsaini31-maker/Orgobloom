@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { hashPassword, comparePassword, generateToken } from "@/utils/auth";
 import { registerSchema, loginSchema } from "@/utils/validations";
 import { ApiError } from "@/middleware/errorHandler";
-import { loginLimiter, registerLimiter } from "@/middleware/rateLimiter";
+import { loginLimiter, registerLimiter, passwordResetLimiter } from "@/middleware/rateLimiter";
 import { AuthRequest } from "@/middleware/auth";
 import { OAuth2Client } from "google-auth-library";
 import { sendEmail } from "@/utils/emailService";
@@ -395,7 +395,7 @@ router.get("/google/callback", async (req, res, next) => {
 // Forgot Password - Send verification code
 router.post(
   "/forgot-password",
-  registerLimiter,
+  passwordResetLimiter,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { email } = req.body;

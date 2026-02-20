@@ -7,13 +7,15 @@ import { ApiError } from "@/middleware/errorHandler";
 import { createId } from "@paralleldrive/cuid2";
 import { sendEmail } from "@/utils/emailService";
 import { emailTemplates } from "@/templates/emailTemplates";
+import { orderLimiter } from "@/middleware/rateLimiter";
 
 const router = Router();
 
-// Create order
+// Create order (with rate limiting)
 router.post(
   "/",
   authenticate,
+  orderLimiter,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.id;

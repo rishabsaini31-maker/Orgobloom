@@ -1,35 +1,114 @@
 import rateLimit from "express-rate-limit";
 
+// Rate limiter for login attempts
+// Limits: 5 attempts per 15 minutes per IP
+// Purpose: Prevent brute force attacks on login
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Very high limit for development
-  message: "Too many login attempts, please try again later",
+  max: 5, // 5 login attempts per 15 minutes per IP
+  message: {
+    error: "Too many login attempts",
+    message: "Please try again after 15 minutes",
+    retryAfter: "15 minutes"
+  },
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting in development
-    return process.env.NODE_ENV === "development";
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Login rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many login attempts",
+      message: "Please try again after 15 minutes",
+      retryAfter: "15 minutes"
+    });
   },
 });
 
-export const apiLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"),
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "5000"), // Very high limit for development
-  message: "Too many requests, please try again later",
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => {
-    // Skip rate limiting in development
-    return process.env.NODE_ENV === "development";
-  },
-});
-
+// Rate limiter for registration
+// Limits: 3 registrations per hour per IP
+// Purpose: Prevent spam account creation
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 500, // Very high limit for development
-  message: "Too many registration attempts, please try again later",
-  skip: (req) => {
-    // Skip rate limiting in development
-    return process.env.NODE_ENV === "development";
+  max: 3, // 3 registrations per hour per IP
+  message: {
+    error: "Too many registration attempts",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Registration rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many registration attempts",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour"
+    });
+  },
+});
+
+// General API rate limiter
+// Limits: 100 requests per 15 minutes per IP
+// Purpose: General API protection
+export const apiLimiter = rateLimit({
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000"), // 15 minutes default
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || "100"), // 100 requests per 15 minutes
+  message: {
+    error: "Too many requests",
+    message: "Please try again later",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] API rate limit exceeded for IP: ${req.ip} on ${req.method} ${req.path}`);
+    res.status(429).json({
+      error: "Too many requests",
+      message: "Please try again later",
+    });
+  },
+});
+
+// Order creation rate limiter
+// Limits: 10 orders per hour per IP
+// Purpose: Prevent order spam
+export const orderLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 orders per hour per IP
+  message: {
+    error: "Too many orders",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Order rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many orders",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour"
+    });
+  },
+});
+
+// Password reset rate limiter
+// Limits: 3 attempts per hour per IP
+// Purpose: Prevent abuse of password reset
+export const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 password reset attempts per hour
+  message: {
+    error: "Too many password reset attempts",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour"
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Password reset rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many password reset attempts",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour"
+    });
   },
 });
