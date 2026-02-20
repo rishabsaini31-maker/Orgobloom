@@ -21,6 +21,8 @@ const nextConfig = {
       },
     ],
   },
+  // Empty turbopack config to silence the warning (Next.js 16 uses Turbopack by default)
+  turbopack: {},
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_RAZORPAY_KEY_ID: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

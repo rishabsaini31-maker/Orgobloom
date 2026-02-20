@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
+import { productsApi } from "@/lib/api";
 
 export default function ProductsPage() {
   const { addItem } = useCartStore();
@@ -16,7 +17,7 @@ export default function ProductsPage() {
   }>({});
   const [activeFilter, setActiveFilter] = useState("all");
 
-  // Fetch products from API
+  // Fetch products from API using the api helper
   const {
     data: productsData,
     isLoading,
@@ -24,11 +25,8 @@ export default function ProductsPage() {
   } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products`,
-      );
-      if (!response.ok) throw new Error("Failed to fetch products");
-      return response.json();
+      const response = await productsApi.getAll();
+      return response.data;
     },
   });
 
