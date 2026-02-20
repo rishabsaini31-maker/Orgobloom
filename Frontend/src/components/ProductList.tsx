@@ -71,14 +71,20 @@ export default function ProductList({ featured }: ProductListProps) {
 
   return (
     <div
-      className={`grid gap-6 md:gap-8 max-w-5xl mx-auto ${
+      className={`grid gap-6 md:gap-8 max-w-5xl mx-auto stagger-children ${
         products.length === 1
           ? "grid-cols-1 max-w-md"
           : "grid-cols-1 sm:grid-cols-2"
       }`}
     >
-      {products.map((product: any) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product: any, index: number) => (
+        <div
+          key={product.id}
+          style={{ animationDelay: `${index * 0.1}s` }}
+          className="opacity-0 animate-fade-in-up"
+        >
+          <ProductCard product={product} />
+        </div>
       ))}
     </div>
   );

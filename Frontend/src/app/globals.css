@@ -41,8 +41,6 @@ body {
 *,
 *::before,
 *::after {
-  /* Use content-visibility for performance */
-  content-visibility: auto;
   /* Smooth transitions with optimized timing */
   transition-timing-function: var(--ease-smooth);
 }
@@ -244,13 +242,13 @@ html {
     transition: all 0.4s var(--ease-out-expo);
     box-shadow: 0 4px 15px -3px rgba(37, 99, 235, 0.3);
   }
-  
+
   .btn-primary:hover {
     @apply bg-primary-700;
     transform: translateY(-2px);
     box-shadow: 0 8px 25px -5px rgba(37, 99, 235, 0.4);
   }
-  
+
   .btn-primary:active {
     transform: translateY(0) scale(0.98);
   }
@@ -259,7 +257,7 @@ html {
     @apply bg-gray-100 text-gray-800 px-6 py-3 rounded-lg font-medium;
     transition: all 0.3s var(--ease-smooth);
   }
-  
+
   .btn-secondary:hover {
     @apply bg-gray-200;
     transform: translateY(-1px);
@@ -269,7 +267,7 @@ html {
     @apply bg-white rounded-xl shadow-md p-6;
     transition: all 0.5s var(--ease-out-expo);
   }
-  
+
   .card:hover {
     @apply shadow-xl;
     transform: translateY(-4px);
@@ -279,7 +277,7 @@ html {
     @apply w-full px-4 py-3 border border-gray-200 rounded-lg;
     transition: all 0.3s var(--ease-smooth);
   }
-  
+
   .input-field:focus {
     @apply ring-2 ring-primary-500 border-transparent;
     transform: scale(1.01);
@@ -289,7 +287,7 @@ html {
   .card-hover {
     transition: all 0.5s var(--ease-out-expo);
   }
-  
+
   .card-hover:hover {
     @apply -translate-y-2 shadow-2xl;
   }
@@ -298,7 +296,7 @@ html {
   .btn-press {
     transition: transform 0.15s var(--ease-bounce);
   }
-  
+
   .btn-press:active {
     @apply scale-95;
   }
@@ -307,27 +305,29 @@ html {
   .link-hover {
     @apply relative;
   }
-  
+
   .link-hover::after {
-    content: '';
+    content: "";
     @apply absolute bottom-0 left-0 w-0 h-0.5 bg-primary-600;
     transition: width 0.4s var(--ease-out-expo);
   }
-  
+
   .link-hover:hover::after {
     @apply w-full;
   }
-  
+
   /* Smooth section transitions */
   .section-transition {
     transition: all 0.8s var(--ease-out-expo);
   }
-  
+
   /* Smooth hover lift */
   .hover-lift {
-    transition: transform 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
+    transition:
+      transform 0.4s var(--ease-out-expo),
+      box-shadow 0.4s var(--ease-out-expo);
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-8px);
     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
@@ -355,7 +355,9 @@ html {
 .page-transition-enter-active {
   opacity: 1;
   transform: translateY(0);
-  transition: opacity 0.5s var(--ease-out-expo), transform 0.5s var(--ease-out-expo);
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.5s var(--ease-out-expo);
 }
 
 .page-transition-exit {
@@ -378,7 +380,9 @@ html {
 .fade-in-section {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
 }
 
 .fade-in-section.is-visible {
@@ -393,12 +397,24 @@ html {
   animation: fadeInUp 0.6s var(--ease-out-expo) forwards;
 }
 
-.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+.stagger-children > *:nth-child(6) {
+  animation-delay: 0.6s;
+}
 
 /* Smooth glassmorphism effect */
 .glass {
@@ -414,7 +430,8 @@ html {
 
 /* Smooth gradient animation */
 @keyframes gradientShift {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {

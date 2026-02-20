@@ -1,8 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface ProductCardProps {
   product: any;
@@ -12,9 +14,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCartStore();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    setIsAddingToCart(true);
+
+    // Add item to cart
     addItem({
       productId: product.id,
       name: product.name,
@@ -23,7 +30,19 @@ export default function ProductCard({ product }: ProductCardProps) {
       quantity: 1,
       imageUrl: product.imageUrl,
     });
-    toast.success("Added to cart!");
+
+    // Show success toast with animation
+    toast.success("Added to cart!", {
+      icon: "🛒",
+      style: {
+        background: "#059669",
+        color: "#fff",
+        fontWeight: "bold",
+      },
+    });
+
+    // Reset animation state
+    setTimeout(() => setIsAddingToCart(false), 600);
   };
 
   const rating = product.rating || 4.5;
@@ -32,7 +51,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/products/${product.slug}`}>
       <div
-        className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300 h-full flex flex-col group cursor-pointer hover:-translate-y-1"
+        ref={cardRef}
+        className={`glass rounded-2xl border border-gray-100 overflow-hidden hover:shadow-2xl h-full flex flex-col group cursor-pointer hover-lift ${isAddingToCart ? "ring-4 ring-green-400 ring-opacity-50" : ""}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -52,8 +72,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.images[0]}
                 alt={product.name}
                 fill
-                className={`object-contain group-hover:scale-110 transition-transform duration-500 relative z-10 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
+                  imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
               />
@@ -71,8 +91,8 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.imageUrl}
                 alt={product.name}
                 fill
-                className={`object-contain group-hover:scale-110 transition-transform duration-500 relative z-10 ${
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
+                  imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
               />
@@ -121,22 +141,40 @@ export default function ProductCard({ product }: ProductCardProps) {
           {/* Organic Badge */}
           <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold z-20 shadow-lg flex items-center gap-1">
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clipRule="evenodd"
+              />
             </svg>
             ORGANIC
           </div>
 
           {/* Quick Actions - Show on Hover */}
-          <div className={`absolute bottom-3 left-3 right-3 z-20 transition-all duration-300 ${
-            isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          }`}>
+          <div
+            className={`absolute bottom-3 left-3 right-3 z-20 transition-all duration-500 ease-out ${
+              isHovered
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
+            }`}
+          >
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-semibold py-3 rounded-xl transition-colors text-sm shadow-lg flex items-center justify-center gap-2"
+              className="w-full btn-primary disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
               {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
@@ -146,7 +184,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Content Section */}
         <div className="p-4 sm:p-5 flex-1 flex flex-col">
           {/* Product Name */}
-          <h3 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors mb-2">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-2 group-hover:text-primary-600 transition-colors duration-300 mb-2">
             {product.name}
           </h3>
 
@@ -164,7 +202,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 </svg>
               ))}
             </div>
-            <span className="text-sm text-gray-500">({reviewCount} reviews)</span>
+            <span className="text-sm text-gray-500">
+              ({reviewCount} reviews)
+            </span>
           </div>
 
           {/* Description */}

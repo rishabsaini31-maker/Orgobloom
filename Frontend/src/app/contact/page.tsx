@@ -41,8 +41,10 @@ export default function ContactPage() {
 
   return (
     <>
-      <Header />
-      <main className="min-h-screen bg-gray-50 py-12">
+      <div style={{ position: "fixed", top: 0, left: 0, width: "100%", zIndex: 50 }}>
+        <Header />
+      </div>
+      <main className="min-h-screen bg-gray-50 py-12" style={{ paddingTop: 80 }}>
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Back Button */}

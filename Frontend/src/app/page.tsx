@@ -9,6 +9,7 @@ import Testimonials from "@/components/Testimonials";
 import Newsletter from "@/components/Newsletter";
 import CTASection from "@/components/CTASection";
 import IntroVideoPanel from "@/components/IntroVideoPanel";
+import AnimatedHero from "@/components/AnimatedHero";
 
 // Animated Counter Component
 function AnimatedCounter({
@@ -101,87 +102,8 @@ export default function HomePage() {
           <IntroVideoPanel />
         </div>
 
-        {/* Hero Banner - Organic Farming */}
-        <section className="relative py-12 md:py-20 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 overflow-hidden">
-          {/* Floating Elements - smoother animations */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-green-400 rounded-full blur-3xl opacity-20 animate-gentle-pulse"></div>
-            <div
-              className="absolute bottom-10 right-10 w-40 h-40 bg-emerald-400 rounded-full blur-3xl opacity-20 animate-gentle-pulse"
-              style={{ animationDelay: "1s" }}
-            ></div>
-            <div className="absolute top-1/2 left-1/4 w-20 h-20 bg-primary-300 rounded-full blur-2xl opacity-15 animate-float"></div>
-          </div>
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-              <div className="flex-1 text-center lg:text-left">
-                <FadeInSection>
-                  <span className="inline-block bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm font-semibold mb-4 animate-pulse">
-                    🌱 100% Organic Products
-                  </span>
-                </FadeInSection>
-                <FadeInSection>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-4">
-                    Premium Organic Fertilizers for
-                    <span className="bg-gradient-to-r from-primary-600 to-green-500 bg-clip-text text-transparent">
-                      {" "}
-                      Healthier Crops
-                    </span>
-                  </h1>
-                </FadeInSection>
-                <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-2xl mx-auto lg:mx-0">
-                  Transform your farm and garden with our scientifically
-                  formulated organic fertilizers. Made from natural ingredients
-                  for sustainable agriculture.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Link
-                    href="/products"
-                    className="inline-flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-xl"
-                  >
-                    Shop Now
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17 8l4 4m0 0l-4 4m4-4H3"
-                      />
-                    </svg>
-                  </Link>
-                  <Link
-                    href="/about"
-                    className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-800 px-8 py-4 rounded-xl font-semibold text-lg border-2 border-gray-200 transition-all"
-                  >
-                    Learn More
-                  </Link>
-                </div>
-              </div>
-              <div className="flex-1 flex justify-center mt-8 lg:mt-0">
-                <div className="relative w-full max-w-md mx-auto lg:mx-0">
-                  {/* Decorative background with shadow */}
-                  <div
-                    className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-primary-300 via-primary-200 to-green-300 rounded-2xl md:rounded-3xl transform rotate-3 md:rotate-6"
-                    style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }}
-                  ></div>
-                  {/* Main image with prominent shadow */}
-                  <div style={{ boxShadow: '0 35px 60px -15px rgba(0, 0, 0, 0.4)' }} className="relative rounded-2xl md:rounded-3xl overflow-hidden">
-                    <img
-                      src="/images/plant.jpg"
-                      alt="Orgobloom Organic Fertilizers"
-                      className="w-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Animated Hero Section with Particle Effects */}
+        <AnimatedHero />
 
         {/* Featured Products Section */}
         <section id="home-content" className="py-16 md:py-24 bg-white">
@@ -433,10 +355,17 @@ export default function HomePage() {
                   {/* Decorative background with shadow */}
                   <div
                     className="absolute -inset-4 md:-inset-6 bg-gradient-to-br from-green-300 via-primary-300 to-emerald-300 rounded-2xl md:rounded-3xl transform -rotate-3 md:-rotate-6"
-                    style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)' }}
+                    style={{
+                      boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+                    }}
                   ></div>
                   {/* Main image with prominent shadow */}
-                  <div style={{ boxShadow: '0 35px 60px -15px rgba(0, 0, 0, 0.4)' }} className="relative rounded-2xl md:rounded-3xl overflow-hidden">
+                  <div
+                    style={{
+                      boxShadow: "0 35px 60px -15px rgba(0, 0, 0, 0.4)",
+                    }}
+                    className="relative rounded-2xl md:rounded-3xl overflow-hidden"
+                  >
                     <img
                       src="/images/plant2.jpg"
                       alt="Why Choose Orgobloom"

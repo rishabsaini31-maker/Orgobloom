@@ -27,7 +27,7 @@ export default function Footer() {
             <div className="flex gap-3">
               <a
                 href="#"
-                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:-translate-y-1"
               >
                 <svg
                   className="w-4 h-4"
@@ -39,7 +39,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:-translate-y-1"
               >
                 <svg
                   className="w-4 h-4"
@@ -51,7 +51,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-colors"
+                className="w-9 h-9 bg-gray-800 hover:bg-primary-600 rounded-lg flex items-center justify-center transition-all duration-300 hover:-translate-y-1"
               >
                 <svg
                   className="w-4 h-4"
@@ -73,7 +73,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Home
                 </Link>
@@ -81,7 +81,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/products"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Products
                 </Link>
@@ -89,7 +89,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/about"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   About Us
                 </Link>
@@ -97,7 +97,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Contact
                 </Link>
@@ -105,7 +105,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/track-order"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Track Order
                 </Link>
@@ -120,7 +120,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/help"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Help Center
                 </Link>
@@ -128,7 +128,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/support"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Customer Support
                 </Link>
@@ -136,7 +136,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/orders"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   My Orders
                 </Link>
@@ -144,7 +144,7 @@ export default function Footer() {
               <li>
                 <Link
                   href="/wishlist"
-                  className="text-gray-400 hover:text-white text-sm transition-colors"
+                  className="text-gray-400 hover:text-white text-sm transition-all duration-300 hover:translate-x-1 inline-block"
                 >
                   Wishlist
                 </Link>
@@ -227,13 +227,13 @@ export default function Footer() {
             <div className="flex items-center gap-4 text-sm text-gray-400">
               <Link
                 href="/privacy"
-                className="hover:text-white transition-colors"
+                className="hover:text-white transition-all duration-300 hover:-translate-y-0.5"
               >
                 Privacy
               </Link>
               <Link
                 href="/terms"
-                className="hover:text-white transition-colors"
+                className="hover:text-white transition-all duration-300 hover:-translate-y-0.5"
               >
                 Terms
               </Link>

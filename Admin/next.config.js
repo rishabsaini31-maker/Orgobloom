@@ -24,7 +24,9 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  // Increase webpack timeout for slow connections
+  // Empty turbopack config to silence the warning (Next.js 16 uses Turbopack by default)
+  turbopack: {},
+  // Increase webpack timeout for slow connections (used when running with --webpack flag)
   webpack: (config, { dev }) => {
     if (dev) {
       config.watchOptions = {
