@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
+import { productsApi } from "@/lib/api";
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -19,11 +20,8 @@ export default function ProductDetailPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["product", slug],
     queryFn: async () => {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/products/slug/${slug}`,
-      );
-      if (!response.ok) throw new Error("Product not found");
-      return response.json();
+      const response = await productsApi.getBySlug(slug);
+      return response.data;
     },
   });
 

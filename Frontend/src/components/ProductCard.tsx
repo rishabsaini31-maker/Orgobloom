@@ -65,6 +65,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.images[0]}
                 alt=""
                 fill
+                unoptimized
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
               />
@@ -72,6 +73,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.images[0]}
                 alt={product.name}
                 fill
+                unoptimized
                 className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
@@ -84,6 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.imageUrl}
                 alt=""
                 fill
+                unoptimized
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
               />
@@ -91,6 +94,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.imageUrl}
                 alt={product.name}
                 fill
+                unoptimized
                 className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
