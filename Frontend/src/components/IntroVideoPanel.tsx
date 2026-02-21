@@ -17,6 +17,7 @@ export default function IntroVideoPanel() {
   const [posterUrl] = useState<string>(DEFAULT_POSTER_URL);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [nextVideoReady, setNextVideoReady] = useState(false);
+  const [isFirstVideoLoaded, setIsFirstVideoLoaded] = useState(false);
   const [fade, setFade] = useState(0);
 
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -60,6 +61,11 @@ export default function IntroVideoPanel() {
       mainVideoRef.current.play().catch(() => {});
     }
   }, [currentIndex, videoUrls]);
+
+  // Handle first video loaded
+  const handleFirstVideoLoad = useCallback(() => {
+    setIsFirstVideoLoaded(true);
+  }, []);
 
   // Handle video ended - smooth transition to next video
   const handleVideoEnded = useCallback(() => {
@@ -130,13 +136,15 @@ export default function IntroVideoPanel() {
               ref={mainVideoRef}
               src={currentVideo}
               poster={posterUrl || undefined}
-              className="absolute inset-0 h-full w-full object-cover z-10"
+              className={`absolute inset-0 h-full w-full object-cover z-10 transition-opacity duration-500 ${isFirstVideoLoaded ? "opacity-100" : "opacity-0"}`}
               muted
               autoPlay
               playsInline
               preload="auto"
               loop={videoUrls.length === 1}
               onEnded={handleVideoEnded}
+              onLoadedData={handleFirstVideoLoad}
+              onCanPlay={handleFirstVideoLoad}
             />
 
             {/* Hidden preloader for next video - keeps it ready */}

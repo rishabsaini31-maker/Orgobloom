@@ -102,6 +102,76 @@ export default function HomePage() {
           <IntroVideoPanel />
         </div>
 
+        {/* E-Commerce Platform Section */}
+        <section className="py-12 md:py-16 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0" style={{
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E\")",
+            }}></div>
+          </div>
+          
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="text-center mb-8">
+              <span className="inline-block bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-1 rounded-full text-sm font-semibold mb-4">
+                Available On
+              </span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+                Shop on Major E-Commerce Platforms
+              </h2>
+              <p className="text-gray-300 max-w-xl mx-auto">
+                Find our premium organic fertilizers on your favorite shopping platforms. Fast delivery, secure payments, and trusted service.
+              </p>
+            </div>
+            
+            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+              {/* Amazon */}
+              <a
+                href="https://www.amazon.in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative"
+              >
+                <div className="bg-white rounded-2xl p-6 md:p-8 shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2">
+                  <div className="w-32 h-20 md:w-40 md:h-24 flex items-center justify-center">
+                    <img
+                      src="/images/amazon.jpg"
+                      alt="Amazon"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 -z-10"></div>
+              </a>
+              
+              {/* Flipkart */}
+              <a
+                href="https://www.flipkart.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative"
+              >
+                <div className="bg-white rounded-2xl p-6 md:p-8 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2">
+                  <div className="w-32 h-20 md:w-40 md:h-24 flex items-center justify-center">
+                    <img
+                      src="/images/flipkart.jpeg"
+                      alt="Flipkart"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  </div>
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 -z-10"></div>
+              </a>
+            </div>
+            
+            <div className="text-center mt-8">
+              <p className="text-gray-400 text-sm">
+                🚚 Free delivery on orders above ₹499 • 100% Authentic Products • Easy Returns
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Animated Hero Section with Particle Effects */}
         <AnimatedHero />
 
