@@ -5,7 +5,11 @@ import { eq } from "drizzle-orm";
 import { hashPassword, comparePassword, generateToken } from "@/utils/auth";
 import { registerSchema, loginSchema } from "@/utils/validations";
 import { ApiError } from "@/middleware/errorHandler";
-import { loginLimiter, registerLimiter, passwordResetLimiter } from "@/middleware/rateLimiter";
+import {
+  loginLimiter,
+  registerLimiter,
+  passwordResetLimiter,
+} from "@/middleware/rateLimiter";
 import { AuthRequest } from "@/middleware/auth";
 import { OAuth2Client } from "google-auth-library";
 import { sendEmail } from "@/utils/emailService";
@@ -291,18 +295,16 @@ router.post(
 // Google OAuth Redirect (GET)
 router.get("/google", (req, res) => {
   const admin = req.query.admin === "true";
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:8000/api/auth/google/callback";
-  const scope = [
-    "openid",
-    "email",
-    "profile"
-  ];
+  const redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    "http://localhost:8000/api/auth/google/callback";
+  const scope = ["openid", "email", "profile"];
   const url = googleClient.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope,
     redirect_uri: redirectUri,
-    state: admin ? "admin" : "customer"
+    state: admin ? "admin" : "customer",
   });
   res.redirect(url);
 });
@@ -311,7 +313,9 @@ router.get("/google", (req, res) => {
 router.get("/google/callback", async (req, res, next) => {
   try {
     const { code, state } = req.query;
-    const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:8000/api/auth/google/callback";
+    const redirectUri =
+      process.env.GOOGLE_REDIRECT_URI ||
+      "http://localhost:8000/api/auth/google/callback";
     if (!code) {
       return res.status(400).json({ error: "Missing Google code" });
     }
@@ -379,13 +383,18 @@ router.get("/google/callback", async (req, res, next) => {
       existingUser = updatedUser;
     }
     if (existingUser.isBlocked) {
-      return res.status(403).json({ error: "Your account has been blocked. Please contact support." });
+      return res
+        .status(403)
+        .json({
+          error: "Your account has been blocked. Please contact support.",
+        });
     }
     const authToken = generateToken(existingUser);
     const { password, ...userWithoutPassword } = existingUser;
     // Redirect to admin dashboard with token (or send token as response)
     // For demo: send token in query string
-    const frontendUrl = process.env.ADMIN_FRONTEND_URL || "http://localhost:3002/dashboard";
+    const frontendUrl =
+      process.env.ADMIN_FRONTEND_URL || "http://localhost:3002/dashboard";
     res.redirect(`${frontendUrl}?token=${authToken}`);
   } catch (error) {
     next(error);
@@ -592,6 +601,75 @@ router.post(
       res.json({
         message:
           "Password reset successful. Please sign in with your new password.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// Create admin user endpoint (for initial setup - can be disabled in production)
+router.post(
+  "/create-admin",
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      // Security check - only allow if no admin exists or with secret key
+      const secretKey = req.body.secretKey || req.headers["x-admin-secret"];
+      const validSecret =
+        process.env.ADMIN_SECRET_KEY || "orgobloom-admin-2024";
+
+      if (secretKey !== validSecret) {
+        throw new ApiError("Unauthorized", 401);
+      }
+
+      const adminEmail = process.env.ADMIN_EMAIL || "orgobloom5033@gmail.com";
+      const adminPassword = process.env.ADMIN_PASSWORD || "orgobloom5033@@$";
+
+      // Check if admin already exists
+      const [existingAdmin] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, adminEmail))
+        .limit(1);
+
+      if (existingAdmin) {
+        // Update the existing user to ADMIN role
+        const [updatedUser] = await db
+          .update(users)
+          .set({
+            role: "ADMIN",
+            password: await hashPassword(adminPassword),
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existingAdmin.id))
+          .returning();
+
+        const { password, ...userWithoutPassword } = updatedUser;
+        return res.json({
+          message: "Admin user updated successfully",
+          user: userWithoutPassword,
+        });
+      }
+
+      // Create new admin user
+      const hashedPassword = await hashPassword(adminPassword);
+
+      const [newAdmin] = await db
+        .insert(users)
+        .values({
+          email: adminEmail,
+          name: "Admin",
+          password: hashedPassword,
+          role: "ADMIN",
+          emailVerified: new Date(),
+        })
+        .returning();
+
+      const { password, ...userWithoutPassword } = newAdmin;
+
+      res.status(201).json({
+        message: "Admin user created successfully",
+        user: userWithoutPassword,
       });
     } catch (error) {
       next(error);
