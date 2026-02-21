@@ -45,6 +45,37 @@ export default function ProductsPage() {
     return true;
   });
 
+  // Helper to normalize image URL for cross-environment compatibility
+  const normalizeImageUrl = (url: string | undefined): string | undefined => {
+    if (!url) return undefined;
+
+    // If it's not a localhost URL, return as is
+    if (!url.includes("localhost") && !url.includes("127.0.0.1")) return url;
+
+    // Get the API URL from environment
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    // Extract the path after /uploads/
+    const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+    if (uploadsMatch) {
+      // If we have an API URL, use it
+      if (apiUrl) {
+        const baseUrl = apiUrl.replace("/api", "");
+        return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+      }
+
+      // Check if we're in production (Vercel)
+      if (typeof window !== "undefined") {
+        const hostname = window.location.hostname;
+        if (hostname.includes("vercel.app") || hostname !== "localhost") {
+          return `https://orgobloom-backend.onrender.com/uploads/${uploadsMatch[1]}`;
+        }
+      }
+    }
+
+    return url;
+  };
+
   const handleAddToCart = (product: any, weight: string) => {
     if (!weight) {
       toast.error("Please select a weight/quantity");
@@ -60,7 +91,7 @@ export default function ProductsPage() {
       price: price,
       weight: weight,
       quantity: 1,
-      imageUrl: product.imageUrl,
+      imageUrl: normalizeImageUrl(product.imageUrl),
     });
 
     toast.success(`Added ${weight}kg to cart!`);
