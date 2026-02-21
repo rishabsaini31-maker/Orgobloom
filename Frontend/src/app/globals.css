@@ -35,6 +35,15 @@ body {
   overflow-x: hidden;
   /* Smooth scroll behavior */
   scroll-behavior: smooth;
+  /* Add padding-top to account for fixed header */
+  padding-top: 64px;
+}
+
+/* Desktop header height adjustment */
+@media (min-width: 768px) {
+  body {
+    padding-top: 80px;
+  }
 }
 
 /* Optimize all elements for smooth animations */

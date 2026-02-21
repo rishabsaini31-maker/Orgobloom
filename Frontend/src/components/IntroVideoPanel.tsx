@@ -189,7 +189,7 @@ export default function IntroVideoPanel() {
           href="#home-content"
           className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2 text-sm uppercase tracking-[0.4em] text-white/80 hover:text-white pointer-events-auto"
         >
-          Scroll
+          Scroll Down
         </a>
       </div>
     </section>
