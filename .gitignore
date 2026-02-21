@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Environment files
+.env
+.env*.local
+**/.env
+**/.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# Cache
+.cache/
+.vercel/
+
+# Uploads (keep folder structure but ignore files)
+Backend/uploads/images/*
+Backend/uploads/products/*
+Backend/uploads/videos/*
+!Backend/uploads/images/.gitkeep
+!Backend/uploads/products/.gitkeep
+!Backend/uploads/videos/.gitkeep
+
+# Database
+Backend/data/*.db
+Backend/data/*.db-shm
+Backend/data/*.db-wal

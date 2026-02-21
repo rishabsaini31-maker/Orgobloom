@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 
 export default function CustomizeAppPage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "images" | "content">(
+  const [activeTab, setActiveTab] = useState<"general" | "images" | "content" | "seo">(
     "general",
   );
   const [appSettings, setAppSettings] = useState({
@@ -57,6 +57,33 @@ export default function CustomizeAppPage() {
       "Join thousands of farmers who trust Orgobloom for their organic farming needs.",
     footerAbout:
       "Premium organic fertilizers for sustainable farming. Nourish your soil, naturally.",
+  });
+
+  // SEO settings state
+  const [seoSettings, setSeoSettings] = useState({
+    // Homepage SEO
+    homePageTitle: "Orgobloom - Premium Organic Fertilizers for Sustainable Farming",
+    homePageDescription: "Shop premium organic fertilizers at Orgobloom. 100% natural cow and chicken manure for healthier crops. Free shipping on orders above ₹500. Nourish your soil naturally.",
+    homePageKeywords: "organic fertilizer, cow manure, chicken manure, organic farming, sustainable agriculture, natural fertilizer, India",
+    // Products page SEO
+    productsPageTitle: "Shop Organic Fertilizers - Premium Cow & Chicken Manure | Orgobloom",
+    productsPageDescription: "Browse our collection of premium organic fertilizers. Cow manure and chicken manure for healthy plant growth. Competitive prices, fast delivery across India.",
+    // About page SEO
+    aboutPageTitle: "About Orgobloom - Our Story & Mission | Organic Farming",
+    aboutPageDescription: "Learn about Orgobloom's mission to promote sustainable farming with premium organic fertilizers. Our commitment to quality and environmental responsibility.",
+    // Contact page SEO
+    contactPageTitle: "Contact Us - Get in Touch | Orgobloom Support",
+    contactPageDescription: "Contact Orgobloom for inquiries about organic fertilizers, orders, or support. We're here to help with your sustainable farming needs.",
+    // Social Media
+    ogImage: "/images/logo.jpg",
+    twitterCard: "summary_large_image",
+    // Structured Data
+    siteName: "Orgobloom",
+    siteUrl: "https://orgobloom.com",
+    businessType: "Store",
+    // Robots.txt settings
+    allowRobots: true,
+    sitemapEnabled: true,
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -180,10 +207,10 @@ export default function CustomizeAppPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200">
+      <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab("general")}
-          className={`px-4 py-2 font-medium text-sm transition border-b-2 ${
+          className={`px-4 py-2 font-medium text-sm transition border-b-2 whitespace-nowrap ${
             activeTab === "general"
               ? "border-primary-600 text-primary-600"
               : "border-transparent text-gray-600 hover:text-gray-900"
@@ -193,7 +220,7 @@ export default function CustomizeAppPage() {
         </button>
         <button
           onClick={() => setActiveTab("images")}
-          className={`px-4 py-2 font-medium text-sm transition border-b-2 ${
+          className={`px-4 py-2 font-medium text-sm transition border-b-2 whitespace-nowrap ${
             activeTab === "images"
               ? "border-primary-600 text-primary-600"
               : "border-transparent text-gray-600 hover:text-gray-900"
@@ -203,13 +230,23 @@ export default function CustomizeAppPage() {
         </button>
         <button
           onClick={() => setActiveTab("content")}
-          className={`px-4 py-2 font-medium text-sm transition border-b-2 ${
+          className={`px-4 py-2 font-medium text-sm transition border-b-2 whitespace-nowrap ${
             activeTab === "content"
               ? "border-primary-600 text-primary-600"
               : "border-transparent text-gray-600 hover:text-gray-900"
           }`}
         >
           Content
+        </button>
+        <button
+          onClick={() => setActiveTab("seo")}
+          className={`px-4 py-2 font-medium text-sm transition border-b-2 whitespace-nowrap ${
+            activeTab === "seo"
+              ? "border-primary-600 text-primary-600"
+              : "border-transparent text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          🔍 Search Engine Listing
         </button>
       </div>
 
@@ -933,6 +970,417 @@ export default function CustomizeAppPage() {
                 className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
               />
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* SEO Tab - Search Engine Listing */}
+      {activeTab === "seo" && (
+        <div className="space-y-6">
+          {/* SEO Preview Card */}
+          <div className="card bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🔍</span>
+              Search Engine Preview
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              See how your store will appear in Google search results. Optimize your titles and descriptions for better visibility.
+            </p>
+            
+            {/* Google Preview */}
+            <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
+              <p className="text-xs text-gray-500 mb-2">Google Search Preview:</p>
+              <div className="space-y-1">
+                <p className="text-blue-600 text-lg hover:underline cursor-pointer truncate">
+                  {seoSettings.homePageTitle}
+                </p>
+                <p className="text-green-700 text-sm truncate">
+                  {seoSettings.siteUrl}
+                </p>
+                <p className="text-gray-600 text-sm line-clamp-2">
+                  {seoSettings.homePageDescription}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Homepage SEO */}
+          <div className="card">
+            <h2 className="text-xl font-bold mb-6">Homepage SEO</h2>
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Page Title <span className="text-gray-400">({seoSettings.homePageTitle.length}/60)</span>
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.homePageTitle}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      homePageTitle: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={60}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Recommended: 50-60 characters. This appears as the clickable headline in search results.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Meta Description <span className="text-gray-400">({seoSettings.homePageDescription.length}/160)</span>
+                </label>
+                <textarea
+                  value={seoSettings.homePageDescription}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      homePageDescription: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={160}
+                  rows={3}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Recommended: 150-160 characters. This appears below the title in search results.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Keywords (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.homePageKeywords}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      homePageKeywords: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Keywords that describe your business. Used for meta keywords tag.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Products Page SEO */}
+          <div className="card">
+            <h2 className="text-xl font-bold mb-6">Products Page SEO</h2>
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Page Title <span className="text-gray-400">({seoSettings.productsPageTitle.length}/60)</span>
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.productsPageTitle}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      productsPageTitle: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={60}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Meta Description <span className="text-gray-400">({seoSettings.productsPageDescription.length}/160)</span>
+                </label>
+                <textarea
+                  value={seoSettings.productsPageDescription}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      productsPageDescription: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={160}
+                  rows={2}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* About & Contact Page SEO */}
+          <div className="card">
+            <h2 className="text-xl font-bold mb-6">Other Pages SEO</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  About Page Title
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.aboutPageTitle}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      aboutPageTitle: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={60}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Page Title
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.contactPageTitle}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      contactPageTitle: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={60}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  About Page Description
+                </label>
+                <textarea
+                  value={seoSettings.aboutPageDescription}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      aboutPageDescription: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={160}
+                  rows={2}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Contact Page Description
+                </label>
+                <textarea
+                  value={seoSettings.contactPageDescription}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      contactPageDescription: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  maxLength={160}
+                  rows={2}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Social Media SEO */}
+          <div className="card">
+            <h2 className="text-xl font-bold mb-6">Social Media Sharing</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Site Name
+                </label>
+                <input
+                  type="text"
+                  value={seoSettings.siteName}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      siteName: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Site URL
+                </label>
+                <input
+                  type="url"
+                  value={seoSettings.siteUrl}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      siteUrl: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  OG Image (Social Share Image)
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                  {seoSettings.ogImage ? (
+                    <div className="relative">
+                      <img
+                        src={seoSettings.ogImage}
+                        alt="OG Image"
+                        className="w-full h-32 object-cover rounded-lg"
+                      />
+                      {isEditing && (
+                        <button
+                          onClick={() => triggerFileInput("ogImage")}
+                          disabled={uploadingField === "ogImage"}
+                          className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition rounded-lg"
+                        >
+                          <span className="text-white font-medium">Change Image</span>
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => triggerFileInput("ogImage")}
+                      disabled={!isEditing}
+                      className="w-full h-32 flex items-center justify-center text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                    >
+                      Click to upload image
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Recommended: 1200x630 pixels. This image appears when your site is shared on social media.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Twitter Card Type
+                </label>
+                <select
+                  value={seoSettings.twitterCard}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      twitterCard: e.target.value,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:bg-gray-100"
+                >
+                  <option value="summary">Summary</option>
+                  <option value="summary_large_image">Summary Large Image</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Robots & Sitemap Settings */}
+          <div className="card">
+            <h2 className="text-xl font-bold mb-6">Search Engine Visibility</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Allow Search Engines
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Allow Google and other search engines to index your site
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={seoSettings.allowRobots}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      allowRobots: e.target.checked,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-5 h-5 rounded disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">
+                    Enable Sitemap
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Generate a sitemap.xml file for better SEO
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={seoSettings.sitemapEnabled}
+                  onChange={(e) =>
+                    setSeoSettings({
+                      ...seoSettings,
+                      sitemapEnabled: e.target.checked,
+                    })
+                  }
+                  disabled={!isEditing}
+                  className="w-5 h-5 rounded disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {seoSettings.sitemapEnabled && (
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  <strong>Sitemap URL:</strong> {seoSettings.siteUrl}/sitemap.xml
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Submit this URL to Google Search Console for better indexing.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* SEO Tips */}
+          <div className="card bg-yellow-50 border border-yellow-200">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              💡 SEO Tips
+            </h2>
+            <ul className="space-y-2 text-sm text-gray-700">
+              <li className="flex items-start gap-2">
+                <span className="text-green-500">✓</span>
+                Keep page titles between 50-60 characters for optimal display
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500">✓</span>
+                Write unique descriptions for each page (150-160 characters)
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500">✓</span>
+                Include relevant keywords naturally in your content
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500">✓</span>
+                Use high-quality images with descriptive alt text
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-green-500">✓</span>
+                Submit your sitemap to Google Search Console
+              </li>
+            </ul>
           </div>
         </div>
       )}
