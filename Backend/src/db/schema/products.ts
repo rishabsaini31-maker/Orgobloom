@@ -15,9 +15,11 @@ export const products = pgTable("products", {
   slug: text("slug").notNull().unique(),
   description: text("description").notNull(),
   price: real("price").notNull(),
+  comparePrice: real("compare_price"), // Compare at price (original/MRP price)
   weight: text("weight").notNull(),
   stock: integer("stock").default(0).notNull(),
   imageUrl: text("image_url"),
+  imageAltText: text("image_alt_text"), // Alt text for main product image
   images: text("images").array(),
   category: text("category").default("cow").notNull(),
 
@@ -25,6 +27,10 @@ export const products = pgTable("products", {
   benefits: text("benefits").array(),
   usage: text("usage"),
   composition: text("composition"),
+
+  // SEO Meta fields
+  metaTitle: text("meta_title"), // SEO meta title
+  metaDescription: text("meta_description"), // SEO meta description
 
   // Status
   isActive: boolean("is_active").default(true).notNull(),

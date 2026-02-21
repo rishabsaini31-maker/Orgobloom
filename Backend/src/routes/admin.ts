@@ -486,7 +486,9 @@ router.post(
   isAdmin,
   productImagesUpload.array("images", 6),
   async (req: AuthRequest, res: Response) => {
-    const files = req.files as { filename: string; originalname: string; mimetype: string }[] | undefined;
+    const files = req.files as
+      | { filename: string; originalname: string; mimetype: string }[]
+      | undefined;
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No images uploaded" });
@@ -534,17 +536,26 @@ router.post(
         benefits,
         compositions,
         price,
+        comparePrice,
         stock,
         category,
         sku,
         imageUrl,
+        imageAltText,
         images,
+        metaTitle,
+        metaDescription,
       } = req.body;
 
       const parsedPrice =
         typeof price === "string" ? parseFloat(price) : Number(price);
       const parsedStock =
         typeof stock === "string" ? parseInt(stock, 10) : Number(stock);
+      const parsedComparePrice = comparePrice
+        ? typeof comparePrice === "string"
+          ? parseFloat(comparePrice)
+          : Number(comparePrice)
+        : null;
 
       // Validate required fields
       if (!name || !category) {
@@ -601,6 +612,7 @@ router.post(
           slug,
           description: description || "",
           price: parsedPrice,
+          comparePrice: parsedComparePrice,
           stock: parsedStock,
           category,
           weight: "1", // Default weight in kg
@@ -609,10 +621,14 @@ router.post(
             (category === "cow"
               ? "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop"
               : "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=400&fit=crop"),
+          imageAltText: imageAltText || name, // Default to product name if not provided
           images: Array.isArray(images) ? images : undefined,
           benefits: benefits ? [benefits] : [],
           usage: howToUse || "",
           composition: compositions || "",
+          metaTitle: metaTitle || name, // Default to product name if not provided
+          metaDescription:
+            metaDescription || description?.substring(0, 160) || "", // Default to description excerpt
           isActive: true,
           isFeatured: false,
           createdAt: new Date(),
@@ -646,8 +662,12 @@ router.put(
         benefits,
         compositions,
         price,
+        comparePrice,
         stock,
         category,
+        imageAltText,
+        metaTitle,
+        metaDescription,
       } = req.body;
 
       const [updatedProduct] = await db
@@ -656,8 +676,18 @@ router.put(
           name: name || undefined,
           description: description || undefined,
           price: price ? parseFloat(price) : undefined,
+          comparePrice:
+            comparePrice !== undefined
+              ? comparePrice
+                ? parseFloat(comparePrice)
+                : null
+              : undefined,
           stock: stock ? parseInt(stock) : undefined,
           category: category || undefined,
+          imageAltText: imageAltText !== undefined ? imageAltText : undefined,
+          metaTitle: metaTitle !== undefined ? metaTitle : undefined,
+          metaDescription:
+            metaDescription !== undefined ? metaDescription : undefined,
           benefits: benefits ? [benefits] : undefined,
           usage: howToUse || undefined,
           composition: compositions || undefined,

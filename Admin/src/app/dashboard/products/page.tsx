@@ -19,9 +19,13 @@ const EmptyProductModal = ({
     benefits: "",
     compositions: "",
     price: "",
+    comparePrice: "",
     stock: "",
     category: "",
     sku: "",
+    imageAltText: "",
+    metaTitle: "",
+    metaDescription: "",
   });
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -78,9 +82,13 @@ const EmptyProductModal = ({
       await adminApi.createProduct({
         ...formData,
         price: parseFloat(formData.price),
+        comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
         stock: parseInt(formData.stock, 10),
         imageUrl: uploadedUrls[0],
         images: uploadedUrls,
+        imageAltText: formData.imageAltText || formData.name,
+        metaTitle: formData.metaTitle || formData.name,
+        metaDescription: formData.metaDescription || formData.description?.substring(0, 160),
       });
       toast.success("Product created successfully");
       onClose();
@@ -91,9 +99,13 @@ const EmptyProductModal = ({
         benefits: "",
         compositions: "",
         price: "",
+        comparePrice: "",
         stock: "",
         category: "",
         sku: "",
+        imageAltText: "",
+        metaTitle: "",
+        metaDescription: "",
       });
       setImages([]);
       setImagePreviews([]);
@@ -208,7 +220,7 @@ const EmptyProductModal = ({
               </label>
               <input
                 type="number"
-                placeholder="Price"
+                placeholder="Selling Price"
                 value={formData.price}
                 onChange={(e) =>
                   setFormData({ ...formData, price: e.target.value })
@@ -219,19 +231,38 @@ const EmptyProductModal = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Stock Quantity *
+                Compare at Price (₹)
               </label>
               <input
                 type="number"
-                placeholder="Stock"
-                value={formData.stock}
+                placeholder="Original/MRP Price"
+                value={formData.comparePrice}
                 onChange={(e) =>
-                  setFormData({ ...formData, stock: e.target.value })
+                  setFormData({ ...formData, comparePrice: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
-                required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Original price for showing discount
+              </p>
             </div>
+          </div>
+
+          {/* Stock */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Stock Quantity *
+            </label>
+            <input
+              type="number"
+              placeholder="Stock"
+              value={formData.stock}
+              onChange={(e) =>
+                setFormData({ ...formData, stock: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+              required
+            />
           </div>
 
           {/* Category and SKU */}
@@ -289,6 +320,70 @@ const EmptyProductModal = ({
             <p className="text-xs text-gray-500 mt-2">
               {images.length}/6 images selected
             </p>
+          </div>
+
+          {/* Image Alt Text */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Image Alt Text
+            </label>
+            <input
+              type="text"
+              placeholder="Describe the image for accessibility"
+              value={formData.imageAltText}
+              onChange={(e) =>
+                setFormData({ ...formData, imageAltText: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Used for SEO and screen readers
+            </p>
+          </div>
+
+          {/* SEO Section */}
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">SEO Settings</h3>
+            
+            {/* Meta Title */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Title
+              </label>
+              <input
+                type="text"
+                placeholder="SEO title for search engines"
+                value={formData.metaTitle}
+                onChange={(e) =>
+                  setFormData({ ...formData, metaTitle: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                maxLength={60}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.metaTitle.length}/60 characters (recommended: 50-60)
+              </p>
+            </div>
+
+            {/* Meta Description */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Meta Description
+              </label>
+              <textarea
+                placeholder="Brief description for search engine results"
+                value={formData.metaDescription}
+                onChange={(e) =>
+                  setFormData({ ...formData, metaDescription: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                rows={2}
+                maxLength={160}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.metaDescription.length}/160 characters (recommended: 150-160)
+              </p>
+            </div>
           </div>
 
           {/* Image Previews */}

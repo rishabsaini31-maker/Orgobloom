@@ -55,12 +55,25 @@ export default function OrdersPage() {
     }
   }
 
+  // Sort orders: cancelled orders should appear at the end
+  const sortOrdersWithCancelledLast = (ordersList: any[]) => {
+    return [...ordersList].sort((a, b) => {
+      // If one is cancelled and the other isn't, non-cancelled comes first
+      if (a.status === 'CANCELLED' && b.status !== 'CANCELLED') return 1;
+      if (a.status !== 'CANCELLED' && b.status === 'CANCELLED') return -1;
+      // If both have same status regarding cancellation, sort by date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  };
+
   const filteredOrders = Array.isArray(orders)
-    ? orders.filter(
-        (order: any) =>
-          order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()),
+    ? sortOrdersWithCancelledLast(
+        orders.filter(
+          (order: any) =>
+            order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()),
+        )
       )
     : [];
 

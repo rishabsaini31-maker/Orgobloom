@@ -34,7 +34,7 @@ export default function Header() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/products", label: "Products" },
+    { href: "/products", label: "Shop" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
     { href: "/support", label: "Support" },

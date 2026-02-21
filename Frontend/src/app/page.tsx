@@ -97,13 +97,13 @@ export default function HomePage() {
     <>
       <Header />
       <main className="smooth-scroll min-h-screen">
-        {/* Video Section */}
+        {/* Animated Hero Section with Particle Effects - Now First */}
+        <AnimatedHero />
+
+        {/* Video Section - Now Second */}
         <div className="border-4 border-primary-600 rounded-b-2xl overflow-hidden">
           <IntroVideoPanel />
         </div>
-
-        {/* Animated Hero Section with Particle Effects */}
-        <AnimatedHero />
 
         {/* Featured Products Section */}
         <section id="home-content" className="py-16 md:py-24 bg-white">
