@@ -42,15 +42,58 @@ app.use(
     crossOriginResourcePolicy: { policy: "cross-origin" },
   }),
 );
+
+// Dynamic CORS configuration for production
+const getAllowedOrigins = () => {
+  const defaultOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    process.env.FRONTEND_URL,
+    process.env.ADMIN_URL,
+  ].filter(Boolean) as string[];
+
+  // In production, allow all vercel.app and onrender.com domains
+  if (process.env.NODE_ENV === "production") {
+    return (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin) return callback(null, true);
+
+      // Allow localhost for development
+      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+        return callback(null, true);
+      }
+
+      // Allow Vercel deployments
+      if (origin.includes("vercel.app")) {
+        return callback(null, true);
+      }
+
+      // Allow Render deployments
+      if (origin.includes("onrender.com")) {
+        return callback(null, true);
+      }
+
+      // Allow configured URLs
+      if (defaultOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Log rejected origins for debugging
+      console.log(`[CORS] Rejected origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    };
+  }
+
+  return defaultOrigins;
+};
+
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL || "http://localhost:3000",
-      process.env.ADMIN_URL || "http://localhost:3002",
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
-    ],
+    origin: getAllowedOrigins(),
     credentials: true,
   }),
 );
