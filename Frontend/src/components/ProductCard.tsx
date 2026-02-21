@@ -69,6 +69,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
                 loading="lazy"
+                unoptimized
               />
               <Image
                 src={product.images[0]}
@@ -80,6 +81,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 }`}
                 onLoad={() => setImageLoaded(true)}
                 loading="lazy"
+                unoptimized
               />
             </>
           ) : product.imageUrl ? (
@@ -92,6 +94,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
                 loading="lazy"
+                unoptimized
               />
               <Image
                 src={product.imageUrl}
@@ -103,6 +106,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 }`}
                 onLoad={() => setImageLoaded(true)}
                 loading="lazy"
+                unoptimized
               />
             </>
           ) : (
