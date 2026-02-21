@@ -14,38 +14,42 @@ const fixImageUrl = (url: string | undefined): string | undefined => {
   if (!url) return undefined;
 
   // If it's already a valid external URL (not localhost), return as is
-  if (!url.includes("localhost")) return url;
+  if (!url.includes("localhost") && !url.includes("127.0.0.1")) return url;
 
-  // Get the API URL from environment - use multiple fallbacks
+  // Get the API URL from environment
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // If no API URL is set, try to construct from current window location
-  if (typeof window !== "undefined") {
-    // Check if we're on Vercel production
-    const isProduction =
-      window.location.hostname !== "localhost" &&
-      !window.location.hostname.includes("127.0.0.1");
+  // Extract the path after localhost:port or /uploads/
+  let imagePath = "";
 
-    if (isProduction) {
-      // Extract the path after /uploads/
-      const uploadsMatch = url.match(/\/uploads\/(.+)$/);
-      if (uploadsMatch) {
-        // Use the current origin as base (assuming backend is on the same domain)
-        // Or use a known production backend URL
-        const productionBackendUrl = apiUrl
-          ? apiUrl.replace("/api", "")
-          : "https://orgobloom-backend.onrender.com";
-        return `${productionBackendUrl}/uploads/${uploadsMatch[1]}`;
-      }
+  // Try to extract path after /uploads/
+  const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+  if (uploadsMatch) {
+    imagePath = `uploads/${uploadsMatch[1]}`;
+  } else {
+    // Try to extract path after the port number
+    const pathMatch = url.match(/localhost:\d+\/(.+)$/);
+    if (pathMatch) {
+      imagePath = pathMatch[1];
     }
   }
 
-  // Fallback: use environment variable
+  if (!imagePath) return url;
+
+  // Construct the production URL
   if (apiUrl) {
     const baseUrl = apiUrl.replace("/api", "");
-    const uploadsMatch = url.match(/\/uploads\/(.+)$/);
-    if (uploadsMatch) {
-      return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+    return `${baseUrl}/${imagePath}`;
+  }
+
+  // Fallback: try to use window location to determine production backend
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+
+    // If we're on Vercel, construct the backend URL
+    if (hostname.includes("vercel.app") || hostname !== "localhost") {
+      // Common Render backend URL pattern
+      return `https://orgobloom-backend.onrender.com/${imagePath}`;
     }
   }
 
