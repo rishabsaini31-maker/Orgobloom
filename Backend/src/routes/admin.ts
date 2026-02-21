@@ -44,6 +44,15 @@ const productImagesUpload = multer({
 
 // ==================== ORDERS ====================
 
+// Define valid order status types
+type OrderStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "CONFIRMED"
+  | "SHIPPED"
+  | "DELIVERED"
+  | "CANCELLED";
+
 // Get all orders (admin only)
 router.get(
   "/orders",
@@ -52,33 +61,80 @@ router.get(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
+      const limit = parseInt(req.query.limit as string) || 100;
+      const statusParam = req.query.status as string;
       const offset = (page - 1) * limit;
 
-      // Get paginated orders using database-level pagination
-      const paginatedOrders = await db
-        .select()
-        .from(orders)
-        .limit(limit)
-        .offset(offset)
-        .orderBy(orders.createdAt);
+      // Valid status values
+      const validStatuses: OrderStatus[] = [
+        "PENDING",
+        "PROCESSING",
+        "CONFIRMED",
+        "SHIPPED",
+        "DELIVERED",
+        "CANCELLED",
+      ];
 
-      // Get total count
-      const [{ count }] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(orders);
+      // Apply status filter if provided and valid
+      if (statusParam && statusParam !== "all") {
+        // Map frontend status to database status (uppercase)
+        const dbStatus = statusParam.toUpperCase() as OrderStatus;
 
-      const total = Number(count);
+        if (!validStatuses.includes(dbStatus)) {
+          return res.status(400).json({ error: "Invalid status value" });
+        }
 
-      res.json({
-        orders: paginatedOrders,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      });
+        const filteredOrders = await db
+          .select()
+          .from(orders)
+          .where(eq(orders.status, dbStatus))
+          .limit(limit)
+          .offset(offset)
+          .orderBy(orders.createdAt);
+
+        // Get filtered count
+        const [{ count }] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(orders)
+          .where(eq(orders.status, dbStatus));
+
+        const total = Number(count);
+
+        res.json({
+          orders: filteredOrders,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
+        });
+      } else {
+        // Get all orders without status filter
+        const paginatedOrders = await db
+          .select()
+          .from(orders)
+          .limit(limit)
+          .offset(offset)
+          .orderBy(orders.createdAt);
+
+        // Get total count
+        const [{ count }] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(orders);
+
+        const total = Number(count);
+
+        res.json({
+          orders: paginatedOrders,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+          },
+        });
+      }
     } catch (error) {
       next(error);
     }
