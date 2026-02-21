@@ -65,19 +65,21 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.images[0]}
                 alt=""
                 fill
-                unoptimized
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
+                loading="lazy"
               />
               <Image
                 src={product.images[0]}
                 alt={product.name}
                 fill
-                unoptimized
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
+                loading="lazy"
               />
             </>
           ) : product.imageUrl ? (
@@ -86,19 +88,21 @@ export default function ProductCard({ product }: ProductCardProps) {
                 src={product.imageUrl}
                 alt=""
                 fill
-                unoptimized
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover blur-xl scale-110 opacity-40"
                 aria-hidden="true"
+                loading="lazy"
               />
               <Image
                 src={product.imageUrl}
                 alt={product.name}
                 fill
-                unoptimized
+                sizes="(max-width: 768px) 100vw, 50vw"
                 className={`object-contain group-hover:scale-105 transition-transform duration-700 ease-out relative z-10 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
+                loading="lazy"
               />
             </>
           ) : (

@@ -17,7 +17,7 @@ export default function ProductsPage() {
   }>({});
   const [activeFilter, setActiveFilter] = useState("all");
 
-  // Fetch products from API using the api helper
+  // Fetch products from API with optimized query settings
   const {
     data: productsData,
     isLoading,
@@ -28,6 +28,10 @@ export default function ProductsPage() {
       const response = await productsApi.getAll();
       return response.data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData, // Show previous data while fetching
   });
 
   const products = productsData?.products || [];
@@ -202,7 +206,11 @@ export default function ProductsPage() {
                                 src={product.imageUrl}
                                 alt={product.name}
                                 fill
+                                sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-110 transition-transform duration-300"
+                                loading="lazy"
+                                placeholder="blur"
+                                blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBEQACEQA/ALUABo//2Q=="
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-gray-100">

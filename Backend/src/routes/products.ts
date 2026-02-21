@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { products } from "@/db/schema";
-import { eq, and, ilike, desc } from "drizzle-orm";
+import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
 import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
 import { productSchema } from "@/utils/validations";
 import { generateSlug } from "@/utils/helpers";
@@ -19,11 +19,11 @@ const fixImageUrl = (url: string | null): string | null => {
   return url;
 };
 
-// Get all products (public)
+// Get all products (public) - Optimized with database-level pagination
 router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 12;
+    const limit = Math.min(parseInt(req.query.limit as string) || 12, 50); // Cap at 50
     const search = req.query.search as string;
     const featured = req.query.featured === "true";
     const offset = (page - 1) * limit;
@@ -38,14 +38,22 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
       conditions.push(eq(products.isFeatured, true));
     }
 
-    const allProducts = await db
-      .select()
-      .from(products)
-      .where(and(...conditions))
-      .orderBy(desc(products.createdAt));
+    // Use Promise.all for parallel queries
+    const [paginatedProducts, countResult] = await Promise.all([
+      db
+        .select()
+        .from(products)
+        .where(and(...conditions))
+        .orderBy(desc(products.createdAt))
+        .limit(limit)
+        .offset(offset),
+      db
+        .select({ count: count() })
+        .from(products)
+        .where(and(...conditions))
+    ]);
 
-    const total = allProducts.length;
-    const paginatedProducts = allProducts.slice(offset, offset + limit);
+    const total = countResult[0]?.count || 0;
 
     // Fix emoji imageUrls
     const productsWithFixedImages = paginatedProducts.map((p) => ({
@@ -53,6 +61,10 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
       imageUrl: fixImageUrl(p.imageUrl),
     }));
 
+    // Set cache headers for better performance (cache for 5 minutes)
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
+    res.set('CDN-Cache-Control', 'public, max-age=300');
+    
     res.json({
       products: productsWithFixedImages,
       pagination: {

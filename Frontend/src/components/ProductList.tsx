@@ -12,6 +12,10 @@ export default function ProductList({ featured }: ProductListProps) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["products", { featured }],
     queryFn: () => productsApi.getAll({ featured, limit: 6 }),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData, // Show previous data while fetching
   });
 
   if (isLoading) {
