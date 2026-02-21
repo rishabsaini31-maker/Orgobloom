@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 // Default video URLs - load immediately without waiting for API
 const DEFAULT_VIDEO_URLS = [
@@ -9,18 +9,21 @@ const DEFAULT_VIDEO_URLS = [
 ];
 
 // Default poster image - shows while video loads
-const DEFAULT_POSTER_URL = "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/poster.jpg";
+const DEFAULT_POSTER_URL =
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/poster.jpg";
 
 export default function IntroVideoPanel() {
   const [videoUrls, setVideoUrls] = useState<string[]>(DEFAULT_VIDEO_URLS);
-  const [posterUrl, setPosterUrl] = useState<string>(DEFAULT_POSTER_URL);
+  const [posterUrl] = useState<string>(DEFAULT_POSTER_URL);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isVideoReady, setIsVideoReady] = useState(false);
+  const [nextVideoReady, setNextVideoReady] = useState(false);
   const [fade, setFade] = useState(0);
-  
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+  const nextVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Load videos from API
   useEffect(() => {
     const loadVideos = async () => {
       try {
@@ -39,22 +42,45 @@ export default function IntroVideoPanel() {
     loadVideos();
   }, []);
 
-  // Handle video ended - play next video
-  const handleVideoEnded = () => {
-    if (videoUrls.length > 1) {
-      setIsVideoReady(false);
-      setCurrentIndex((prev) => (prev + 1) % videoUrls.length);
-    }
-  };
-
-  // Play video when index changes
+  // Preload next video in background
   useEffect(() => {
-    if (videoRef.current && videoUrls.length > 0) {
-      setIsVideoReady(false);
-      videoRef.current.load();
-      videoRef.current.play().catch(() => {});
+    if (videoUrls.length > 1 && nextVideoRef.current) {
+      const nextIndex = (currentIndex + 1) % videoUrls.length;
+      nextVideoRef.current.src = videoUrls[nextIndex];
+      nextVideoRef.current.load();
+      setNextVideoReady(false);
     }
   }, [currentIndex, videoUrls]);
+
+  // Play main video when index changes
+  useEffect(() => {
+    if (mainVideoRef.current && videoUrls.length > 0) {
+      mainVideoRef.current.src = videoUrls[currentIndex];
+      mainVideoRef.current.load();
+      mainVideoRef.current.play().catch(() => {});
+    }
+  }, [currentIndex, videoUrls]);
+
+  // Handle video ended - smooth transition to next video
+  const handleVideoEnded = useCallback(() => {
+    if (videoUrls.length > 1 && nextVideoRef.current) {
+      const nextIndex = (currentIndex + 1) % videoUrls.length;
+
+      // Start playing next video (already preloaded)
+      nextVideoRef.current.play().catch(() => {});
+
+      // Wait a brief moment for next video to start, then switch
+      setTimeout(() => {
+        setCurrentIndex(nextIndex);
+        setNextVideoReady(false);
+      }, 50);
+    }
+  }, [videoUrls.length, currentIndex]);
+
+  // Handle next video loaded
+  const handleNextVideoCanPlay = useCallback(() => {
+    setNextVideoReady(true);
+  }, []);
 
   // Scroll fade effect
   useEffect(() => {
@@ -70,6 +96,8 @@ export default function IntroVideoPanel() {
   }, []);
 
   const currentVideo = videoUrls[currentIndex] || null;
+  const nextVideoIndex = (currentIndex + 1) % videoUrls.length;
+  const nextVideo = videoUrls[nextVideoIndex] || null;
 
   return (
     <section
@@ -88,39 +116,51 @@ export default function IntroVideoPanel() {
       >
         {currentVideo ? (
           <div className="relative h-full w-full">
-            {/* Poster Image - shows while video loads */}
-            {posterUrl && !isVideoReady && (
+            {/* Poster Image - always present as fallback background */}
+            {posterUrl && (
               <img
                 src={posterUrl}
                 alt="Video thumbnail"
-                className="absolute inset-0 h-full w-full object-cover z-10"
+                className="absolute inset-0 h-full w-full object-cover z-0"
               />
             )}
-            
+
+            {/* Main video - always visible */}
             <video
-              ref={videoRef}
+              ref={mainVideoRef}
               src={currentVideo}
               poster={posterUrl || undefined}
-              className={`h-full w-full object-cover transition-opacity duration-500 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}
+              className="absolute inset-0 h-full w-full object-cover z-10"
               muted
               autoPlay
               playsInline
               preload="auto"
               loop={videoUrls.length === 1}
               onEnded={handleVideoEnded}
-              onLoadedData={() => setIsVideoReady(true)}
-              onCanPlay={() => setIsVideoReady(true)}
             />
+
+            {/* Hidden preloader for next video - keeps it ready */}
+            {nextVideo && (
+              <video
+                ref={nextVideoRef}
+                src={nextVideo}
+                className="absolute inset-0 h-full w-full object-cover z-5 opacity-0 pointer-events-none"
+                muted
+                playsInline
+                preload="auto"
+                onCanPlay={handleNextVideoCanPlay}
+              />
+            )}
           </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
             <p className="text-gray-400">Loading video...</p>
           </div>
         )}
-        
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 pointer-events-none" />
 
-        <div className="relative z-10 flex h-full items-center pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80 pointer-events-none z-20" />
+
+        <div className="relative z-30 flex h-full items-center pointer-events-none">
           <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-2xl">
               <p className="text-[10px] sm:text-xs uppercase tracking-[0.2em] sm:tracking-[0.3em] text-primary-200 mb-2 sm:mb-4">
@@ -136,10 +176,10 @@ export default function IntroVideoPanel() {
             </div>
           </div>
         </div>
-        
+
         <a
           href="#home-content"
-          className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-sm uppercase tracking-[0.4em] text-white/80 hover:text-white pointer-events-auto"
+          className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2 text-sm uppercase tracking-[0.4em] text-white/80 hover:text-white pointer-events-auto"
         >
           Scroll
         </a>
