@@ -16,23 +16,37 @@ const fixImageUrl = (url: string | undefined): string | undefined => {
   // If it's already a valid external URL (not localhost), return as is
   if (!url.includes("localhost")) return url;
 
-  // Get the API URL from environment
+  // Get the API URL from environment - use multiple fallbacks
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!apiUrl) return url;
 
-  // Extract the base URL from API URL (remove /api part)
-  const baseUrl = apiUrl.replace("/api", "");
+  // If no API URL is set, try to construct from current window location
+  if (typeof window !== "undefined") {
+    // Check if we're on Vercel production
+    const isProduction =
+      window.location.hostname !== "localhost" &&
+      !window.location.hostname.includes("127.0.0.1");
 
-  // Extract the path after /uploads/
-  const uploadsMatch = url.match(/\/uploads\/(.+)$/);
-  if (uploadsMatch) {
-    return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+    if (isProduction) {
+      // Extract the path after /uploads/
+      const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+      if (uploadsMatch) {
+        // Use the current origin as base (assuming backend is on the same domain)
+        // Or use a known production backend URL
+        const productionBackendUrl = apiUrl
+          ? apiUrl.replace("/api", "")
+          : "https://orgobloom-backend.onrender.com";
+        return `${productionBackendUrl}/uploads/${uploadsMatch[1]}`;
+      }
+    }
   }
 
-  // If no /uploads/ pattern, try to extract path after port
-  const pathMatch = url.match(/localhost:\d+\/(.+)$/);
-  if (pathMatch) {
-    return `${baseUrl}/${pathMatch[1]}`;
+  // Fallback: use environment variable
+  if (apiUrl) {
+    const baseUrl = apiUrl.replace("/api", "");
+    const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+    if (uploadsMatch) {
+      return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+    }
   }
 
   return url;
