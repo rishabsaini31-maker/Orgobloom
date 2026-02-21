@@ -379,7 +379,7 @@ export default function HomePage() {
         </section>
 
         {/* E-Commerce Platform Advertising Section */}
-        <section className="py-8 md:py-12 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
+        <section className="py-16 md:py-24 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 relative overflow-hidden">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div
@@ -392,24 +392,24 @@ export default function HomePage() {
           </div>
 
           <div className="container mx-auto px-4 relative z-10">
-            <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
+            <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
               {/* Left: Advertising Image */}
-              <div className="w-full lg:w-2/5 flex-shrink-0">
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl border-2 border-primary-500/30">
+              <div className="w-full lg:w-1/2 flex-shrink-0">
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-primary-500/50">
                   <img
                     src="/images/advertising.jpeg"
                     alt="Orgobloom Advertising"
-                    className="w-full h-64 lg:h-80 object-cover"
+                    className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover object-center"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <span className="inline-block bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-3 py-1 rounded-full text-xs font-semibold mb-2">
-                      Special Offer
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <span className="inline-block bg-gradient-to-r from-orange-500 to-yellow-500 text-white px-4 py-2 rounded-full text-sm font-semibold mb-3">
+                      🎉 Special Offer
                     </span>
-                    <h3 className="text-white text-lg md:text-xl font-bold">
+                    <h3 className="text-white text-2xl md:text-3xl font-bold mb-2">
                       Premium Organic Fertilizers
                     </h3>
-                    <p className="text-gray-200 text-sm">
+                    <p className="text-gray-200 text-base md:text-lg">
                       Now available on major platforms
                     </p>
                   </div>
@@ -423,79 +423,54 @@ export default function HomePage() {
                     Available On
                   </span>
                   <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Shop on Major E-Commerce Platforms
+                    Now available on major E-Commerce Platforms
                   </h2>
                   <p className="text-gray-300">
                     Fast delivery, secure payments, and trusted service
                   </p>
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-4 md:gap-6">
+                <div className="flex flex-col sm:flex-row justify-center lg:justify-start items-center gap-6 md:gap-8">
                   {/* Amazon */}
-                  <a
-                    href="https://www.amazon.in"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative w-full sm:w-auto"
-                  >
-                    <div className="bg-white rounded-xl p-4 md:p-6 shadow-xl hover:shadow-orange-500/30 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3">
-                      <div className="w-24 h-14 md:w-32 md:h-16 flex items-center justify-center">
-                        <img
-                          src="/images/amazon.jpg"
-                          alt="Amazon"
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      <div className="hidden md:block">
-                        <span className="text-gray-800 font-semibold">Shop Now</span>
-                        <div className="flex items-center text-orange-500 text-sm">
-                          <span>Visit Store</span>
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                          </svg>
-                        </div>
+                  <div className="bg-white rounded-2xl p-6 md:p-8 shadow-xl flex items-center justify-center gap-4 border-2 border-gray-100 w-full sm:w-auto animate-bounce-slow hover:scale-110 hover:shadow-2xl transition-all duration-300 cursor-pointer hover:border-orange-300">
+                    <div className="w-32 h-20 md:w-40 md:h-24 flex items-center justify-center">
+                      <img
+                        src="/images/amazon.jpg"
+                        alt="Amazon"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                    <div className="block">
+                      <span className="text-gray-800 font-bold text-lg">
+                        Available on
+                      </span>
+                      <div className="text-orange-500 text-base font-semibold">
+                        Amazon
                       </div>
                     </div>
-                    <div className="absolute -inset-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 -z-10"></div>
-                  </a>
+                  </div>
 
                   {/* Flipkart */}
-                  <a
-                    href="https://www.flipkart.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative w-full sm:w-auto"
+                  <div
+                    className="bg-white rounded-2xl p-6 md:p-8 shadow-xl flex items-center justify-center gap-4 border-2 border-gray-100 w-full sm:w-auto animate-bounce-slow hover:scale-110 hover:shadow-2xl transition-all duration-300 cursor-pointer hover:border-blue-300"
+                    style={{ animationDelay: "0.5s" }}
                   >
-                    <div className="bg-white rounded-xl p-4 md:p-6 shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:scale-105 flex items-center justify-center gap-3">
-                      <div className="w-24 h-14 md:w-32 md:h-16 flex items-center justify-center">
-                        <img
-                          src="/images/flipkart.jpeg"
-                          alt="Flipkart"
-                          className="max-w-full max-h-full object-contain"
-                        />
-                      </div>
-                      <div className="hidden md:block">
-                        <span className="text-gray-800 font-semibold">Shop Now</span>
-                        <div className="flex items-center text-blue-500 text-sm">
-                          <span>Visit Store</span>
-                          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                          </svg>
-                        </div>
+                    <div className="w-32 h-20 md:w-40 md:h-24 flex items-center justify-center">
+                      <img
+                        src="/images/flipkart.jpeg"
+                        alt="Flipkart"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
+                    <div className="block">
+                      <span className="text-gray-800 font-bold text-lg">
+                        Available on
+                      </span>
+                      <div className="text-blue-500 text-base font-semibold">
+                        Flipkart
                       </div>
                     </div>
-                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-300 -z-10"></div>
-                  </a>
-                </div>
-
-                <div className="mt-6 text-center lg:text-left">
-                  <p className="text-gray-400 text-sm flex items-center justify-center lg:justify-start gap-2 flex-wrap">
-                    <span className="flex items-center gap-1"><span className="text-green-400">🚚</span> Free delivery on orders above ₹499</span>
-                    <span className="text-gray-600 hidden sm:inline">•</span>
-                    <span className="flex items-center gap-1"><span className="text-yellow-400">✓</span> 100% Authentic</span>
-                    <span className="text-gray-600 hidden sm:inline">•</span>
-                    <span className="flex items-center gap-1"><span className="text-blue-400">↩</span> Easy Returns</span>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

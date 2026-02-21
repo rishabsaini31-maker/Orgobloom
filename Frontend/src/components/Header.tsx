@@ -48,13 +48,16 @@ export default function Header() {
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16 md:h-20">
               {/* Logo */}
-              <Link href="/" className="flex items-center flex-shrink-0">
+              <Link
+                href="/"
+                className="flex items-center flex-shrink-0 overflow-hidden bg-white/95 rounded-lg"
+              >
                 <Image
                   src="/images/logo.jpg"
                   alt="Orgobloom Logo"
-                  width={150}
-                  height={150}
-                  className="object-contain md:w-[90px] md:h-[90px]"
+                  width={290}
+                  height={270}
+                  className="object-contain w-[100px] h-[50px] md:w-[80px] md:h-[100px] lg:w-[200px] lg:h-[80px] mix-blend-multiply"
                 />
               </Link>
 
@@ -77,31 +80,26 @@ export default function Header() {
                 className="hidden md:flex items-center"
               >
                 <div className="relative flex items-center">
+                  <svg
+                    className="absolute left-3 w-5 h-5 text-gray-400 pointer-events-none"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                   <input
                     type="text"
                     placeholder="Search products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white border-2 border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-gray-700 placeholder-gray-500 w-40 lg:w-56 xl:w-64 text-sm px-4 py-2 rounded-l-lg transition-all"
+                    className="bg-white border-2 border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-gray-700 placeholder-gray-500 w-40 lg:w-56 xl:w-64 text-sm pl-10 pr-4 py-2 rounded-lg transition-all"
                   />
-                  <button
-                    type="submit"
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-2 rounded-r-lg transition-colors"
-                  >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                  </button>
                 </div>
               </form>
 
@@ -222,14 +220,29 @@ export default function Header() {
         className={`md:hidden border-t border-gray-200 bg-white px-4 overflow-hidden transition-all duration-300 ease-out fixed top-16 left-0 right-0 z-40 shadow-md ${mobileSearchOpen ? "max-h-20 opacity-100 py-3" : "max-h-0 opacity-0 py-0"}`}
       >
         <form onSubmit={handleSearch} className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="flex-1 bg-white border-2 border-gray-300 focus:border-primary-500 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-200 text-sm"
-            autoFocus
-          />
+          <div className="relative flex-1">
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border-2 border-gray-300 focus:border-primary-500 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-200 text-sm"
+              autoFocus
+            />
+          </div>
           <button
             type="submit"
             className="bg-primary-600 text-white px-4 py-2.5 rounded-lg hover:bg-primary-700 text-sm font-medium"
