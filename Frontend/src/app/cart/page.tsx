@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
 
@@ -278,8 +279,20 @@ export default function CartPage() {
                   {items.map((item) => (
                     <div key={item.productId} className="py-4 flex gap-4">
                       {/* Product Image */}
-                      <div className="text-5xl flex-shrink-0">
-                        {item.imageUrl}
+                      <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden relative">
+                        {item.imageUrl ? (
+                          <Image
+                            src={item.imageUrl}
+                            alt={item.name}
+                            fill
+                            sizes="80px"
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-3xl">
+                            🌱
+                          </div>
+                        )}
                       </div>
 
                       {/* Product Details */}
