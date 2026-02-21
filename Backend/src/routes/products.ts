@@ -9,13 +9,29 @@ import { ApiError } from "@/middleware/errorHandler";
 
 const router = Router();
 
-// Helper function to fix emoji imageUrls
+// Helper function to fix emoji imageUrls and localhost URLs
 const fixImageUrl = (url: string | null): string | null => {
   if (!url) return null;
   if (url === "🐄")
     return "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop";
   if (url === "🐔")
     return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=400&fit=crop";
+  
+  // Fix localhost URLs for production - use the BASE_URL from environment
+  const baseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL;
+  if (baseUrl && url.includes('localhost')) {
+    // Extract the path after /uploads/
+    const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+    if (uploadsMatch) {
+      return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+    }
+    // If no /uploads/ pattern, try to extract path after port
+    const pathMatch = url.match(/localhost:\d+\/(.+)$/);
+    if (pathMatch) {
+      return `${baseUrl}/${pathMatch[1]}`;
+    }
+  }
+  
   return url;
 };
 

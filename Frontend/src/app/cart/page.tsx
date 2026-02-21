@@ -9,6 +9,35 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
 
+// Helper function to fix localhost URLs for production
+const fixImageUrl = (url: string | undefined): string | undefined => {
+  if (!url) return undefined;
+
+  // If it's already a valid external URL (not localhost), return as is
+  if (!url.includes("localhost")) return url;
+
+  // Get the API URL from environment
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl) return url;
+
+  // Extract the base URL from API URL (remove /api part)
+  const baseUrl = apiUrl.replace("/api", "");
+
+  // Extract the path after /uploads/
+  const uploadsMatch = url.match(/\/uploads\/(.+)$/);
+  if (uploadsMatch) {
+    return `${baseUrl}/uploads/${uploadsMatch[1]}`;
+  }
+
+  // If no /uploads/ pattern, try to extract path after port
+  const pathMatch = url.match(/localhost:\d+\/(.+)$/);
+  if (pathMatch) {
+    return `${baseUrl}/${pathMatch[1]}`;
+  }
+
+  return url;
+};
+
 export default function CartPage() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice } =
@@ -282,11 +311,12 @@ export default function CartPage() {
                       <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden relative">
                         {item.imageUrl ? (
                           <Image
-                            src={item.imageUrl}
+                            src={fixImageUrl(item.imageUrl) || ""}
                             alt={item.name}
                             fill
                             sizes="80px"
                             className="object-cover"
+                            unoptimized
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-3xl">
