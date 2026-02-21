@@ -1,12 +1,30 @@
 import axios from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+// Use environment variable or fallback based on environment
+const getApiUrl = () => {
+  // First priority: environment variable
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  // Fallback for development
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return "http://localhost:5000/api";
+  }
+  // Production fallback - this should be set in Vercel environment variables
+  console.warn('NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.');
+  return "http://localhost:5000/api";
+};
+
+const API_URL = getApiUrl();
+
+console.log('[API] Using API URL:', API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
+  timeout: 30000, // 30 second timeout
 });
 
 // Add token to requests
