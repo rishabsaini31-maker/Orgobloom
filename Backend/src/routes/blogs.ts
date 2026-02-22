@@ -1,18 +1,10 @@
 import express, { Request, Response, NextFunction } from "express";
 import { db } from "../db";
 import { blogs } from "../db/schema/blogs";
-import { authenticate, isAdmin } from "../middleware/auth";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth";
 import { eq, desc, sql, and, or, like } from "drizzle-orm";
 
 const router = express.Router();
-
-// Extend Request type to include user
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    role: string;
-  };
-}
 
 // ===========================
 // Public Routes
