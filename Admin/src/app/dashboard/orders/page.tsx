@@ -35,7 +35,7 @@ export default function OrdersPage() {
     queryKey: ["orders", filter, token],
     queryFn: () =>
       adminApi.getOrders({
-        status: filter === "all" ? undefined : filter,
+        status: filter === "all" ? undefined : filter.toUpperCase(),
       }),
     enabled: mounted && !!token,
     refetchOnMount: true,

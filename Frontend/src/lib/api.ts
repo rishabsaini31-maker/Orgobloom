@@ -6,13 +6,13 @@ const getApiUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  // Fallback for development
+  // Fallback for development - use port 8000
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return "http://localhost:5000/api";
+    return "http://localhost:8000/api";
   }
   // Production fallback - this should be set in Vercel environment variables
   console.warn('NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.');
-  return "http://localhost:5000/api";
+  return "http://localhost:8000/api";
 };
 
 const API_URL = getApiUrl();
@@ -66,6 +66,15 @@ export const productsApi = {
   getAll: (params?: any) => api.get("/products", { params }),
   getById: (id: string) => api.get(`/products/${id}`),
   getBySlug: (slug: string) => api.get(`/products/slug/${slug}`),
+};
+
+// Site Settings API (public)
+export const siteSettingsApi = {
+  getSettings: () => api.get("/site-media/settings", {
+    params: { _t: Date.now() }, // Cache-busting timestamp
+    headers: { 'Cache-Control': 'no-cache' }
+  }),
+  getIntroVideos: () => api.get("/site-media/intro-videos"),
 };
 
 // User API

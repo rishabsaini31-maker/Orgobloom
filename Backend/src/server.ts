@@ -22,6 +22,7 @@ import addressesRoutes from "./routes/addresses";
 import emailRoutes from "./routes/email";
 import siteMediaRoutes from "./routes/siteMedia";
 import paymentRoutes from "./routes/payments";
+import blogRoutes from "./routes/blogs";
 
 dotenv.config();
 
@@ -43,58 +44,72 @@ app.use(
   }),
 );
 
-// Dynamic CORS configuration for production
+// Dynamic CORS configuration - Allow all origins in development
 const getAllowedOrigins = () => {
   const defaultOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
+    "http://localhost:8000",
+    "http://localhost:5000",
     process.env.FRONTEND_URL,
     process.env.ADMIN_URL,
   ].filter(Boolean) as string[];
 
-  // In production, allow all vercel.app and onrender.com domains
-  if (process.env.NODE_ENV === "production") {
-    return (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
-
-      // Allow localhost for development
-      if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
-        return callback(null, true);
-      }
-
-      // Allow Vercel deployments
-      if (origin.includes("vercel.app")) {
-        return callback(null, true);
-      }
-
-      // Allow Render deployments
-      if (origin.includes("onrender.com")) {
-        return callback(null, true);
-      }
-
-      // Allow configured URLs
-      if (defaultOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      // Log rejected origins for debugging
-      console.log(`[CORS] Rejected origin: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    };
+  // In development, allow all origins
+  if (process.env.NODE_ENV !== "production") {
+    return true; // Allow all origins in development
   }
 
-  return defaultOrigins;
+  // In production, use dynamic origin check
+  return (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void,
+  ) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    // Allow localhost for development
+    if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel deployments
+    if (origin.includes("vercel.app")) {
+      return callback(null, true);
+    }
+
+    // Allow Render deployments
+    if (origin.includes("onrender.com")) {
+      return callback(null, true);
+    }
+
+    // Allow configured URLs
+    if (defaultOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Log rejected origins for debugging
+    console.log(`[CORS] Rejected origin: ${origin}`);
+    callback(null, true); // Allow anyway for now to debug
+  };
 };
 
 app.use(
   cors({
     origin: getAllowedOrigins(),
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Cache-Control",
+    ],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   }),
 );
 app.use(morgan("dev"));
@@ -121,6 +136,7 @@ app.use("/api/addresses", addressesRoutes);
 app.use("/api/email", emailRoutes);
 app.use("/api/site-media", siteMediaRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/blogs", blogRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -129,6 +145,121 @@ app.use((req: Request, res: Response) => {
 
 // Error handler (must be last)
 app.use(errorHandler);
+
+// Run database migrations
+async function runMigrations() {
+  try {
+    console.log("🔄 Running database migrations...");
+
+    // Add site_media columns if they don't exist
+    await db.execute(sql`
+      ALTER TABLE site_media
+      ADD COLUMN IF NOT EXISTS image_settings TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE site_media
+      ADD COLUMN IF NOT EXISTS content_settings TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE site_media
+      ADD COLUMN IF NOT EXISTS seo_settings TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE site_media
+      ADD COLUMN IF NOT EXISTS intro_video_poster TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE site_media
+      ADD COLUMN IF NOT EXISTS intro_video_urls TEXT;
+    `);
+
+    // Create app_settings table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS app_settings (
+        id TEXT PRIMARY KEY,
+        app_name TEXT,
+        app_description TEXT,
+        logo TEXT,
+        primary_color TEXT DEFAULT '#3b82f6',
+        secondary_color TEXT DEFAULT '#10b981',
+        accent_color TEXT DEFAULT '#f59e0b',
+        email_from TEXT,
+        support_email TEXT,
+        currency TEXT DEFAULT 'INR',
+        timezone TEXT DEFAULT 'Asia/Kolkata',
+        maintenance_mode BOOLEAN DEFAULT false,
+        enable_registration BOOLEAN DEFAULT true,
+        enable_guest_checkout BOOLEAN DEFAULT true,
+        max_order_quantity INTEGER DEFAULT 999,
+        min_order_amount INTEGER DEFAULT 0,
+        free_shipping_threshold INTEGER DEFAULT 500,
+        shipping_cost INTEGER DEFAULT 50,
+        tax_rate INTEGER DEFAULT 18,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create blogs table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS blogs (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        excerpt TEXT,
+        content TEXT NOT NULL,
+        featured_image TEXT,
+        featured_image_alt TEXT,
+        category TEXT DEFAULT 'General',
+        tags TEXT,
+        author TEXT DEFAULT 'Orgobloom Team',
+        meta_title TEXT,
+        meta_description TEXT,
+        published BOOLEAN DEFAULT false,
+        featured BOOLEAN DEFAULT false,
+        read_time INTEGER DEFAULT 5,
+        view_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
+        published_at TIMESTAMP
+      );
+    `);
+
+    // Add missing blogs columns if they don't exist
+    await db.execute(sql`
+      ALTER TABLE blogs
+      ADD COLUMN IF NOT EXISTS featured_image_alt TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE blogs
+      ADD COLUMN IF NOT EXISTS meta_title TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE blogs
+      ADD COLUMN IF NOT EXISTS meta_description TEXT;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE blogs
+      ADD COLUMN IF NOT EXISTS read_time INTEGER DEFAULT 5;
+    `);
+
+    await db.execute(sql`
+      ALTER TABLE blogs
+      ADD COLUMN IF NOT EXISTS view_count INTEGER DEFAULT 0;
+    `);
+
+    console.log("✅ Database migrations completed");
+  } catch (error) {
+    console.error("⚠️ Migration warning:", error);
+  }
+}
 
 // Test database connection
 async function testDBConnection() {
@@ -145,6 +276,7 @@ app.listen(PORT, async () => {
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL}`);
   console.log(`🔗 Admin URL: ${process.env.ADMIN_URL}`);
   await testDBConnection();
+  await runMigrations();
   await connectRedis();
 });
 

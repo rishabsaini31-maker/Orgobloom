@@ -8,11 +8,11 @@ const getApiUrl = () => {
   }
   // Fallback for development
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return "http://localhost:5000/api";
+    return "http://localhost:8000/api";
   }
   // Production fallback - this should be set in Vercel environment variables
   console.warn('NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.');
-  return "http://localhost:5000/api";
+  return "http://localhost:8000/api";
 };
 
 const API_URL = getApiUrl();
@@ -77,8 +77,15 @@ export const adminApi = {
     api.get("/admin/payments", { params: { status } }),
   retryPayment: (paymentId: string) =>
     api.post(`/admin/payments/${paymentId}/retry`),
-  getAppSettings: () => api.get("/admin/settings"),
+  getAppSettings: () => api.get("/admin/settings", {
+    params: { _t: Date.now() }, // Cache-busting timestamp
+  }),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
+  // Site Media Settings (images, content, SEO)
+  getSiteSettings: () => api.get("/site-media/settings", {
+    params: { _t: Date.now() }, // Cache-busting timestamp
+  }),
+  updateSiteSettings: (data: any) => api.put("/site-media/settings", data),
   uploadIntroVideos: (data: FormData) =>
     api.post("/site-media/intro-videos", data, {
       headers: { "Content-Type": "multipart/form-data" },

@@ -154,18 +154,37 @@ router.post(
   isAdmin,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const validatedData = productSchema.parse(req.body);
+      // Map form fields to schema fields
+      const data = {
+        name: req.body.name,
+        description: req.body.description || "",
+        price: parseFloat(req.body.price) || 0,
+        comparePrice: req.body.comparePrice ? parseFloat(req.body.comparePrice) : null,
+        weight: req.body.weight || "500g",
+        stock: parseInt(req.body.stock, 10) || 0,
+        imageUrl: req.body.imageUrl || null,
+        imageAltText: req.body.imageAltText || null,
+        images: req.body.images || null,
+        category: req.body.category || "cow",
+        benefits: req.body.benefits || null,
+        usage: req.body.howToUse || req.body.usage || null,
+        composition: req.body.compositions || req.body.composition || null,
+        metaTitle: req.body.metaTitle || null,
+        metaDescription: req.body.metaDescription || null,
+        isActive: true,
+        isFeatured: false,
+      };
+
+      const validatedData = productSchema.parse(data);
 
       // Auto-generate slug if not provided
-      if (!validatedData.slug) {
-        validatedData.slug = generateSlug(validatedData.name);
-      }
+      const slug = req.body.slug || generateSlug(validatedData.name);
 
       // Check if slug exists
       const [existing] = await db
         .select()
         .from(products)
-        .where(eq(products.slug, validatedData.slug))
+        .where(eq(products.slug, slug))
         .limit(1);
 
       if (existing) {
@@ -174,11 +193,17 @@ router.post(
 
       const [product] = await db
         .insert(products)
-        .values(validatedData)
+        .values({
+          ...validatedData,
+          slug,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        })
         .returning();
 
       res.status(201).json({ product });
     } catch (error) {
+      console.error("Create product error:", error);
       next(error);
     }
   },

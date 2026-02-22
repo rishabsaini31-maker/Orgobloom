@@ -35,6 +35,7 @@ export default function Header() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/products", label: "Shop" },
+    { href: "/blog", label: "Blog" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
     { href: "/support", label: "Support" },
@@ -74,37 +75,36 @@ export default function Header() {
                 ))}
               </nav>
 
-              {/* Desktop Search */}
-              <form
-                onSubmit={handleSearch}
-                className="hidden md:flex items-center"
-              >
-                <div className="relative flex items-center">
-                  <svg
-                    className="absolute left-3 w-5 h-5 text-gray-400 pointer-events-none"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="bg-white border-2 border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-gray-700 placeholder-gray-500 w-40 lg:w-56 xl:w-64 text-sm pl-10 pr-4 py-2 rounded-lg transition-all"
-                  />
-                </div>
-              </form>
-
-              {/* Actions */}
+              {/* Actions - Now includes Search on the right */}
               <div className="flex items-center space-x-2 md:space-x-3 lg:space-x-4">
+                {/* Desktop Search - Moved to right side */}
+                <form
+                  onSubmit={handleSearch}
+                  className="hidden md:flex items-center ml-4"
+                >
+                  <div className="relative flex items-center">
+                    <svg
+                      className="absolute left-3 w-5 h-5 text-gray-400 pointer-events-none"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-white border-2 border-gray-300 focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-gray-700 placeholder-gray-500 w-40 lg:w-48 xl:w-56 text-sm pl-10 pr-4 py-2 rounded-lg transition-all"
+                    />
+                  </div>
+                </form>
                 {/* Mobile Search Toggle */}
                 <button
                   onClick={() => setMobileSearchOpen(!mobileSearchOpen)}

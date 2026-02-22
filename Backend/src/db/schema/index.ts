@@ -6,3 +6,7 @@ export * from "./addresses";
 export * from "./payments";
 export * from "./additional";
 export * from "./fraudLogs";
+export * from "./blogs";
+export * from "./reviews";
+export * from "./loyalty";
+export * from "./appSettings";

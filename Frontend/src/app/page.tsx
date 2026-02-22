@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductList from "@/components/ProductList";
@@ -10,6 +11,20 @@ import Newsletter from "@/components/Newsletter";
 import CTASection from "@/components/CTASection";
 import IntroVideoPanel from "@/components/IntroVideoPanel";
 import AnimatedHero from "@/components/AnimatedHero";
+import { siteSettingsApi } from "@/lib/api";
+
+interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  featuredImage: string | null;
+  featuredImageAlt: string | null;
+  category: string;
+  author: string;
+  readTime: number;
+  publishedAt: string | null;
+}
 
 // Animated Counter Component
 function AnimatedCounter({
@@ -93,6 +108,82 @@ function FadeInSection({
 }
 
 export default function HomePage() {
+  const [siteSettings, setSiteSettings] = useState<{
+    imageSettings: any;
+    contentSettings: any;
+    seoSettings: any;
+  } | null>(null);
+  const [featuredBlogs, setFeaturedBlogs] = useState<Blog[]>([]);
+
+  // Fetch site settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        console.log("[FRONTEND] Fetching site settings...");
+        const response = await siteSettingsApi.getSettings();
+        console.log("[FRONTEND] Site settings response:", response.data);
+        if (response.data) {
+          console.log("[FRONTEND] Image settings:", response.data.imageSettings);
+          console.log("[FRONTEND] Content settings:", response.data.contentSettings);
+          setSiteSettings(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch site settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  // Fetch featured blogs
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/blogs/featured`,
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setFeaturedBlogs(data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch blogs:", error);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
+  // Get settings with defaults
+  const imageSettings = siteSettings?.imageSettings || {
+    heroImage: "/images/plant2.jpg",
+    heroImageAlt: "Why Choose Orgobloom",
+    whyChooseUsImage: "/images/plant.jpg",
+    whyChooseUsImageAlt: "The Orgobloom Difference",
+    advertisingImage: "/images/advertising.jpeg",
+    advertisingImageAlt: "Orgobloom Advertising",
+  };
+
+  const contentSettings = siteSettings?.contentSettings || {
+    heroTitle: "Premium Organic Fertilizers",
+    heroSubtitle:
+      "Handcrafted with care, our organic fertilizers are designed to nourish your soil and boost crop yields naturally.",
+    benefitsTitle: "Benefits of Organic Fertilizers",
+    whyChooseUsTitle: "The Orgobloom Difference",
+    whyChooseUsFeature1Title: "Premium Organic Inputs",
+    whyChooseUsFeature1Description:
+      "We offer only the highest quality organic fertilizers and soil enhancers, carefully sourced and tested.",
+    whyChooseUsFeature2Title: "Complete Soil Solutions",
+    whyChooseUsFeature2Description:
+      "From compost to eco-friendly pest solutions, your one-stop shop for soil health.",
+    whyChooseUsFeature3Title: "Expert Guidance",
+    whyChooseUsFeature3Description:
+      "Get personalized advice for your crops with tips for sustainable practices.",
+    advertisingTitle: "Now available on major E-Commerce Platforms",
+    advertisingSubtitle: "Fast delivery, secure payments, and trusted service",
+    ctaTitle: "Ready to Grow Naturally?",
+    ctaSubtitle:
+      "Join thousands of farmers who trust Orgobloom for their organic farming needs.",
+  };
+
   return (
     <>
       <Header />
@@ -116,8 +207,7 @@ export default function HomePage() {
                 Premium Organic Fertilizers
               </h2>
               <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Handcrafted with care, our organic fertilizers are designed to
-                nourish your soil and boost crop yields naturally.
+                Discover our range of premium organic fertilizers, carefully crafted to nourish your soil and boost crop yields naturally.
               </p>
             </div>
             <ProductList featured={false} />
@@ -303,11 +393,10 @@ export default function HomePage() {
                     </div>
                     <div>
                       <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
-                        Premium Organic Inputs
+                        {contentSettings.whyChooseUsFeature1Title}
                       </h3>
                       <p className="text-gray-600 text-xs md:text-sm lg:text-base">
-                        We offer only the highest quality organic fertilizers
-                        and soil enhancers, carefully sourced and tested.
+                        {contentSettings.whyChooseUsFeature1Description}
                       </p>
                     </div>
                   </div>
@@ -321,11 +410,10 @@ export default function HomePage() {
                     </div>
                     <div>
                       <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
-                        Complete Soil Solutions
+                        {contentSettings.whyChooseUsFeature2Title}
                       </h3>
                       <p className="text-gray-600 text-xs md:text-sm lg:text-base">
-                        From compost to eco-friendly pest solutions, your
-                        one-stop shop for soil health.
+                        {contentSettings.whyChooseUsFeature2Description}
                       </p>
                     </div>
                   </div>
@@ -339,11 +427,10 @@ export default function HomePage() {
                     </div>
                     <div>
                       <h3 className="text-base md:text-lg font-semibold mb-1 text-gray-900">
-                        Expert Guidance
+                        {contentSettings.whyChooseUsFeature3Title}
                       </h3>
                       <p className="text-gray-600 text-xs md:text-sm lg:text-base">
-                        Get personalized advice for your crops with tips for
-                        sustainable practices.
+                        {contentSettings.whyChooseUsFeature3Description}
                       </p>
                     </div>
                   </div>
@@ -367,8 +454,8 @@ export default function HomePage() {
                     className="relative rounded-2xl md:rounded-3xl overflow-hidden"
                   >
                     <img
-                      src="/images/plant2.jpg"
-                      alt="Why Choose Orgobloom"
+                      src={imageSettings.whyChooseUsImage}
+                      alt={imageSettings.whyChooseUsImageAlt}
                       className="w-full object-cover"
                     />
                   </div>
@@ -397,8 +484,8 @@ export default function HomePage() {
               <div className="w-full lg:w-1/2 flex-shrink-0">
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-primary-500/50">
                   <img
-                    src="/images/advertising.jpeg"
-                    alt="Orgobloom Advertising"
+                    src={imageSettings.advertisingImage}
+                    alt={imageSettings.advertisingImageAlt}
                     className="w-full h-[400px] md:h-[500px] lg:h-[600px] object-cover object-center"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
@@ -584,6 +671,105 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Blog Section */}
+        {featuredBlogs.length > 0 && (
+          <section className="py-16 md:py-24 bg-gray-50">
+            <div className="container mx-auto px-4">
+              <FadeInSection>
+                <div className="text-center mb-12">
+                  <span className="inline-block bg-green-100 text-green-700 px-4 py-1 rounded-full text-sm font-semibold mb-4">
+                    Our Blog
+                  </span>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Latest from Orgobloom
+                  </h2>
+                  <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                    Tips, guides, and insights on organic farming and
+                    sustainable agriculture
+                  </p>
+                </div>
+              </FadeInSection>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredBlogs.map((blog) => (
+                  <FadeInSection key={blog.id}>
+                    <Link
+                      href={`/blog/${blog.slug}`}
+                      className="group bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                    >
+                      <div className="relative h-48 bg-gray-200">
+                        {blog.featuredImage ? (
+                          <Image
+                            src={blog.featuredImage}
+                            alt={blog.featuredImageAlt || blog.title}
+                            fill
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-400 to-green-600">
+                            <svg
+                              className="w-16 h-16 text-white/50"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="absolute top-4 left-4">
+                          <span className="px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-full">
+                            {blog.category}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors line-clamp-2">
+                          {blog.title}
+                        </h3>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                          {blog.excerpt}
+                        </p>
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <span>{blog.author}</span>
+                          <span>{blog.readTime} min read</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </FadeInSection>
+                ))}
+              </div>
+
+              <div className="text-center mt-10">
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all"
+                >
+                  Read More Articles
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Testimonials */}
         <Testimonials />

@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
-import { orders, products, users } from "@/db/schema";
-import { eq, sql, gte, and, lt } from "drizzle-orm";
+import { orders, products, users, appSettings } from "@/db/schema";
+import { eq, sql, gte, and, lt, desc } from "drizzle-orm";
 import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
 import { generateSlug } from "@/utils/helpers";
 import { createId } from "@paralleldrive/cuid2";
@@ -480,6 +480,28 @@ router.post(
 
 // ==================== SETTINGS ====================
 
+// Default settings fallback
+const defaultSettings = {
+  appName: "Orgobloom",
+  appDescription: "Premium organic products marketplace",
+  logo: "",
+  primaryColor: "#3b82f6",
+  secondaryColor: "#10b981",
+  accentColor: "#f59e0b",
+  emailFrom: "noreply@orgobloom.com",
+  supportEmail: "support@orgobloom.com",
+  currency: "INR",
+  timezone: "Asia/Kolkata",
+  maintenanceMode: false,
+  enableRegistration: true,
+  enableGuestCheckout: true,
+  maxOrderQuantity: 999,
+  minOrderAmount: 0,
+  freeShippingThreshold: 500,
+  shippingCost: 50,
+  taxRate: 18,
+};
+
 // Get app settings
 router.get(
   "/settings",
@@ -487,28 +509,64 @@ router.get(
   isAdmin,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const settings = {
-        appName: "Orgobloom",
-        appDescription: "Premium organic products marketplace",
-        logo: "",
-        primaryColor: "#3b82f6",
-        secondaryColor: "#10b981",
-        accentColor: "#f59e0b",
-        emailFrom: "noreply@orgobloom.com",
-        supportEmail: "support@orgobloom.com",
-        currency: "INR",
-        timezone: "Asia/Kolkata",
-        maintenanceMode: false,
-        enableRegistration: true,
-        enableGuestCheckout: true,
-        maxOrderQuantity: 999,
-        minOrderAmount: 0,
-        freeShippingThreshold: 500,
-        shippingCost: 50,
-        taxRate: 18,
-      };
+      // Set cache control headers to prevent caching
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      res.set('Surrogate-Control', 'no-store');
+      
+      console.log("[ADMIN SETTINGS] Fetching settings from database...");
+      
+      // Try to get existing settings from database
+      const [existingSettings] = await db
+        .select()
+        .from(appSettings)
+        .orderBy(desc(appSettings.updatedAt))
+        .limit(1);
 
-      res.json({ data: settings });
+      if (existingSettings) {
+        // Return database settings, using defaults for any null values
+        const settings = {
+          appName: existingSettings.appName || defaultSettings.appName,
+          appDescription:
+            existingSettings.appDescription || defaultSettings.appDescription,
+          logo: existingSettings.logo || defaultSettings.logo,
+          primaryColor:
+            existingSettings.primaryColor || defaultSettings.primaryColor,
+          secondaryColor:
+            existingSettings.secondaryColor || defaultSettings.secondaryColor,
+          accentColor:
+            existingSettings.accentColor || defaultSettings.accentColor,
+          emailFrom: existingSettings.emailFrom || defaultSettings.emailFrom,
+          supportEmail:
+            existingSettings.supportEmail || defaultSettings.supportEmail,
+          currency: existingSettings.currency || defaultSettings.currency,
+          timezone: existingSettings.timezone || defaultSettings.timezone,
+          maintenanceMode:
+            existingSettings.maintenanceMode ?? defaultSettings.maintenanceMode,
+          enableRegistration:
+            existingSettings.enableRegistration ??
+            defaultSettings.enableRegistration,
+          enableGuestCheckout:
+            existingSettings.enableGuestCheckout ??
+            defaultSettings.enableGuestCheckout,
+          maxOrderQuantity:
+            existingSettings.maxOrderQuantity ||
+            defaultSettings.maxOrderQuantity,
+          minOrderAmount:
+            existingSettings.minOrderAmount || defaultSettings.minOrderAmount,
+          freeShippingThreshold:
+            existingSettings.freeShippingThreshold ||
+            defaultSettings.freeShippingThreshold,
+          shippingCost:
+            existingSettings.shippingCost || defaultSettings.shippingCost,
+          taxRate: existingSettings.taxRate || defaultSettings.taxRate,
+        };
+        res.json({ data: settings });
+      } else {
+        // Return default settings if no database record exists
+        res.json({ data: defaultSettings });
+      }
     } catch (error) {
       next(error);
     }
@@ -522,12 +580,134 @@ router.put(
   isAdmin,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      res.json({
-        success: true,
-        message: "Settings updated successfully",
-        data: req.body,
-      });
+      console.log("[ADMIN SETTINGS] Received save request with body:", JSON.stringify(req.body, null, 2));
+      
+      const {
+        appName,
+        appDescription,
+        logo,
+        primaryColor,
+        secondaryColor,
+        accentColor,
+        emailFrom,
+        supportEmail,
+        currency,
+        timezone,
+        maintenanceMode,
+        enableRegistration,
+        enableGuestCheckout,
+        maxOrderQuantity,
+        minOrderAmount,
+        freeShippingThreshold,
+        shippingCost,
+        taxRate,
+      } = req.body;
+
+      // Check if there's an existing settings record
+      const [existingSettings] = await db
+        .select()
+        .from(appSettings)
+        .orderBy(desc(appSettings.updatedAt))
+        .limit(1);
+
+      const settingsData = {
+        appName: appName || defaultSettings.appName,
+        appDescription: appDescription || defaultSettings.appDescription,
+        logo: logo || null,
+        primaryColor: primaryColor || defaultSettings.primaryColor,
+        secondaryColor: secondaryColor || defaultSettings.secondaryColor,
+        accentColor: accentColor || defaultSettings.accentColor,
+        emailFrom: emailFrom || defaultSettings.emailFrom,
+        supportEmail: supportEmail || defaultSettings.supportEmail,
+        currency: currency || defaultSettings.currency,
+        timezone: timezone || defaultSettings.timezone,
+        maintenanceMode: maintenanceMode ?? defaultSettings.maintenanceMode,
+        enableRegistration:
+          enableRegistration ?? defaultSettings.enableRegistration,
+        enableGuestCheckout:
+          enableGuestCheckout ?? defaultSettings.enableGuestCheckout,
+        maxOrderQuantity: maxOrderQuantity || defaultSettings.maxOrderQuantity,
+        minOrderAmount: minOrderAmount || defaultSettings.minOrderAmount,
+        freeShippingThreshold:
+          freeShippingThreshold || defaultSettings.freeShippingThreshold,
+        shippingCost: shippingCost || defaultSettings.shippingCost,
+        taxRate: taxRate || defaultSettings.taxRate,
+        updatedAt: new Date(),
+      };
+
+      if (existingSettings) {
+        // Update existing record
+        console.log("[ADMIN SETTINGS] Updating existing record with ID:", existingSettings.id);
+        const [updated] = await db
+          .update(appSettings)
+          .set(settingsData)
+          .where(eq(appSettings.id, existingSettings.id))
+          .returning();
+        
+        console.log("[ADMIN SETTINGS] Update successful. New values:", JSON.stringify(updated, null, 2));
+
+        res.json({
+          success: true,
+          message: "Settings updated successfully",
+          data: {
+            appName: updated.appName,
+            appDescription: updated.appDescription,
+            logo: updated.logo,
+            primaryColor: updated.primaryColor,
+            secondaryColor: updated.secondaryColor,
+            accentColor: updated.accentColor,
+            emailFrom: updated.emailFrom,
+            supportEmail: updated.supportEmail,
+            currency: updated.currency,
+            timezone: updated.timezone,
+            maintenanceMode: updated.maintenanceMode,
+            enableRegistration: updated.enableRegistration,
+            enableGuestCheckout: updated.enableGuestCheckout,
+            maxOrderQuantity: updated.maxOrderQuantity,
+            minOrderAmount: updated.minOrderAmount,
+            freeShippingThreshold: updated.freeShippingThreshold,
+            shippingCost: updated.shippingCost,
+            taxRate: updated.taxRate,
+          },
+        });
+      } else {
+        // Create new record
+        const [created] = await db
+          .insert(appSettings)
+          .values({
+            id: createId(),
+            ...settingsData,
+            createdAt: new Date(),
+          })
+          .returning();
+
+        res.json({
+          success: true,
+          message: "Settings created successfully",
+          data: {
+            appName: created.appName,
+            appDescription: created.appDescription,
+            logo: created.logo,
+            primaryColor: created.primaryColor,
+            secondaryColor: created.secondaryColor,
+            accentColor: created.accentColor,
+            emailFrom: created.emailFrom,
+            supportEmail: created.supportEmail,
+            currency: created.currency,
+            timezone: created.timezone,
+            maintenanceMode: created.maintenanceMode,
+            enableRegistration: created.enableRegistration,
+            enableGuestCheckout: created.enableGuestCheckout,
+            maxOrderQuantity: created.maxOrderQuantity,
+            minOrderAmount: created.minOrderAmount,
+            freeShippingThreshold: created.freeShippingThreshold,
+            shippingCost: created.shippingCost,
+            taxRate: created.taxRate,
+          },
+        });
+      }
     } catch (error) {
+      console.error("Error saving app settings:", error);
       next(error);
     }
   },
@@ -687,8 +867,8 @@ router.post(
             metaDescription || description?.substring(0, 160) || "", // Default to description excerpt
           isActive: true,
           isFeatured: false,
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         })
         .returning();
 
@@ -747,7 +927,7 @@ router.put(
           benefits: benefits ? [benefits] : undefined,
           usage: howToUse || undefined,
           composition: compositions || undefined,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(products.id, id))
         .returning();
@@ -796,7 +976,7 @@ router.patch(
         .set({
           isActive: isActive !== undefined ? isActive : undefined,
           isFeatured: isFeatured !== undefined ? isFeatured : undefined,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(products.id, id))
         .returning();
@@ -879,7 +1059,7 @@ router.patch(
         .update(products)
         .set({
           stock: newStock,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(products.id, productId))
         .returning();

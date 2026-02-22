@@ -51,69 +51,15 @@ export default function InventoryPage() {
     }
   }
 
-  // Use mock data if API is not configured
-  if (!inventory || inventory.length === 0) {
-    inventory = [
-      {
-        id: "1",
-        name: "Organic Tomatoes",
-        sku: "ORG-TOM-001",
-        stock: 150,
-        price: 45,
-        category: "Vegetables",
-      },
-      {
-        id: "2",
-        name: "Fresh Spinach",
-        sku: "ORG-SPIN-001",
-        stock: 8,
-        price: 30,
-        category: "Vegetables",
-      },
-      {
-        id: "3",
-        name: "Organic Apples",
-        sku: "ORG-APP-001",
-        stock: 200,
-        price: 80,
-        category: "Fruits",
-      },
-      {
-        id: "4",
-        name: "Green Bell Pepper",
-        sku: "ORG-PEP-001",
-        stock: 0,
-        price: 50,
-        category: "Vegetables",
-      },
-      {
-        id: "5",
-        name: "Organic Milk",
-        sku: "ORG-MIL-001",
-        stock: 5,
-        price: 60,
-        category: "Dairy",
-      },
-      {
-        id: "6",
-        name: "Free Range Eggs",
-        sku: "ORG-EGG-001",
-        stock: 120,
-        price: 120,
-        category: "Dairy",
-      },
-    ];
-  }
-
   let filteredInventory = Array.isArray(inventory) ? inventory : [];
 
   if (filterStock === "low") {
     filteredInventory = filteredInventory.filter(
-      (item: any) => item.stock <= 10 && item.stock > 0,
+      (item: any) => (item.stock ?? 0) <= 10 && (item.stock ?? 0) > 0,
     );
   } else if (filterStock === "out") {
     filteredInventory = filteredInventory.filter(
-      (item: any) => item.stock === 0,
+      (item: any) => (item.stock ?? 0) === 0,
     );
   }
 
@@ -143,37 +89,42 @@ export default function InventoryPage() {
 
   const stats = {
     lowStock: inventory.filter(
-      (item: any) => item.stock <= 10 && item.stock > 0,
+      (item: any) => (item.stock ?? 0) <= 10 && (item.stock ?? 0) > 0,
     ).length,
-    outOfStock: inventory.filter((item: any) => item.stock === 0).length,
+    outOfStock: inventory.filter((item: any) => (item.stock ?? 0) === 0).length,
     totalValue: inventory.reduce(
-      (sum: number, item: any) => sum + item.stock * (item.price || 0),
+      (sum: number, item: any) => sum + (item.stock ?? 0) * (item.price ?? 0),
       0,
     ),
-    avgStock: Math.round(
-      inventory.reduce((sum: number, item: any) => sum + item.stock, 0) /
-        Math.max(inventory.length, 1),
-    ),
+    avgStock:
+      inventory.length > 0
+        ? Math.round(
+            inventory.reduce(
+              (sum: number, item: any) => sum + (item.stock ?? 0),
+              0,
+            ) / inventory.length,
+          )
+        : 0,
   };
 
-  if (isError && !inventory.length) {
+  if (isError) {
     return (
       <div>
         <h1 className="text-3xl font-bold mb-8">Inventory Management</h1>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <p className="text-blue-800 font-semibold mb-2">
-            ℹ️ Showing Sample Data
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <p className="text-red-800 font-semibold mb-2">
+            Error Loading Inventory
           </p>
-          <p className="text-blue-600 text-sm mb-4">
-            The backend API is not yet configured. Displaying sample inventory
-            to show you how the page will look. Real data will appear once the
-            backend is configured.
+          <p className="text-red-600 text-sm mb-4">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load inventory data"}
           </p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
           >
-            Try Connect to Backend
+            Retry
           </button>
         </div>
       </div>
@@ -294,25 +245,25 @@ export default function InventoryPage() {
                         {item.name}
                       </td>
                       <td className="px-4 py-3">
-                        {item.stock === 0 ? (
+                        {(item.stock ?? 0) === 0 ? (
                           <span className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
                             Out
                           </span>
-                        ) : item.stock <= 10 ? (
+                        ) : (item.stock ?? 0) <= 10 ? (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
-                            Low ({item.stock})
+                            Low ({item.stock ?? 0})
                           </span>
                         ) : (
                           <span className="text-sm text-gray-700">
-                            {item.stock}
+                            {item.stock ?? 0}
                           </span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
-                        ₹{item.price?.toFixed(2) || "-"}
+                        ₹{(item.price ?? 0).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">
-                        ₹{(item.stock * (item.price || 0)).toFixed(2)}
+                        ₹{((item.stock ?? 0) * (item.price ?? 0)).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex gap-2">

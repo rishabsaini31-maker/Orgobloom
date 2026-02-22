@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { siteSettingsApi } from "@/lib/api";
 
 // Particle type
 interface Particle {
@@ -17,6 +18,11 @@ interface Particle {
 export default function AnimatedHero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [heroImage, setHeroImage] = useState("/images/plant.jpg");
+  const [heroTitle, setHeroTitle] = useState("Grow Better with Nature's Power");
+  const [heroSubtitle, setHeroSubtitle] = useState(
+    "Premium organic fertilizers crafted for healthier crops, sustainable farming, and a greener tomorrow. Join thousands of farmers growing naturally.",
+  );
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -124,6 +130,29 @@ export default function AnimatedHero() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  // Fetch hero image and content from settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await siteSettingsApi.getSettings();
+        console.log("[ANIMATED HERO] Settings response:", response.data);
+
+        if (response.data?.imageSettings?.heroImage) {
+          setHeroImage(response.data.imageSettings.heroImage);
+        }
+        if (response.data?.contentSettings?.heroTitle) {
+          setHeroTitle(response.data.contentSettings.heroTitle);
+        }
+        if (response.data?.contentSettings?.heroSubtitle) {
+          setHeroSubtitle(response.data.contentSettings.heroSubtitle);
+        }
+      } catch (error) {
+        console.error("Failed to fetch hero settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Animated Gradient Background */}
@@ -184,9 +213,9 @@ export default function AnimatedHero() {
               className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight mb-6 animate-fade-in-up"
               style={{ animationDelay: "0.1s" }}
             >
-              Grow Better with
+              {heroTitle.split(' ').slice(0, Math.ceil(heroTitle.split(' ').length / 2)).join(' ')}
               <span className="block mt-2 bg-gradient-to-r from-green-400 via-emerald-300 to-teal-400 bg-clip-text text-transparent">
-                Nature's Power
+                {heroTitle.split(' ').slice(Math.ceil(heroTitle.split(' ').length / 2)).join(' ')}
               </span>
             </h1>
 
@@ -195,9 +224,7 @@ export default function AnimatedHero() {
               className="text-lg md:text-xl text-green-100/80 mb-8 max-w-xl mx-auto lg:mx-0 animate-fade-in-up"
               style={{ animationDelay: "0.2s" }}
             >
-              Premium organic fertilizers crafted for healthier crops,
-              sustainable farming, and a greener tomorrow. Join thousands of
-              farmers growing naturally.
+              {heroSubtitle}
             </p>
 
             {/* CTA Buttons */}
@@ -285,7 +312,7 @@ export default function AnimatedHero() {
               {/* Image container */}
               <div className="relative w-72 h-72 md:w-96 md:h-96 rounded-full overflow-hidden border-4 border-white/20 shadow-2xl">
                 <img
-                  src="/images/plant.jpg"
+                  src={heroImage}
                   alt="Organic Plants"
                   className="w-full h-full object-cover"
                 />

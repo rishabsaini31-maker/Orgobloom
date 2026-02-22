@@ -720,4 +720,138 @@ router.get(
   },
 );
 
+// ===========================
+// Site Settings (Images, Content, SEO)
+// ===========================
+
+// Get all site settings
+router.get(
+  "/settings",
+  async (_req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      // Set cache control headers to prevent caching
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      res.set('Surrogate-Control', 'no-store');
+      
+      const [latest] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      console.log("[SITE SETTINGS] Fetching settings from database:");
+      console.log("- Found record:", !!latest);
+      if (latest) {
+        console.log("- imageSettings raw:", latest.imageSettings?.substring(0, 200));
+        console.log("- contentSettings raw:", latest.contentSettings?.substring(0, 200));
+        console.log("- seoSettings raw:", latest.seoSettings?.substring(0, 200));
+      }
+
+      if (!latest) {
+        console.log("[SITE SETTINGS] No record found, returning null");
+        return res.json({
+          imageSettings: null,
+          contentSettings: null,
+          seoSettings: null,
+        });
+      }
+
+      // Parse JSON fields
+      const imageSettings = latest.imageSettings
+        ? JSON.parse(latest.imageSettings)
+        : null;
+      const contentSettings = latest.contentSettings
+        ? JSON.parse(latest.contentSettings)
+        : null;
+      const seoSettings = latest.seoSettings
+        ? JSON.parse(latest.seoSettings)
+        : null;
+
+      console.log("[SITE SETTINGS] Returning parsed settings:");
+      console.log("- imageSettings keys:", imageSettings ? Object.keys(imageSettings) : null);
+      console.log("- contentSettings keys:", contentSettings ? Object.keys(contentSettings) : null);
+      console.log("- seoSettings keys:", seoSettings ? Object.keys(seoSettings) : null);
+
+      res.json({
+        imageSettings,
+        contentSettings,
+        seoSettings,
+      });
+    } catch (error) {
+      console.error("Error fetching site settings:", error);
+      res.json({
+        imageSettings: null,
+        contentSettings: null,
+        seoSettings: null,
+      });
+    }
+  },
+);
+
+// Update site settings (admin only)
+router.put(
+  "/settings",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const { imageSettings, contentSettings, seoSettings } = req.body;
+      
+      console.log("[SITE SETTINGS] Received save request:");
+      console.log("- imageSettings:", JSON.stringify(imageSettings, null, 2));
+      console.log("- contentSettings:", JSON.stringify(contentSettings, null, 2));
+      console.log("- seoSettings:", JSON.stringify(seoSettings, null, 2));
+
+      // Check if there's an existing record
+      const [existing] = await db
+        .select()
+        .from(siteMedia)
+        .orderBy(desc(siteMedia.updatedAt))
+        .limit(1);
+
+      const settingsData = {
+        imageSettings: imageSettings
+          ? JSON.stringify(imageSettings)
+          : null,
+        contentSettings: contentSettings
+          ? JSON.stringify(contentSettings)
+          : null,
+        seoSettings: seoSettings ? JSON.stringify(seoSettings) : null,
+        updatedAt: new Date(),
+      };
+
+      if (existing) {
+        console.log("[SITE SETTINGS] Updating existing record with ID:", existing.id);
+        // Update existing record
+        await db
+          .update(siteMedia)
+          .set(settingsData)
+          .where(eq(siteMedia.id, existing.id));
+      } else {
+        console.log("[SITE SETTINGS] Creating new record");
+        // Create new record
+        await db.insert(siteMedia).values({
+          id: createId(),
+          ...settingsData,
+          createdAt: new Date(),
+        });
+      }
+
+      console.log("[SITE SETTINGS] Save successful");
+      res.json({
+        success: true,
+        message: "Settings saved successfully",
+        imageSettings: imageSettings || null,
+        contentSettings: contentSettings || null,
+        seoSettings: seoSettings || null,
+      });
+    } catch (error) {
+      console.error("Error saving site settings:", error);
+      next(error);
+    }
+  },
+);
+
 export default router;

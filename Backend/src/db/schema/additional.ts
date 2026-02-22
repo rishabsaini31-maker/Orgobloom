@@ -50,6 +50,12 @@ export const siteMedia = pgTable("site_media", {
   introVideoUrls: text("intro_video_urls"), // JSON array of video URLs
   // Poster/thumbnail image for intro video
   introVideoPoster: text("intro_video_poster"),
+  // Image Settings (JSON)
+  imageSettings: text("image_settings"), // JSON object with heroImage, whyChooseUsImage, etc.
+  // Content Settings (JSON)
+  contentSettings: text("content_settings"), // JSON object with heroTitle, heroSubtitle, etc.
+  // SEO Settings (JSON)
+  seoSettings: text("seo_settings"), // JSON object with meta titles, descriptions, etc.
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
