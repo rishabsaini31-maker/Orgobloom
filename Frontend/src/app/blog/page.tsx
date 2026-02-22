@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -20,7 +20,7 @@ interface Blog {
   viewCount: number;
 }
 
-export default function BlogPage() {
+function BlogContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const categoryParam = searchParams.get("category");
@@ -341,5 +341,43 @@ export default function BlogPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function BlogLoading() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-2 text-gray-400">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Loading...
+          </div>
+        </div>
+      </div>
+      <div className="flex justify-center items-center py-40">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-600"></div>
+      </div>
+    </div>
+  );
+}
+
+export default function BlogPage() {
+  return (
+    <Suspense fallback={<BlogLoading />}>
+      <BlogContent />
+    </Suspense>
   );
 }
