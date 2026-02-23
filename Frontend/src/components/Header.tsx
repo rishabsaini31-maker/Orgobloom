@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useCartStore } from "@/store/cartStore";
 import ProfileDropdown from "./ProfileDropdown";
+import NotificationBell from "./NotificationBell";
 
 export default function Header() {
   const { user, isAuthenticated } = useAuthStore();
@@ -146,6 +147,9 @@ export default function Header() {
                     </span>
                   )}
                 </Link>
+
+                {/* Notification Bell - Only show when authenticated */}
+                {isAuthenticated && <NotificationBell />}
 
                 {/* Auth Buttons - Desktop */}
                 <div className="hidden md:flex items-center space-x-2 lg:space-x-3">

@@ -265,11 +265,11 @@ export default function ProductCarousel({
 
         {/* Trust Badges */}
         <div className="bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-6 text-center">
-          <p className="text-sm font-bold text-gray-700 space-y-2">
+          <div className="text-sm font-bold text-gray-700 space-y-2">
             <div className="text-lg">✓ 100% Certified Organic</div>
             <div className="text-lg">✓ Fast Delivery Available</div>
             <div className="text-lg">✓ Quality Guaranteed</div>
-          </p>
+          </div>
         </div>
       </div>
     </div>

@@ -5,11 +5,13 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import http from "http";
 import { errorHandler } from "./middleware/errorHandler";
 import { apiLimiter } from "./middleware/rateLimiter";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
 import { connectRedis } from "./utils/redis";
+import { initializeSocket } from "./utils/notifications";
 
 // Import routes
 import authRoutes from "./routes/auth";
@@ -23,10 +25,22 @@ import emailRoutes from "./routes/email";
 import siteMediaRoutes from "./routes/siteMedia";
 import paymentRoutes from "./routes/payments";
 import blogRoutes from "./routes/blogs";
+import bulkRoutes from "./routes/bulk";
+import searchRoutes from "./routes/search";
+import auditLogsRoutes from "./routes/auditLogs";
+import shipmentsRoutes from "./routes/shipments";
+import webhooksRoutes from "./routes/webhooks";
+import stripeRoutes from "./routes/stripe";
+import paypalRoutes from "./routes/paypal";
+import shiprocketRoutes from "./routes/shiprocket";
+import delhiveryRoutes from "./routes/delhivery";
+import refundRoutes from "./routes/refunds";
+import fshipRoutes from "./routes/fship";
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 // Enable trust proxy for Render/Heroku etc.
@@ -137,6 +151,17 @@ app.use("/api/email", emailRoutes);
 app.use("/api/site-media", siteMediaRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/blogs", blogRoutes);
+app.use("/api/bulk", bulkRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/audit-logs", auditLogsRoutes);
+app.use("/api/shipments", shipmentsRoutes);
+app.use("/api/webhooks", webhooksRoutes);
+app.use("/api/stripe", stripeRoutes);
+app.use("/api/paypal", paypalRoutes);
+app.use("/api/shiprocket", shiprocketRoutes);
+app.use("/api/delhivery", delhiveryRoutes);
+app.use("/api/refunds", refundRoutes);
+app.use("/api/fship", fshipRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -270,11 +295,16 @@ async function testDBConnection() {
   }
 }
 
-app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📝 Environment: ${process.env.NODE_ENV}`);
   console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL}`);
   console.log(`🔗 Admin URL: ${process.env.ADMIN_URL}`);
+
+  // Initialize Socket.io
+  initializeSocket(server);
+  console.log(`🔌 Socket.io initialized`);
+
   await testDBConnection();
   await runMigrations();
   await connectRedis();

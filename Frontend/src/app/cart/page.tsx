@@ -8,6 +8,8 @@ import Link from "next/link";
 import Image from "next/image";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
+import { useAuthStore } from "@/store/authStore";
+import RazorpayCheckout from "@/components/RazorpayCheckout";
 
 // Helper function to fix localhost URLs for production
 const fixImageUrl = (url: string | undefined): string | undefined => {
@@ -60,10 +62,13 @@ export default function CartPage() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice } =
     useCartStore();
+  const { user, isAuthenticated } = useAuthStore();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cod");
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
+  const [showPayment, setShowPayment] = useState(false);
   const [newAddress, setNewAddress] = useState({
     name: "",
     phone: "",
@@ -257,12 +262,9 @@ export default function CartPage() {
       const result = await response.json();
 
       if (paymentMethod === "online") {
-        toast.success("Redirecting to payment gateway...");
-        setTimeout(() => {
-          toast.success("Payment successful! Order confirmed.");
-          clearCart();
-          router.push("/orders");
-        }, 2000);
+        // For online payment, show Razorpay checkout
+        setPendingOrderId(result.order.id);
+        setShowPayment(true);
       } else {
         toast.success("Order placed successfully! We will confirm it soon.");
         clearCart();
@@ -276,6 +278,20 @@ export default function CartPage() {
           : "Failed to place order. Please try again.",
       );
     }
+  };
+
+  const handlePaymentSuccess = (paymentId: string, orderId: string) => {
+    toast.success("Payment successful! Order confirmed.");
+    clearCart();
+    setShowPayment(false);
+    router.push("/orders");
+  };
+
+  const handlePaymentFailure = (error: any) => {
+    console.error("Payment failed:", error);
+    toast.error("Payment failed. You can retry payment from your orders page.");
+    setShowPayment(false);
+    router.push("/orders");
   };
 
   if (items.length === 0) {
@@ -610,14 +626,27 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                <button
-                  onClick={handlePlaceOrder}
-                  className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-lg hover:from-primary-700 hover:to-primary-800 transition shadow-md"
-                >
-                  {paymentMethod === "online"
-                    ? "Proceed to Payment"
-                    : "Place Order"}
-                </button>
+                {/* Payment Button */}
+                {showPayment && pendingOrderId ? (
+                  <RazorpayCheckout
+                    orderId={pendingOrderId}
+                    amount={total}
+                    customerName={user?.name || "Customer"}
+                    customerEmail={user?.email || ""}
+                    customerPhone={addresses.find(a => a.id === selectedAddress)?.phone || ""}
+                    onSuccess={handlePaymentSuccess}
+                    onFailure={handlePaymentFailure}
+                  />
+                ) : (
+                  <button
+                    onClick={handlePlaceOrder}
+                    className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-lg hover:from-primary-700 hover:to-primary-800 transition shadow-md"
+                  >
+                    {paymentMethod === "online"
+                      ? "Proceed to Payment"
+                      : "Place Order"}
+                  </button>
+                )}
 
                 <Link
                   href="/products"

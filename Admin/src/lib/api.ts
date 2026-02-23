@@ -136,4 +136,18 @@ export const userApi = {
   changePassword: (data: any) => api.put("/user/password", data),
 };
 
+// Reviews API
+export const reviewsApi = {
+  getAll: (params?: { page?: number; limit?: number; status?: string }) =>
+    api.get("/reviews/admin/all", { params }),
+  moderate: (id: string, data: { isApproved?: boolean; isFeatured?: boolean }) =>
+    api.patch(`/reviews/${id}/moderate`, data),
+  delete: (id: string) => api.delete(`/reviews/${id}`),
+};
+
+// Notifications API (Socket.io status)
+export const notificationsApi = {
+  getStatus: () => api.get("/admin/notifications/status"),
+};
+
 export default api;

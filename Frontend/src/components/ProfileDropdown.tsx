@@ -46,9 +46,14 @@ export default function ProfileDropdown() {
       }
     };
 
-    const handleScroll = () => {
-      if (isOpen) {
-        setIsOpen(false);
+    // Only close on scroll outside the dropdown
+    const handleScroll = (event: Event) => {
+      if (isOpen && dropdownRef.current) {
+        // Check if the scroll is happening inside the dropdown
+        const target = event.target as Node;
+        if (!dropdownRef.current.contains(target)) {
+          setIsOpen(false);
+        }
       }
     };
 

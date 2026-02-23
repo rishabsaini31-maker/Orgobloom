@@ -3,6 +3,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ProductCarousel from "@/components/ProductCarousel";
+import ProductReviews from "@/components/ProductReviews";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -254,6 +255,9 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Product Reviews */}
+        {product && <ProductReviews productId={product.id} />}
       </main>
       <Footer />
     </>

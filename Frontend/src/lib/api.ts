@@ -84,4 +84,40 @@ export const userApi = {
   changePassword: (data: any) => api.put("/user/password", data),
 };
 
+// Reviews API
+export const reviewsApi = {
+  getByProduct: (productId: string, params?: { page?: number; limit?: number }) =>
+    api.get(`/reviews/product/${productId}`, { params }),
+  create: (data: { productId: string; rating: number; title?: string; comment: string; images?: string[] }) =>
+    api.post("/reviews", data),
+  update: (id: string, data: { rating?: number; title?: string; comment?: string; images?: string[] }) =>
+    api.put(`/reviews/${id}`, data),
+  delete: (id: string) => api.delete(`/reviews/${id}`),
+  markHelpful: (id: string) => api.post(`/reviews/${id}/helpful`),
+  // Admin
+  getAll: (params?: { page?: number; limit?: number; status?: string }) =>
+    api.get("/reviews/admin/all", { params }),
+  moderate: (id: string, data: { isApproved?: boolean; isFeatured?: boolean }) =>
+    api.patch(`/reviews/${id}/moderate`, data),
+};
+
+// Orders API
+export const ordersApi = {
+  getAll: () => api.get("/orders"),
+  getById: (id: string) => api.get(`/orders/${id}`),
+  create: (data: any) => api.post("/orders", data),
+  updateStatus: (id: string, status: string) => api.put(`/orders/${id}/status`, { status }),
+};
+
+// Payments API
+export const paymentsApi = {
+  createOrder: (orderId: string, amount: number) =>
+    api.post("/payments/create-order", { orderId, amount }),
+  verify: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string; orderId: string }) =>
+    api.post("/payments/verify", data),
+  getDetails: (paymentId: string) => api.get(`/payments/${paymentId}`),
+  refund: (paymentId: string, amount?: number, reason?: string) =>
+    api.post("/payments/refund", { paymentId, amount, reason }),
+};
+
 export default api;
