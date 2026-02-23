@@ -25,6 +25,9 @@ interface AuthRequest extends Request {
     role: string;
     email: string;
   };
+  params: Record<string, string>;
+  query: Record<string, any>;
+  body: any;
 }
 
 // =====================
