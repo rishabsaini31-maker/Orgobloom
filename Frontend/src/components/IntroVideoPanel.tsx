@@ -2,34 +2,43 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 
-// Default video URLs - load immediately without waiting for API
+// Default video URLs - using reliable CDN sources
 const DEFAULT_VIDEO_URLS = [
-  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/a-seamless-animation-sequence-showing-1-a-close-up%20(1).mp4",
-  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/close-up-of-hands-gently-mixing-organic-fertilizer.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
 ];
 
 // Default poster image - shows while video loads
 const DEFAULT_POSTER_URL =
-  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/poster.jpg";
+  "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1920&q=80";
 
 export default function IntroVideoPanel() {
   const [videoUrls, setVideoUrls] = useState<string[]>(DEFAULT_VIDEO_URLS);
   const [posterUrl] = useState<string>(DEFAULT_POSTER_URL);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextVideoReady, setNextVideoReady] = useState(false);
-  const [isFirstVideoLoaded, setIsFirstVideoLoaded] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [fade, setFade] = useState(0);
 
   const sectionRef = useRef<HTMLDivElement>(null);
-  const mainVideoRef = useRef<HTMLVideoElement>(null);
-  const nextVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Load videos from API
   useEffect(() => {
     const loadVideos = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(`${apiUrl}/site-media/intro-videos`);
+        if (!apiUrl) {
+          console.log("API URL not configured, using default videos");
+          return;
+        }
+
+        const response = await fetch(`${apiUrl}/site-media/intro-videos`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
         if (response.ok) {
           const data = await response.json();
           if (data?.videos?.length > 0) {
@@ -37,56 +46,58 @@ export default function IntroVideoPanel() {
           }
         }
       } catch (error) {
-        console.error("Failed to load intro videos:", error);
+        console.error(
+          "Failed to load intro videos from API, using defaults:",
+          error,
+        );
       }
     };
     loadVideos();
   }, []);
 
-  // Preload next video in background
-  useEffect(() => {
-    if (videoUrls.length > 1 && nextVideoRef.current) {
-      const nextIndex = (currentIndex + 1) % videoUrls.length;
-      nextVideoRef.current.src = videoUrls[nextIndex];
-      nextVideoRef.current.load();
-      setNextVideoReady(false);
-    }
-  }, [currentIndex, videoUrls]);
-
-  // Play main video when index changes
-  useEffect(() => {
-    if (mainVideoRef.current && videoUrls.length > 0) {
-      mainVideoRef.current.src = videoUrls[currentIndex];
-      mainVideoRef.current.load();
-      mainVideoRef.current.play().catch(() => {});
-    }
-  }, [currentIndex, videoUrls]);
-
-  // Handle first video loaded
-  const handleFirstVideoLoad = useCallback(() => {
-    setIsFirstVideoLoaded(true);
+  // Handle video load
+  const handleVideoLoad = useCallback(() => {
+    console.log("Video loaded successfully");
+    setIsVideoLoaded(true);
+    setHasError(false);
   }, []);
 
-  // Handle video ended - smooth transition to next video
+  // Handle video error
+  const handleVideoError = useCallback(
+    (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+      console.error("Video failed to load:", e);
+      setHasError(true);
+      setIsVideoLoaded(false);
+    },
+    [],
+  );
+
+  // Handle video ended
   const handleVideoEnded = useCallback(() => {
-    if (videoUrls.length > 1 && nextVideoRef.current) {
-      const nextIndex = (currentIndex + 1) % videoUrls.length;
-
-      // Start playing next video (already preloaded)
-      nextVideoRef.current.play().catch(() => {});
-
-      // Wait a brief moment for next video to start, then switch
-      setTimeout(() => {
-        setCurrentIndex(nextIndex);
-        setNextVideoReady(false);
-      }, 50);
+    if (videoUrls.length > 1) {
+      setCurrentIndex((prev) => (prev + 1) % videoUrls.length);
     }
-  }, [videoUrls.length, currentIndex]);
+  }, [videoUrls.length]);
 
-  // Handle next video loaded
-  const handleNextVideoCanPlay = useCallback(() => {
-    setNextVideoReady(true);
-  }, []);
+  // Try to play video when it's ready
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoUrls[currentIndex]) return;
+
+    const playVideo = async () => {
+      try {
+        video.load();
+        // Try to play, but don't throw if autoplay is blocked
+        await video.play().catch(() => {
+          console.log("Autoplay blocked - user interaction required");
+        });
+      } catch (error) {
+        console.error("Video play error:", error);
+      }
+    };
+
+    playVideo();
+  }, [currentIndex, videoUrls]);
 
   // Scroll fade effect
   useEffect(() => {
@@ -102,8 +113,6 @@ export default function IntroVideoPanel() {
   }, []);
 
   const currentVideo = videoUrls[currentIndex] || null;
-  const nextVideoIndex = (currentIndex + 1) % videoUrls.length;
-  const nextVideo = videoUrls[nextVideoIndex] || null;
 
   return (
     <section
@@ -120,49 +129,47 @@ export default function IntroVideoPanel() {
         className="absolute inset-0 transition-opacity duration-500"
         style={{ opacity: 1 - fade }}
       >
-        {currentVideo ? (
-          <div className="relative h-full w-full">
-            {/* Poster Image - always present as fallback background */}
-            {posterUrl && (
-              <img
-                src={posterUrl}
-                alt="Video thumbnail"
-                className="absolute inset-0 h-full w-full object-cover z-0"
-              />
-            )}
+        {/* Background Image - always visible as fallback */}
+        <img
+          src={posterUrl}
+          alt="Organic fertilizer background"
+          className="absolute inset-0 h-full w-full object-cover z-0"
+        />
 
-            {/* Main video - always visible */}
-            <video
-              ref={mainVideoRef}
-              src={currentVideo}
-              poster={posterUrl || undefined}
-              className={`absolute inset-0 h-full w-full object-cover z-10 transition-opacity duration-500 ${isFirstVideoLoaded ? "opacity-100" : "opacity-0"}`}
-              muted
-              autoPlay
-              playsInline
-              preload="auto"
-              loop={videoUrls.length === 1}
-              onEnded={handleVideoEnded}
-              onLoadedData={handleFirstVideoLoad}
-              onCanPlay={handleFirstVideoLoad}
-            />
+        {/* Video element */}
+        {currentVideo && !hasError && (
+          <video
+            ref={videoRef}
+            src={currentVideo}
+            poster={posterUrl}
+            className={`absolute inset-0 h-full w-full object-cover z-10 transition-opacity duration-700 ${
+              isVideoLoaded ? "opacity-100" : "opacity-0"
+            }`}
+            muted
+            playsInline
+            loop={videoUrls.length === 1}
+            preload="metadata"
+            onLoadedData={handleVideoLoad}
+            onCanPlay={handleVideoLoad}
+            onError={handleVideoError}
+            onEnded={handleVideoEnded}
+          />
+        )}
 
-            {/* Hidden preloader for next video - keeps it ready */}
-            {nextVideo && (
-              <video
-                ref={nextVideoRef}
-                src={nextVideo}
-                className="absolute inset-0 h-full w-full object-cover z-5 opacity-0 pointer-events-none"
-                muted
-                playsInline
-                preload="auto"
-                onCanPlay={handleNextVideoCanPlay}
-              />
-            )}
+        {/* Loading indicator */}
+        {!isVideoLoaded && !hasError && (
+          <div className="absolute inset-0 flex items-center justify-center z-15 bg-black/30">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-white/80">Loading video...</p>
+            </div>
           </div>
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-            <p className="text-gray-400">Loading video...</p>
+        )}
+
+        {/* Error fallback */}
+        {hasError && (
+          <div className="absolute inset-0 flex items-center justify-center z-15 bg-black/50">
+            <p className="text-sm text-white/80">Video unavailable</p>
           </div>
         )}
 
