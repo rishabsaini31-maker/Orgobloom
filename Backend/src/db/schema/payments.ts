@@ -20,16 +20,12 @@ export const payments = pgTable("payments", {
   stripePaymentIntentId: text("stripe_payment_intent_id").unique(),
   stripeChargeId: text("stripe_charge_id"),
 
-  // PayPal details
-  paypalOrderId: text("paypal_order_id").unique(),
-  paypalCaptureId: text("paypal_capture_id"),
-
   amount: real("amount").notNull(),
   currency: text("currency").default("INR").notNull(),
   status: paymentStatusEnum("status").default("PENDING").notNull(),
 
   // Additional info
-  method: text("method"), // RAZORPAY, STRIPE, PAYPAL, COD
+  method: text("method"), // RAZORPAY, STRIPE, COD
   email: text("email"),
   contact: text("contact"),
 

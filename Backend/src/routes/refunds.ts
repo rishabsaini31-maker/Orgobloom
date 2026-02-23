@@ -307,9 +307,6 @@ router.post(
               notes: notes || "",
             },
           });
-        } else if (payment.method === "PAYPAL" && payment.paypalCaptureId) {
-          // PayPal refund would go here
-          throw new ApiError("PayPal refund not implemented", 501);
         } else {
           throw new ApiError("No valid payment method found for refund", 400);
         }
