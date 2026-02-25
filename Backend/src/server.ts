@@ -238,7 +238,7 @@ async function runMigrations() {
         featured_image TEXT,
         featured_image_alt TEXT,
         category TEXT DEFAULT 'General',
-        tags TEXT,
+        tags JSONB,
         author TEXT DEFAULT 'Orgobloom Team',
         meta_title TEXT,
         meta_description TEXT,
@@ -250,6 +250,22 @@ async function runMigrations() {
         updated_at TIMESTAMP DEFAULT NOW(),
         published_at TIMESTAMP
       );
+    `);
+
+    // Alter tags column to JSONB if it's currently TEXT
+    await db.execute(sql`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'blogs' AND column_name = 'tags' AND data_type = 'text'
+        ) THEN
+          ALTER TABLE blogs ALTER COLUMN tags TYPE JSONB USING
+            CASE WHEN tags IS NULL THEN NULL
+            ELSE to_jsonb(tags::text)
+            END;
+        END IF;
+      END $$;
     `);
 
     // Add missing blogs columns if they don't exist
@@ -276,6 +292,88 @@ async function runMigrations() {
     await db.execute(sql`
       ALTER TABLE blogs
       ADD COLUMN IF NOT EXISTS view_count INTEGER DEFAULT 0;
+    `);
+
+    // Create audit_logs table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL,
+        user_email VARCHAR(255) NOT NULL,
+        action VARCHAR(50) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_id UUID,
+        entity_name VARCHAR(255),
+        description TEXT NOT NULL,
+        old_values JSONB,
+        new_values JSONB,
+        ip_address VARCHAR(45),
+        user_agent TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create webhooks table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS webhooks (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        url TEXT NOT NULL,
+        secret TEXT NOT NULL,
+        events JSONB NOT NULL DEFAULT '[]',
+        status TEXT DEFAULT 'active',
+        description TEXT,
+        headers JSONB,
+        retry_count TEXT DEFAULT '3',
+        retry_delay TEXT DEFAULT '1000',
+        timeout TEXT DEFAULT '30000',
+        last_delivery_at TIMESTAMP,
+        last_delivery_status TEXT,
+        failure_count TEXT DEFAULT '0',
+        created_by TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // Create webhook_deliveries table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS webhook_deliveries (
+        id TEXT PRIMARY KEY,
+        webhook_id TEXT NOT NULL,
+        event TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
+        payload JSONB NOT NULL,
+        request_headers JSONB,
+        response_status_code TEXT,
+        response_body TEXT,
+        response_headers JSONB,
+        error_message TEXT,
+        attempt_number TEXT DEFAULT '1',
+        duration TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        delivered_at TIMESTAMP
+      );
+    `);
+
+    // Create integrations table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS integrations (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        status TEXT DEFAULT 'active',
+        api_key TEXT,
+        api_secret TEXT,
+        api_endpoint TEXT,
+        config JSONB,
+        webhook_url TEXT,
+        webhook_secret TEXT,
+        last_sync_at TIMESTAMP,
+        created_by TEXT,
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
     `);
 
     console.log("✅ Database migrations completed");

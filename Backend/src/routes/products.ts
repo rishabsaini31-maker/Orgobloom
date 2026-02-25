@@ -77,9 +77,11 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
       imageUrl: fixImageUrl(p.imageUrl),
     }));
 
-    // Set cache headers for better performance (cache for 5 minutes)
-    res.set('Cache-Control', 'public, max-age=300, s-maxage=300');
-    res.set('CDN-Cache-Control', 'public, max-age=300');
+    // Disable caching to always show fresh products
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
     
     res.json({
       products: productsWithFixedImages,

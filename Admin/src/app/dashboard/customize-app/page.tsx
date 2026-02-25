@@ -247,8 +247,10 @@ export default function CustomizeAppPage() {
     setLoadingBlogs(true);
     try {
       const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      const baseUrl = apiUrl.endsWith("/api") ? apiUrl : `${apiUrl}/api`;
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/blogs/admin/all`,
+        `${baseUrl}/blogs/admin/all`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -279,9 +281,11 @@ export default function CustomizeAppPage() {
           : null,
       };
 
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      const baseUrl = apiUrl.endsWith("/api") ? apiUrl : `${apiUrl}/api`;
       const url = isUpdating
-        ? `${process.env.NEXT_PUBLIC_API_URL}/blogs/${editingBlog.id}`
-        : `${process.env.NEXT_PUBLIC_API_URL}/blogs`;
+        ? `${baseUrl}/blogs/${editingBlog.id}`
+        : `${baseUrl}/blogs`;
 
       const response = await fetch(url, {
         method: isUpdating ? "PUT" : "POST",
@@ -317,8 +321,10 @@ export default function CustomizeAppPage() {
 
     try {
       const token = localStorage.getItem("token");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+      const baseUrl = apiUrl.endsWith("/api") ? apiUrl : `${apiUrl}/api`;
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/blogs/${blogId}`,
+        `${baseUrl}/blogs/${blogId}`,
         {
           method: "DELETE",
           headers: {

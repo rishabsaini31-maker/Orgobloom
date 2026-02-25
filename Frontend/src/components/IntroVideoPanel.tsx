@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 
-// Default video URLs - using reliable CDN sources
+// Default video URLs - optimized for fast loading
 const DEFAULT_VIDEO_URLS = [
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "https://wfmmdkknrigkhdpldwhc.supabase.co/storage/v1/object/public/videos/a-seamless-animation-sequence-showing-1-a-close-up%20(1).mp4",
 ];
 
-// Default poster image - shows while video loads
+// Default poster image - shows while video loads (compressed)
 const DEFAULT_POSTER_URL =
-  "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1920&q=80";
+  "/images/plant.jpg";
 
 export default function IntroVideoPanel() {
   const [videoUrls, setVideoUrls] = useState<string[]>(DEFAULT_VIDEO_URLS);
@@ -18,12 +18,33 @@ export default function IntroVideoPanel() {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [fade, setFade] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Load videos from API
+  // Intersection Observer to only load video when visible
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Load videos from API only when visible
+  useEffect(() => {
+    if (!isVisible) return;
+    
     const loadVideos = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -32,12 +53,19 @@ export default function IntroVideoPanel() {
           return;
         }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+
         const response = await fetch(`${apiUrl}/site-media/intro-videos`, {
           method: "GET",
           headers: {
             Accept: "application/json",
+            'Cache-Control': 'no-cache',
           },
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
@@ -53,7 +81,7 @@ export default function IntroVideoPanel() {
       }
     };
     loadVideos();
-  }, []);
+  }, [isVisible]);
 
   // Handle video load
   const handleVideoLoad = useCallback(() => {
@@ -134,10 +162,11 @@ export default function IntroVideoPanel() {
           src={posterUrl}
           alt="Organic fertilizer background"
           className="absolute inset-0 h-full w-full object-cover z-0"
+          loading="eager"
         />
 
-        {/* Video element */}
-        {currentVideo && !hasError && (
+        {/* Video element - only load when visible */}
+        {isVisible && currentVideo && !hasError && (
           <video
             ref={videoRef}
             src={currentVideo}
@@ -148,7 +177,7 @@ export default function IntroVideoPanel() {
             muted
             playsInline
             loop={videoUrls.length === 1}
-            preload="metadata"
+            preload="auto"
             onLoadedData={handleVideoLoad}
             onCanPlay={handleVideoLoad}
             onError={handleVideoError}
@@ -156,8 +185,8 @@ export default function IntroVideoPanel() {
           />
         )}
 
-        {/* Loading indicator */}
-        {!isVideoLoaded && !hasError && (
+        {/* Loading indicator - only show when visible and not loaded */}
+        {isVisible && !isVideoLoaded && !hasError && (
           <div className="absolute inset-0 flex items-center justify-center z-15 bg-black/30">
             <div className="flex flex-col items-center gap-3">
               <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>

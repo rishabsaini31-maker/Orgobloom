@@ -4,6 +4,7 @@ import {
   timestamp,
   boolean,
   integer,
+  json,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -18,7 +19,7 @@ export const blogs = pgTable("blogs", {
   featuredImage: text("featured_image"),
   featuredImageAlt: text("featured_image_alt"),
   category: text("category").default("General"),
-  tags: text("tags"), // JSON array of tags
+  tags: json("tags").$type<string[]>(), // JSON array of tags
   author: text("author").default("Orgobloom Team"),
   metaTitle: text("meta_title"),
   metaDescription: text("meta_description"),
