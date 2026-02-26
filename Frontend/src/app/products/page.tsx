@@ -9,6 +9,7 @@ import Image from "next/image";
 import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
 import { productsApi } from "@/lib/api";
+import { blogsApi } from "@/lib/api";
 
 export default function ProductsPage() {
   const { addItem } = useCartStore();
@@ -36,6 +37,26 @@ export default function ProductsPage() {
 
   const products = productsData?.products || [];
   const weights = [1, 2, 5, 10, 15, 25];
+
+  // Fetch blogs
+  const {
+    data: blogsData,
+    isLoading: blogsLoading,
+    error: blogsError,
+  } = useQuery({
+    queryKey: ["blogs"],
+    queryFn: async () => {
+      const response = await blogsApi.getAll();
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnMount: false,
+    placeholderData: (previousData) => previousData,
+  });
+
+  const blogs = blogsData?.blogs || [];
+  const latestBlog = blogs[0];
 
   // Filter products
   const filteredProducts = products.filter((product: any) => {
