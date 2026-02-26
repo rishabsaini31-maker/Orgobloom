@@ -1,0 +1,37 @@
+# GitHub Action: Node.js Version Checker
+# This workflow checks if package.json specifies a maintained Node.js version (20.x or above).
+# It runs weekly and creates an issue if outdated.
+
+name: Node.js Version Checker
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Every Sunday at midnight
+  workflow_dispatch:
+
+jobs:
+  check-node-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Node.js version in package.json
+        run: |
+          node_version=$(jq -r '.engines.node' Backend/package.json)
+          if [[ "$node_version" =~ ^18 ]]; then
+            echo "Node.js version is outdated: $node_version"
+            echo "::set-output name=outdated::true"
+          else
+            echo "Node.js version is maintained: $node_version"
+            echo "::set-output name=outdated::false"
+          fi
+      - name: Create issue if outdated
+        if: steps.check-node-version.outputs.outdated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Node.js version in Backend/package.json is outdated',
+              body: 'Please update the Node.js version in Backend/package.json to 20.x or above for security and compatibility.'
+            })

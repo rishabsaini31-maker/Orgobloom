@@ -834,7 +834,7 @@ router.get(
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / Number(limit)),
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       next(error);
