@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node patch-paths.js && node dist/server.js",
+    "start": "node patch-paths.cjs && node dist/server.js",
     "setup": "tsx src/setup.ts",
     "update-admin": "tsx src/update-admin.ts",
     "db:generate": "drizzle-kit generate:pg",
