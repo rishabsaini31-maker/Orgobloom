@@ -1,14 +1,14 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { shipments, orders, orderItems, products } from "@/db/schema";
+import { db } from "../db/index.ts";
+import { shipments, orders, orderItems, products } from "../db/schema/index.ts";
 import { eq, and } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth";
-import { ApiError } from "@/middleware/errorHandler";
+import { authenticate, AuthRequest } from "../middleware/auth.ts";
+import { ApiError } from "../middleware/errorHandler.ts";
 import { createId } from "@paralleldrive/cuid2";
-import shiprocketService from "@/utils/shiprocketService";
-import { notifications } from "@/utils/notifications";
-import { sendEmail } from "@/utils/emailService";
-import { emailTemplates } from "@/templates/emailTemplates";
+import shiprocketService from "../utils/shiprocketService.ts";
+import { notifications } from "../utils/notifications.ts";
+import { sendEmail } from "../utils/emailService.ts";
+import { emailTemplates } from "../templates/emailTemplates.ts";
 
 const router = Router();
 

@@ -7,8 +7,8 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "./users";
-import { products } from "./products";
+import { users } from "./users.js";
+import { products } from "./products.js";
 
 export const reviews = pgTable(
   "reviews",

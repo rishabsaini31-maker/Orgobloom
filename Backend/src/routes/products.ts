@@ -1,26 +1,99 @@
 import { Router, Response, NextFunction } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { createHash } from "crypto";
 const router = Router();
-// Cloudinary image upload endpoint
-const { upload } = require("../utils/cloudinary");
 
-// POST /products/upload-image
+// Supabase Storage Provider
+import {
+  getStorageProvider,
+  CloudUploadResult,
+} from "../utils/mediaStorage.js";
+import {
+  getStorageProvider,
+  CloudUploadResult,
+} from "../utils/mediaStorage.ts";
+
+// Configure multer for temp storage before uploading to Supabase
+const tempDir = path.resolve(process.cwd(), "uploads", "temp");
+if (!fs.existsSync(tempDir)) {
+  fs.mkdirSync(tempDir, { recursive: true });
+}
+
+const tempStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, tempDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: tempStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for Supabase
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png|webp/;
+    const extname = allowedTypes.test(
+      path.extname(file.originalname).toLowerCase(),
+    );
+    const mimetype = allowedTypes.test(file.mimetype);
+    if (extname && mimetype) {
+      return cb(null, true);
+    }
+    cb(new Error("Only image files are allowed (jpeg, jpg, png, webp)"));
+  },
+});
+
+// POST /products/upload-image - Uses Supabase Storage
 router.post(
   "/upload-image",
-  upload.single("image"),
-  (req: AuthRequest, res: Response) => {
-    if (!req.file || !req.file.path) {
-      return res.status(400).json({ error: "Image upload failed" });
+  upload.array("image", 6),
+  async (req: AuthRequest, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image uploaded" });
+      }
+
+      const storageProvider = getStorageProvider();
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const mimeType = req.file.mimetype || "image/jpeg";
+
+      // Generate unique key for Supabase Storage
+      const timestamp = Date.now();
+      const hash = createHash("sha256")
+        .update(req.file.originalname + timestamp)
+        .digest("hex")
+        .substring(0, 8);
+      const key = `products/${timestamp}-${hash}${path.extname(req.file.originalname)}`;
+
+      const result: CloudUploadResult = await storageProvider.upload(
+        req.file.path,
+        key,
+        mimeType,
+      );
+
+      // Clean up temp file
+      fs.unlinkSync(req.file.path);
+
+      res.json({ url: result.url, key: result.key });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Image upload failed" });
     }
-    res.json({ url: req.file.path }); // Cloudinary URL
   },
 );
-import { db } from "@/db";
-import { products } from "@/db/schema";
+
+import { db } from "../db/index.ts";
+import { products } from "../db/schema/index.ts";
 import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
-import { productSchema } from "@/utils/validations";
-import { generateSlug } from "@/utils/helpers";
-import { ApiError } from "@/middleware/errorHandler";
+import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.ts";
+import { productSchema } from "../utils/validations.ts";
+import { generateSlug } from "../utils/helpers.ts";
+import { ApiError } from "../middleware/errorHandler.ts";
 
 // Duplicate router declaration removed
 

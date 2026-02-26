@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { orders } from "./orders";
+import { orders } from "./orders.js";
 
 export const shipments = pgTable("shipments", {
   id: text("id")
@@ -78,4 +78,5 @@ export const SHIPMENT_STATUSES = {
   CANCELLED: "CANCELLED",
 } as const;
 
-export type ShipmentStatus = typeof SHIPMENT_STATUSES[keyof typeof SHIPMENT_STATUSES];
+export type ShipmentStatus =
+  (typeof SHIPMENT_STATUSES)[keyof typeof SHIPMENT_STATUSES];

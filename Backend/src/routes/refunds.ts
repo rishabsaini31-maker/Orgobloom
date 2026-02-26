@@ -1,9 +1,9 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { orders, payments, users } from "@/db/schema";
+import { db } from "../db/index.ts";
+import { orders, payments, users } from "../db/schema/index.ts";
 import { eq, and, desc } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth";
-import { ApiError } from "@/middleware/errorHandler";
+import { authenticate, AuthRequest } from "../middleware/auth.ts";
+import { ApiError } from "../middleware/errorHandler.ts";
 import { createId } from "@paralleldrive/cuid2";
 import Razorpay from "razorpay";
 import {
@@ -11,9 +11,9 @@ import {
   sendToAdmins,
   NotificationType,
   createNotification,
-} from "@/utils/notifications";
-import { sendEmail } from "@/utils/emailService";
-import { emailTemplates } from "@/templates/emailTemplates";
+} from "../utils/notifications.ts";
+import { sendEmail } from "../utils/emailService.ts";
+import { emailTemplates } from "../templates/emailTemplates.ts";
 
 const router = Router();
 

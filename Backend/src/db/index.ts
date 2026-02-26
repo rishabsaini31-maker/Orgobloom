@@ -1,4 +1,6 @@
 import * as dotenv from "dotenv";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 
 dotenv.config();
 
@@ -8,28 +10,10 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL environment variable is required");
 }
 
-let db: any;
-let migrationClient: any = null;
+const queryClient = postgres(databaseUrl, { max: 20 });
+const db = drizzle(queryClient);
+const migrationClient = postgres(databaseUrl, { max: 1 });
 
-try {
-  const postgres = require("postgres");
-
-  // Configure postgres connection with connection pooling settings
-  const queryClient = postgres(databaseUrl, {
-    max: 20, // Connection pool size
-  });
-
-  const { drizzle } = require("drizzle-orm/postgres-js");
-  db = drizzle(queryClient);
-
-  migrationClient = postgres(databaseUrl, {
-    max: 1,
-  });
-
-  console.log("✅ Connected to Neon PostgreSQL");
-} catch (error) {
-  console.error("❌ Failed to connect to Neon PostgreSQL:", error);
-  throw new Error("Database connection failed");
-}
+console.log("✅ Connected to Supabase PostgreSQL");
 
 export { db, migrationClient };

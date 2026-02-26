@@ -1,12 +1,6 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  integer,
-  index,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, index } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "./users";
+import { users } from "./users.js";
 
 // Loyalty Points Table
 export const loyaltyPoints = pgTable(

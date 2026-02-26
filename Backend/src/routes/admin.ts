@@ -758,17 +758,42 @@ router.post(
   productImagesUpload.array("images", 6),
   async (req: AuthRequest, res: Response) => {
     const files = req.files as
-      | { filename: string; originalname: string; mimetype: string }[]
+      | { path: string; originalname: string; mimetype: string }[]
       | undefined;
 
     if (!files || files.length === 0) {
       return res.status(400).json({ error: "No images uploaded" });
     }
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    const urls = files.map(
-      (file) => `${baseUrl}/uploads/products/${file.filename}`,
-    );
+    // Import SupabaseStorageProvider and create instance
+    const { getStorageProvider } = await import("@/utils/mediaStorage");
+    const storageProvider = getStorageProvider();
+
+    const urls: string[] = [];
+    // Import ESM modules
+    const crypto = await import("crypto");
+    const path = await import("path");
+    const fs = await import("fs");
+
+    for (const file of files) {
+      // Generate unique key for Supabase Storage
+      const timestamp = Date.now();
+      const hash = crypto
+        .createHash("sha256")
+        .update(file.originalname + timestamp)
+        .digest("hex")
+        .substring(0, 8);
+      const key = `products/${timestamp}-${hash}${path.extname(file.originalname)}`;
+
+      const result = await storageProvider.upload(
+        file.path,
+        key,
+        file.mimetype || "image/jpeg",
+      );
+      urls.push(result.url);
+      // Clean up temp file
+      fs.unlinkSync(file.path);
+    }
 
     res.json({ urls });
   },

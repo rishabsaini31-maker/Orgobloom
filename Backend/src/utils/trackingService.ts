@@ -2,11 +2,11 @@ import { db } from "@/db";
 import { shipments, orders } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
-import shiprocketService from "./shiprocketService";
-import delhiveryService from "./delhiveryService";
-import fshipService from "./fshipService";
-import { notifications } from "./notifications";
-import { sendEmail } from "./emailService";
+import shiprocketService from "./shiprocketService.js";
+import delhiveryService from "./delhiveryService.js";
+import fshipService from "./fshipService.js";
+import { notifications } from "./notifications.js";
+import { sendEmail } from "./emailService.js";
 import { emailTemplates } from "@/templates/emailTemplates";
 import { users } from "@/db/schema";
 
@@ -115,8 +115,7 @@ export const trackSingleShipment = async (
       trackingData = await fshipService.trackShipment(shipment.trackingNumber);
 
       const currentStatus = trackingData.status?.toUpperCase() || "PENDING";
-      mappedStatus =
-        SHIPMENT_STATUS_MAP.FSHIP[currentStatus] || "IN_TRANSIT";
+      mappedStatus = SHIPMENT_STATUS_MAP.FSHIP[currentStatus] || "IN_TRANSIT";
 
       trackingEvents =
         trackingData.scans?.map((scan: any) => ({

@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "./users";
-import { orders, orderStatusEnum } from "./orders";
+import { users } from "./users.js";
+import { orders, orderStatusEnum } from "./orders.js";
 
 export const orderStatusHistory = pgTable("order_status_history", {
   id: text("id")

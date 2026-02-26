@@ -7,7 +7,7 @@ import {
   integer,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "./users";
+import { users } from "./users.js";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "PENDING",

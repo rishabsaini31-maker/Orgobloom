@@ -8,7 +8,7 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
-import { users } from "./users";
+import { users } from "./users.js";
 
 // Fraud event types
 export const fraudEventTypeEnum = pgEnum("fraud_event_type", [
