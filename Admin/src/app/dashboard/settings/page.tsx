@@ -99,7 +99,9 @@ export default function SettingsPage() {
       toast.success(response.data?.message || "Videos uploaded successfully");
       setVideoFiles(null);
       // Reset file input
-      const fileInput = document.getElementById("video-input") as HTMLInputElement;
+      const fileInput = document.getElementById(
+        "video-input",
+      ) as HTMLInputElement;
       if (fileInput) fileInput.value = "";
     } catch (error: any) {
       console.error("Video upload failed:", error);
@@ -115,7 +117,8 @@ export default function SettingsPage() {
 
   const handleDeleteVideo = async (index: number) => {
     try {
-      const response = await adminApi.deleteIntroVideo(index);
+      const videoUrl = introVideoUrls[index];
+      const response = await adminApi.deleteIntroVideo(videoUrl);
       setIntroVideoUrls(response.data?.videos || []);
       toast.success("Video deleted successfully");
     } catch (error: any) {
@@ -289,8 +292,9 @@ export default function SettingsPage() {
                   Intro Video Panel (1-5 Videos)
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Upload 1-5 intro videos that will play sequentially on the homepage.
-                  Supported formats: MP4, WebM, OGG. Max 100MB per video.
+                  Upload 1-5 intro videos that will play sequentially on the
+                  homepage. Supported formats: MP4, WebM, OGG. Max 100MB per
+                  video.
                 </p>
                 <input
                   id="video-input"
@@ -313,7 +317,7 @@ export default function SettingsPage() {
                     {videoFiles ? `${videoFiles.length} file(s) selected` : ""}
                   </span>
                 </div>
-                
+
                 {/* Current Videos List */}
                 {introVideoUrls.length > 0 && (
                   <div className="mt-6">
@@ -322,7 +326,10 @@ export default function SettingsPage() {
                     </h4>
                     <div className="space-y-4">
                       {introVideoUrls.map((url, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-3">
+                        <div
+                          key={index}
+                          className="border border-gray-200 rounded-lg p-3"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-gray-700">
                               Video {index + 1}

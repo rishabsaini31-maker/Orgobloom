@@ -781,7 +781,21 @@ router.get(
   isAdmin,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const allProducts = await db.select().from(products);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = Math.min(parseInt(req.query.limit as string) || 20, 100); // Cap at 100
+      const offset = (page - 1) * limit;
+
+      const [paginatedProducts, countResult] = await Promise.all([
+        db
+          .select()
+          .from(products)
+          .orderBy(desc(products.createdAt))
+          .limit(limit)
+          .offset(offset),
+        db.select({ count: sql`count(*)::int` }).from(products),
+      ]);
+
+      const total = countResult[0]?.count || 0;
 
       // Add cache-control headers to force fresh data
       res.setHeader(
@@ -791,8 +805,11 @@ router.get(
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
       res.json({
-        data: allProducts,
-        total: allProducts.length,
+        data: paginatedProducts,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       });
     } catch (error) {
       next(error);

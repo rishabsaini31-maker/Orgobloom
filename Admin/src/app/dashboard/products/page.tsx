@@ -106,7 +106,7 @@ const EmptyProductModal = ({
         throw new Error("Image upload failed");
       }
 
-      await adminApi.createProduct({
+      const productPayload = {
         ...formData,
         price: parseFloat(formData.price),
         comparePrice: formData.comparePrice
@@ -119,8 +119,15 @@ const EmptyProductModal = ({
         metaTitle: formData.metaTitle || formData.name,
         metaDescription:
           formData.metaDescription || formData.description?.substring(0, 160),
-      });
-      toast.success("Product created successfully");
+      };
+
+      if (isEdit && initialData && initialData.id) {
+        await adminApi.updateProduct(initialData.id, productPayload);
+        toast.success("Product updated successfully");
+      } else {
+        await adminApi.createProduct(productPayload);
+        toast.success("Product created successfully");
+      }
       onClose();
       setFormData({
         name: "",
@@ -140,11 +147,14 @@ const EmptyProductModal = ({
       setImages([]);
       setImagePreviews([]);
     } catch (error: any) {
-      console.error("Create product error:", error);
+      console.error(
+        isEdit ? "Update product error:" : "Create product error:",
+        error,
+      );
       toast.error(
         error.response?.data?.error ||
           error.response?.data?.message ||
-          "Failed to create product",
+          (isEdit ? "Failed to update product" : "Failed to create product"),
       );
     } finally {
       setIsSubmitting(false);

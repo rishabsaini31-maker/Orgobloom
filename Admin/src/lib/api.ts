@@ -7,17 +7,22 @@ const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   // Fallback for development
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  if (
+    typeof window !== "undefined" &&
+    window.location.hostname === "localhost"
+  ) {
     return "http://localhost:8000/api";
   }
   // Production fallback - this should be set in Vercel environment variables
-  console.warn('NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.');
+  console.warn(
+    "NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.",
+  );
   return "http://localhost:8000/api";
 };
 
 const API_URL = getApiUrl();
 
-console.log('[API] Using API URL:', API_URL);
+console.log("[API] Using API URL:", API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -77,22 +82,26 @@ export const adminApi = {
     api.get("/admin/payments", { params: { status } }),
   retryPayment: (paymentId: string) =>
     api.post(`/admin/payments/${paymentId}/retry`),
-  getAppSettings: () => api.get("/admin/settings", {
-    params: { _t: Date.now() }, // Cache-busting timestamp
-  }),
+  getAppSettings: () =>
+    api.get("/admin/settings", {
+      params: { _t: Date.now() }, // Cache-busting timestamp
+    }),
   updateAppSettings: (data: any) => api.put("/admin/settings", data),
   // Site Media Settings (images, content, SEO)
-  getSiteSettings: () => api.get("/site-media/settings", {
-    params: { _t: Date.now() }, // Cache-busting timestamp
-  }),
+  getSiteSettings: () =>
+    api.get("/site-media/settings", {
+      params: { _t: Date.now() }, // Cache-busting timestamp
+    }),
   updateSiteSettings: (data: any) => api.put("/site-media/settings", data),
   uploadIntroVideos: (data: FormData) =>
     api.post("/site-media/intro-videos", data, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
   getIntroVideos: () => api.get("/site-media/intro-videos"),
-  deleteIntroVideo: (index: number) =>
-    api.delete(`/site-media/intro-videos/${index}`),
+  deleteIntroVideo: (videoUrl: string) =>
+    api.delete(
+      `/site-media/intro-videos?videoUrl=${encodeURIComponent(videoUrl)}`,
+    ),
   getCustomers: (params?: any) => api.get("/customers", { params }),
   getProducts: (params?: any) => api.get("/admin/products", { params }),
   createProduct: (data: any) => api.post("/admin/products", data),
@@ -140,8 +149,10 @@ export const userApi = {
 export const reviewsApi = {
   getAll: (params?: { page?: number; limit?: number; status?: string }) =>
     api.get("/reviews/admin/all", { params }),
-  moderate: (id: string, data: { isApproved?: boolean; isFeatured?: boolean }) =>
-    api.patch(`/reviews/${id}/moderate`, data),
+  moderate: (
+    id: string,
+    data: { isApproved?: boolean; isFeatured?: boolean },
+  ) => api.patch(`/reviews/${id}/moderate`, data),
   delete: (id: string) => api.delete(`/reviews/${id}`),
 };
 
