@@ -10,10 +10,6 @@ import {
   getStorageProvider,
   CloudUploadResult,
 } from "../utils/mediaStorage.js";
-import {
-  getStorageProvider,
-  CloudUploadResult,
-} from "../utils/mediaStorage.ts";
 
 // Configure multer for temp storage before uploading to Supabase
 const tempDir = path.resolve(process.cwd(), "uploads", "temp");
@@ -314,7 +310,7 @@ router.put(
 
       const [updatedProduct] = await db
         .update(products)
-        .set({ ...validatedData, updatedAt: new Date() })
+        .set({ ...validatedData, updatedAt: new Date().toISOString() })
         .where(eq(products.id, req.params.id))
         .returning();
 
