@@ -14,59 +14,8 @@ router.use(isAdmin);
 
 // ==================== PRODUCTS BULK OPERATIONS ====================
 
-// Bulk update product status
-router.post(
-  "/products/status",
-  async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      const { productIds, status } = req.body;
-
-      if (!Array.isArray(productIds) || productIds.length === 0) {
-        throw new ApiError("Product IDs array is required", 400);
-      }
-
-      if (!["ACTIVE", "INACTIVE", "OUT_OF_STOCK"].includes(status)) {
-        throw new ApiError("Invalid status value", 400);
-      }
-
-      // Get current values for audit log
-      const currentProducts = await db
-        .select()
-        .from(products)
-        .where(inArray(products.id, productIds));
-
-      // Update products
-      const updated = await db
-        .update(products)
-        .set({ status, updatedAt: new Date().toISOString() })
-        .where(inArray(products.id, productIds))
-        .returning();
-
-      // Create audit log
-      await auditLogFromRequest(req, {
-        action: "BULK_UPDATE",
-        entityType: "PRODUCT",
-        description: `Updated status to ${status} for ${updated.length} products`,
-        oldValues: {
-          productIds,
-          oldStatuses: currentProducts.map((p) => ({
-            id: p.id,
-            status: p.status,
-          })),
-        },
-        newValues: { productIds, newStatus: status },
-      });
-
-      res.json({
-        success: true,
-        message: `Updated ${updated.length} products`,
-        updated: updated.length,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+// Bulk update product featured status only
+// If you need to update other fields, add them here, but 'status' is not in schema.
 
 // Bulk delete products
 router.post(
