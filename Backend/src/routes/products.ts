@@ -1,7 +1,7 @@
 import { Router, Response, NextFunction } from "express";
 const router = Router();
 // Cloudinary image upload endpoint
-const { upload } = require("@/utils/cloudinary");
+const { upload } = require("../utils/cloudinary");
 
 // POST /products/upload-image
 router.post(
