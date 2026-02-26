@@ -14,27 +14,27 @@ import { connectRedis } from "./utils/redis";
 import { initializeSocket } from "./utils/notifications";
 
 // Import routes
-import authRoutes from "./routes/auth";
-import productRoutes from "./routes/products";
-import adminRoutes from "./routes/admin";
-import profileRoutes from "./routes/profile";
-import customersRoutes from "./routes/customers";
-import ordersRoutes from "./routes/orders";
-import addressesRoutes from "./routes/addresses";
-import emailRoutes from "./routes/email";
-import siteMediaRoutes from "./routes/siteMedia";
-import paymentRoutes from "./routes/payments";
-import blogRoutes from "./routes/blogs";
-import bulkRoutes from "./routes/bulk";
-import searchRoutes from "./routes/search";
-import auditLogsRoutes from "./routes/auditLogs";
-import shipmentsRoutes from "./routes/shipments";
-import webhooksRoutes from "./routes/webhooks";
-import stripeRoutes from "./routes/stripe";
-import shiprocketRoutes from "./routes/shiprocket";
-import delhiveryRoutes from "./routes/delhivery";
-import refundRoutes from "./routes/refunds";
-import fshipRoutes from "./routes/fship";
+import authRoutes from "./routes/auth.js";
+import productRoutes from "./routes/products.js";
+import adminRoutes from "./routes/admin.js";
+import profileRoutes from "./routes/profile.js";
+import customersRoutes from "./routes/customers.js";
+import ordersRoutes from "./routes/orders.js";
+import addressesRoutes from "./routes/addresses.js";
+import emailRoutes from "./routes/email.js";
+import siteMediaRoutes from "./routes/siteMedia.js";
+import paymentRoutes from "./routes/payments.js";
+import blogRoutes from "./routes/blogs.js";
+import bulkRoutes from "./routes/bulk.js";
+import searchRoutes from "./routes/search.js";
+import auditLogsRoutes from "./routes/auditLogs.js";
+import shipmentsRoutes from "./routes/shipments.js";
+import webhooksRoutes from "./routes/webhooks.js";
+import stripeRoutes from "./routes/stripe.js";
+import shiprocketRoutes from "./routes/shiprocket.js";
+import delhiveryRoutes from "./routes/delhivery.js";
+import refundRoutes from "./routes/refunds.js";
+import fshipRoutes from "./routes/fship.js";
 
 dotenv.config();
 
