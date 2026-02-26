@@ -28,7 +28,7 @@
       "@/services/*": ["src/services/*"],
       "@/db/*": ["src/db/*"],
       "@/templates/*": ["src/templates/*"]
-    }
+    },
     "rootDir": "./src",
     "strict": true,
     "noImplicitAny": false,
