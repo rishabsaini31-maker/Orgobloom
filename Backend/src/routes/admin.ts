@@ -211,6 +211,22 @@ router.get(
         ordersByStatus[group.status || "UNKNOWN"] = group.count;
       });
 
+      // Add cache-control headers to force fresh analytics data
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("ETag", "");
+      // Add cache-control headers to force fresh analytics data
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("ETag", "");
       res.json({
         data: {
           totalOrders: countResult?.totalOrders || 0,
@@ -369,6 +385,13 @@ router.get(
         },
       };
 
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("ETag", "");
       res.json({
         data: {
           totalRevenue: Math.round(totalRevenue),

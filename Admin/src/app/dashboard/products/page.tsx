@@ -5,27 +5,54 @@ import { adminApi } from "@/lib/api";
 import { useState } from "react";
 import toast from "react-hot-toast";
 
+interface EmptyProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  initialData?: any;
+  isEdit?: boolean;
+  onEditSuccess?: () => void;
+}
+
 const EmptyProductModal = ({
   isOpen,
   onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    howToUse: "",
-    benefits: "",
-    compositions: "",
-    price: "",
-    comparePrice: "",
-    stock: "",
-    category: "",
-    sku: "",
-    imageAltText: "",
-    metaTitle: "",
-    metaDescription: "",
+  initialData,
+  isEdit,
+  onEditSuccess,
+}: EmptyProductModalProps) => {
+  const [formData, setFormData] = useState(() => {
+    if (isEdit && initialData) {
+      return {
+        name: initialData.name || "",
+        description: initialData.description || "",
+        howToUse: initialData.howToUse || "",
+        benefits: initialData.benefits || "",
+        compositions: initialData.compositions || "",
+        price: initialData.price?.toString() || "",
+        comparePrice: initialData.comparePrice?.toString() || "",
+        stock: initialData.stock?.toString() || "",
+        category: initialData.category || "",
+        sku: initialData.sku || "",
+        imageAltText: initialData.imageAltText || "",
+        metaTitle: initialData.metaTitle || "",
+        metaDescription: initialData.metaDescription || "",
+      };
+    }
+    return {
+      name: "",
+      description: "",
+      howToUse: "",
+      benefits: "",
+      compositions: "",
+      price: "",
+      comparePrice: "",
+      stock: "",
+      category: "",
+      sku: "",
+      imageAltText: "",
+      metaTitle: "",
+      metaDescription: "",
+    };
   });
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -82,13 +109,16 @@ const EmptyProductModal = ({
       await adminApi.createProduct({
         ...formData,
         price: parseFloat(formData.price),
-        comparePrice: formData.comparePrice ? parseFloat(formData.comparePrice) : null,
+        comparePrice: formData.comparePrice
+          ? parseFloat(formData.comparePrice)
+          : null,
         stock: parseInt(formData.stock, 10),
         imageUrl: uploadedUrls[0],
         images: uploadedUrls,
         imageAltText: formData.imageAltText || formData.name,
         metaTitle: formData.metaTitle || formData.name,
-        metaDescription: formData.metaDescription || formData.description?.substring(0, 160),
+        metaDescription:
+          formData.metaDescription || formData.description?.substring(0, 160),
       });
       toast.success("Product created successfully");
       onClose();
@@ -343,8 +373,10 @@ const EmptyProductModal = ({
 
           {/* SEO Section */}
           <div className="border-t pt-4 mt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">SEO Settings</h3>
-            
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              SEO Settings
+            </h3>
+
             {/* Meta Title */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -381,7 +413,8 @@ const EmptyProductModal = ({
                 maxLength={160}
               />
               <p className="text-xs text-gray-500 mt-1">
-                {formData.metaDescription.length}/160 characters (recommended: 150-160)
+                {formData.metaDescription.length}/160 characters (recommended:
+                150-160)
               </p>
             </div>
           </div>
@@ -420,7 +453,13 @@ const EmptyProductModal = ({
               disabled={isSubmitting || images.length === 0}
               className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              {isSubmitting ? "Creating..." : "Create Product"}
+              {isSubmitting
+                ? isEdit
+                  ? "Saving..."
+                  : "Creating..."
+                : isEdit
+                  ? "Save Edit"
+                  : "Create Product"}
             </button>
             <button
               type="button"
@@ -441,6 +480,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
 
   const {
     data: productsData,
@@ -460,21 +500,31 @@ export default function ProductsPage() {
   // Handle different API response formats
   let products: any[] = [];
   if (productsData) {
+    // Handle deeply nested data structure
     if (Array.isArray(productsData)) {
       products = productsData;
     } else if (Array.isArray(productsData.data)) {
       products = productsData.data;
+    } else if (productsData.data && Array.isArray(productsData.data.data)) {
+      products = productsData.data.data;
     } else if (productsData.data && typeof productsData.data === "object") {
       products = Object.values(productsData.data);
     }
   }
 
-  // Filter products
-  let filteredProducts = products;
+  // Map isActive to status for filtering and display
+  const mappedProducts = products.map((p: any) => ({
+    ...p,
+    status: p.isActive ? "active" : "inactive",
+  }));
+
+  let filteredProducts = mappedProducts;
   if (filter === "active") {
-    filteredProducts = products.filter((p: any) => p.status === "active");
+    filteredProducts = mappedProducts.filter((p: any) => p.status === "active");
   } else if (filter === "inactive") {
-    filteredProducts = products.filter((p: any) => p.status === "inactive");
+    filteredProducts = mappedProducts.filter(
+      (p: any) => p.status === "inactive",
+    );
   }
 
   filteredProducts = filteredProducts.filter(
@@ -513,6 +563,18 @@ export default function ProductsPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
       />
+      {editingProduct && (
+        <EmptyProductModal
+          isOpen={true}
+          onClose={() => setEditingProduct(null)}
+          initialData={editingProduct}
+          isEdit={true}
+          onEditSuccess={() => {
+            setEditingProduct(null);
+            refetch();
+          }}
+        />
+      )}
 
       {isLoading && (
         <div className="flex items-center justify-center py-12">
@@ -605,6 +667,12 @@ export default function ProductsPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingProduct(product)}
+                      className="flex-1 px-3 py-1 text-sm border border-blue-300 text-blue-600 rounded hover:bg-blue-50 transition"
+                    >
+                      Edit
+                    </button>
                     <button
                       onClick={() => handleDeleteProduct(product.id)}
                       disabled={deletingId === product.id}

@@ -39,6 +39,7 @@ import fshipRoutes from "./routes/fship";
 dotenv.config();
 
 const app = express();
+app.set("etag", false);
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 

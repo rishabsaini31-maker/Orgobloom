@@ -328,9 +328,20 @@ export default function ProductsPage() {
                                 <p className="text-xs text-gray-600 mb-1">
                                   Price per KG
                                 </p>
-                                <p className="text-3xl font-bold text-green-600">
-                                  ₹{product.price}
-                                </p>
+                                {product.comparePrice ? (
+                                  <div className="flex items-baseline gap-2">
+                                    <p className="text-xl line-through text-gray-400">
+                                      ₹{product.comparePrice}
+                                    </p>
+                                    <p className="text-3xl font-bold text-green-600">
+                                      ₹{product.price}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-3xl font-bold text-green-600">
+                                    ₹{product.price}
+                                  </p>
+                                )}
                               </div>
 
                               {/* Weight Selection */}
