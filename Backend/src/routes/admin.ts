@@ -820,7 +820,7 @@ router.get(
         db.select({ count: sql`count(*)::int` }).from(products),
       ]);
 
-      const total = countResult[0]?.count || 0;
+      const total = Number(countResult[0]?.count) || 0;
 
       // Add cache-control headers to force fresh data
       res.setHeader(
@@ -834,7 +834,7 @@ router.get(
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(Number(total) / Number(limit)),
       });
     } catch (error) {
       next(error);
