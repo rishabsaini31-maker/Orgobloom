@@ -95,15 +95,15 @@ router.post(
         order_items: items.map((item) => ({
           name: item.productName || `Product ${item.productId}`,
           sku: item.productSlug || item.productId,
-          units: item.quantity,
-          selling_price: parseFloat(item.price),
+          units: Number(item.quantity),
+          selling_price: Number(item.price),
           discount: 0,
           tax: 0,
         })),
         payment_method: order.paymentStatus === "COMPLETED" ? "Prepaid" : "COD",
-        shipping_charges: parseFloat(order.shippingCost || "0"),
-        sub_total: parseFloat(order.total?.toString() || "0"),
-        weight: weight || 0.5, // Default 500g
+        shipping_charges: Number(order.shippingCost || 0),
+        sub_total: Number(order.total ?? 0),
+        weight: Number(weight || 0.5), // Default 500g
         length: 20,
         breadth: 15,
         height: 10,
@@ -416,12 +416,12 @@ router.post(
         order_items: items.map((item) => ({
           name: item.productName || `Product ${item.productId}`,
           sku: item.productSlug || item.productId,
-          units: item.quantity,
-          selling_price: parseFloat(item.price),
+          units: Number(item.quantity),
+          selling_price: Number(item.price),
         })),
         payment_method: "Prepaid",
-        sub_total: parseFloat(order.total?.toString() || "0"),
-        weight: weight || 0.5,
+        sub_total: Number(order.total ?? 0),
+        weight: Number(weight || 0.5),
       };
 
       const result = await shiprocketService.createReturnOrder(returnOrderData);

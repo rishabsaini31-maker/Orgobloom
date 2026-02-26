@@ -11,7 +11,7 @@ import {
   sendToAdmins,
   NotificationType,
   createNotification,
-} from "../utils/notifications.ts";
+} from "../utils/notifications.js";
 import { sendEmail } from "../utils/emailService.js";
 import { emailTemplates } from "../templates/emailTemplates.js";
 

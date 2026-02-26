@@ -1,5 +1,5 @@
-import { db } from "./db.js";
-import { products } from "./db/schema.js";
+import { db } from "./db/index.js";
+import { products } from "./db/schema/index.js";
 import { createId } from "@paralleldrive/cuid2";
 import * as dotenv from "dotenv";
 
@@ -12,7 +12,7 @@ async function addChickenProduct() {
     const newProduct = await db
       .insert(products)
       .values({
-        id: createId(),
+        id: createId().toString(),
         name: "Premium Chicken Manure",
         slug: "chicken-manure",
         description:
@@ -33,8 +33,8 @@ async function addChickenProduct() {
         composition: "N: 3.2% | P: 2.1% | K: 1.5%",
         isActive: true,
         isFeatured: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       })
       .returning();
 

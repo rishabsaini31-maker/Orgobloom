@@ -38,7 +38,7 @@ router.post(
       // Update products
       const updated = await db
         .update(products)
-        .set({ status, updatedAt: new Date() })
+        .set({ status, updatedAt: new Date().toISOString() })
         .where(inArray(products.id, productIds))
         .returning();
 
@@ -126,7 +126,7 @@ router.post(
 
       const updated = await db
         .update(products)
-        .set({ isFeatured, updatedAt: new Date() })
+        .set({ isFeatured, updatedAt: new Date().toISOString() })
         .where(inArray(products.id, productIds))
         .returning();
 
