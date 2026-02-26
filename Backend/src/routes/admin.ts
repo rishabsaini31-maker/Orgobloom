@@ -510,13 +510,16 @@ router.get(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // Set cache control headers to prevent caching
-      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      res.set('Surrogate-Control', 'no-store');
-      
+      res.set(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+      res.set("Surrogate-Control", "no-store");
+
       console.log("[ADMIN SETTINGS] Fetching settings from database...");
-      
+
       // Try to get existing settings from database
       const [existingSettings] = await db
         .select()
@@ -580,8 +583,11 @@ router.put(
   isAdmin,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("[ADMIN SETTINGS] Received save request with body:", JSON.stringify(req.body, null, 2));
-      
+      console.log(
+        "[ADMIN SETTINGS] Received save request with body:",
+        JSON.stringify(req.body, null, 2),
+      );
+
       const {
         appName,
         appDescription,
@@ -637,14 +643,20 @@ router.put(
 
       if (existingSettings) {
         // Update existing record
-        console.log("[ADMIN SETTINGS] Updating existing record with ID:", existingSettings.id);
+        console.log(
+          "[ADMIN SETTINGS] Updating existing record with ID:",
+          existingSettings.id,
+        );
         const [updated] = await db
           .update(appSettings)
           .set(settingsData)
           .where(eq(appSettings.id, existingSettings.id))
           .returning();
-        
-        console.log("[ADMIN SETTINGS] Update successful. New values:", JSON.stringify(updated, null, 2));
+
+        console.log(
+          "[ADMIN SETTINGS] Update successful. New values:",
+          JSON.stringify(updated, null, 2),
+        );
 
         res.json({
           success: true,
@@ -748,6 +760,13 @@ router.get(
     try {
       const allProducts = await db.select().from(products);
 
+      // Add cache-control headers to force fresh data
+      res.setHeader(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
       res.json({
         data: allProducts,
         total: allProducts.length,
