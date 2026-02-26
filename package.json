@@ -8,5 +8,10 @@
     "start": "cd Backend && npm start",
     "dev": "cd Backend && npm run dev"
   },
-  "description": "Orgobloom E-Commerce Platform"
+  "description": "Orgobloom E-Commerce Platform",
+  "dependencies": {
+    "cloudinary": "^1.41.3",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0"
+  }
 }

@@ -1,4 +1,19 @@
 import { Router, Response, NextFunction } from "express";
+const router = Router();
+// Cloudinary image upload endpoint
+const { upload } = require("@/utils/cloudinary");
+
+// POST /products/upload-image
+router.post(
+  "/upload-image",
+  upload.single("image"),
+  (req: AuthRequest, res: Response) => {
+    if (!req.file || !req.file.path) {
+      return res.status(400).json({ error: "Image upload failed" });
+    }
+    res.json({ url: req.file.path }); // Cloudinary URL
+  },
+);
 import { db } from "@/db";
 import { products } from "@/db/schema";
 import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
@@ -7,7 +22,7 @@ import { productSchema } from "@/utils/validations";
 import { generateSlug } from "@/utils/helpers";
 import { ApiError } from "@/middleware/errorHandler";
 
-const router = Router();
+// Duplicate router declaration removed
 
 // Helper function to fix emoji imageUrls and localhost URLs
 const fixImageUrl = (url: string | null): string | null => {
@@ -16,10 +31,10 @@ const fixImageUrl = (url: string | null): string | null => {
     return "https://images.unsplash.com/photo-1625246333195-78d9c38ad576?w=400&h=400&fit=crop";
   if (url === "🐔")
     return "https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?w=400&h=400&fit=crop";
-  
+
   // Fix localhost URLs for production - use the BASE_URL from environment
   const baseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL;
-  if (baseUrl && url.includes('localhost')) {
+  if (baseUrl && url.includes("localhost")) {
     // Extract the path after /uploads/
     const uploadsMatch = url.match(/\/uploads\/(.+)$/);
     if (uploadsMatch) {
@@ -31,7 +46,7 @@ const fixImageUrl = (url: string | null): string | null => {
       return `${baseUrl}/${pathMatch[1]}`;
     }
   }
-  
+
   return url;
 };
 
@@ -66,7 +81,7 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
       db
         .select({ count: count() })
         .from(products)
-        .where(and(...conditions))
+        .where(and(...conditions)),
     ]);
 
     const total = countResult[0]?.count || 0;
@@ -78,11 +93,14 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
     }));
 
     // Disable caching to always show fresh products
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-    res.set('Surrogate-Control', 'no-store');
-    
+    res.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    res.set("Pragma", "no-cache");
+    res.set("Expires", "0");
+    res.set("Surrogate-Control", "no-store");
+
     res.json({
       products: productsWithFixedImages,
       pagination: {
@@ -161,7 +179,9 @@ router.post(
         name: req.body.name,
         description: req.body.description || "",
         price: parseFloat(req.body.price) || 0,
-        comparePrice: req.body.comparePrice ? parseFloat(req.body.comparePrice) : null,
+        comparePrice: req.body.comparePrice
+          ? parseFloat(req.body.comparePrice)
+          : null,
         weight: req.body.weight || "500g",
         stock: parseInt(req.body.stock, 10) || 0,
         imageUrl: req.body.imageUrl || null,
