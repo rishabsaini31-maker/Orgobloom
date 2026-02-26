@@ -70,6 +70,10 @@ export const initializeSocket = (server: HttpServer): Server => {
   io.on("connection", (socket: Socket) => {
     const userId = socket.data.userId;
 
+    // Log client connection
+    console.log(
+      `[Socket.io] Client connected: ${socket.id}, userId: ${userId || "anonymous"}, role: ${socket.data.userRole || "guest"}`,
+    );
     if (userId) {
       // Track user connections
       if (!userSockets.has(userId)) {
@@ -88,6 +92,10 @@ export const initializeSocket = (server: HttpServer): Server => {
 
     socket.on("disconnect", () => {
       if (userId && userSockets.has(userId)) {
+        // Log client disconnect
+        console.log(
+          `[Socket.io] Client disconnected: ${socket.id}, userId: ${userId || "anonymous"}`,
+        );
         userSockets.get(userId)!.delete(socket.id);
         if (userSockets.get(userId)!.size === 0) {
           userSockets.delete(userId);
