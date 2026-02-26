@@ -120,6 +120,7 @@ app.use(
       "Accept",
       "Origin",
       "Cache-Control",
+      "Pragma",
     ],
     preflightContinue: false,
     optionsSuccessStatus: 204,
