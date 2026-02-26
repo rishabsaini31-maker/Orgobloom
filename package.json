@@ -11,6 +11,7 @@
   "description": "Orgobloom E-Commerce Platform",
   "dependencies": {
     "cloudinary": "^1.41.3",
+    "module-alias": "^2.3.4",
     "multer": "^2.0.2",
     "multer-storage-cloudinary": "^4.0.0"
   }
