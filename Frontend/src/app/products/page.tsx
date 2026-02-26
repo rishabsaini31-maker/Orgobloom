@@ -312,7 +312,9 @@ export default function ProductsPage() {
                                     key={idx}
                                     className="text-sm text-green-700 font-semibold"
                                   >
-                                    {benefit.replace(/✓\s*/, "")}
+                                    {typeof benefit === "string"
+                                      ? benefit.replace(/✓\s*/, "")
+                                      : ""}
                                   </p>
                                 ))}
                             </div>

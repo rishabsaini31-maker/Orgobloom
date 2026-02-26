@@ -225,7 +225,11 @@ export default function ProductCarousel({
                 className="flex items-start gap-3 text-sm text-gray-700"
               >
                 <span className="text-green-600 font-bold mt-0.5">✓</span>
-                <span>{benefit.replace(/✓\s*/g, "")}</span>
+                <span>
+                  {typeof benefit === "string"
+                    ? benefit.replace(/✓\s*/g, "")
+                    : ""}
+                </span>
               </li>
             ))}
           </ul>
