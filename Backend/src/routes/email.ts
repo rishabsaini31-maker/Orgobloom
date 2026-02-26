@@ -1,6 +1,6 @@
 import express, { Router, Request, Response } from "express";
-import { sendEmail } from "../utils/emailService";
-import { emailTemplates } from "../templates/emailTemplates";
+import { sendEmail } from "../utils/emailService.js";
+import { emailTemplates } from "../templates/emailTemplates.js";
 
 const router = Router();
 

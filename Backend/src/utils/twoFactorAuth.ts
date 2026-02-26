@@ -1,9 +1,9 @@
 import { authenticator } from "otplib";
 import QRCode from "qrcode";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "@/db/index.js";
+import { users } from "@/db/schema/index.js";
 import { eq } from "drizzle-orm";
-import { sendEmail } from "./emailService";
+import { sendEmail } from "./emailService.js";
 
 // Two-Factor Authentication Service
 export const twoFactorAuth = {

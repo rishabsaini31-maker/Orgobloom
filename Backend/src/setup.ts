@@ -1,4 +1,4 @@
-import { db } from "./db.js";
+import { db } from "./db/index.js";
 import { users } from "./db/schema/users.js";
 import { sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";

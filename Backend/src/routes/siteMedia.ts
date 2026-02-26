@@ -14,7 +14,7 @@ import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { siteMedia } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
+import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -730,11 +730,14 @@ router.get(
   async (_req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       // Set cache control headers to prevent caching
-      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      res.set('Surrogate-Control', 'no-store');
-      
+      res.set(
+        "Cache-Control",
+        "no-store, no-cache, must-revalidate, proxy-revalidate",
+      );
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+      res.set("Surrogate-Control", "no-store");
+
       const [latest] = await db
         .select()
         .from(siteMedia)
@@ -744,9 +747,18 @@ router.get(
       console.log("[SITE SETTINGS] Fetching settings from database:");
       console.log("- Found record:", !!latest);
       if (latest) {
-        console.log("- imageSettings raw:", latest.imageSettings?.substring(0, 200));
-        console.log("- contentSettings raw:", latest.contentSettings?.substring(0, 200));
-        console.log("- seoSettings raw:", latest.seoSettings?.substring(0, 200));
+        console.log(
+          "- imageSettings raw:",
+          latest.imageSettings?.substring(0, 200),
+        );
+        console.log(
+          "- contentSettings raw:",
+          latest.contentSettings?.substring(0, 200),
+        );
+        console.log(
+          "- seoSettings raw:",
+          latest.seoSettings?.substring(0, 200),
+        );
       }
 
       if (!latest) {
@@ -770,9 +782,18 @@ router.get(
         : null;
 
       console.log("[SITE SETTINGS] Returning parsed settings:");
-      console.log("- imageSettings keys:", imageSettings ? Object.keys(imageSettings) : null);
-      console.log("- contentSettings keys:", contentSettings ? Object.keys(contentSettings) : null);
-      console.log("- seoSettings keys:", seoSettings ? Object.keys(seoSettings) : null);
+      console.log(
+        "- imageSettings keys:",
+        imageSettings ? Object.keys(imageSettings) : null,
+      );
+      console.log(
+        "- contentSettings keys:",
+        contentSettings ? Object.keys(contentSettings) : null,
+      );
+      console.log(
+        "- seoSettings keys:",
+        seoSettings ? Object.keys(seoSettings) : null,
+      );
 
       res.json({
         imageSettings,
@@ -798,10 +819,13 @@ router.put(
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const { imageSettings, contentSettings, seoSettings } = req.body;
-      
+
       console.log("[SITE SETTINGS] Received save request:");
       console.log("- imageSettings:", JSON.stringify(imageSettings, null, 2));
-      console.log("- contentSettings:", JSON.stringify(contentSettings, null, 2));
+      console.log(
+        "- contentSettings:",
+        JSON.stringify(contentSettings, null, 2),
+      );
       console.log("- seoSettings:", JSON.stringify(seoSettings, null, 2));
 
       // Check if there's an existing record
@@ -812,9 +836,7 @@ router.put(
         .limit(1);
 
       const settingsData = {
-        imageSettings: imageSettings
-          ? JSON.stringify(imageSettings)
-          : null,
+        imageSettings: imageSettings ? JSON.stringify(imageSettings) : null,
         contentSettings: contentSettings
           ? JSON.stringify(contentSettings)
           : null,
@@ -823,7 +845,10 @@ router.put(
       };
 
       if (existing) {
-        console.log("[SITE SETTINGS] Updating existing record with ID:", existing.id);
+        console.log(
+          "[SITE SETTINGS] Updating existing record with ID:",
+          existing.id,
+        );
         // Update existing record
         await db
           .update(siteMedia)

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "NodeNext",
+    "module": "commonjs",
     "lib": ["ES2022"],
     "outDir": "./dist",
     "rootDir": "./src",
@@ -12,11 +12,11 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "baseUrl": "./",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
       "@/types/*": ["src/types/*"],
@@ -24,7 +24,8 @@
       "@/middleware/*": ["src/middleware/*"],
       "@/routes/*": ["src/routes/*"],
       "@/services/*": ["src/services/*"],
-      "@/db/*": ["src/db/*"]
+      "@/db/*": ["src/db/*"],
+      "@/templates/*": ["src/templates/*"]
     }
   },
   "include": ["src/**/*"],

@@ -1,11 +1,11 @@
 import crypto from "crypto";
 import axios, { AxiosError } from "axios";
-import { db } from "../db";
+import { db } from "../db/index.js";
 import {
   webhooks,
   webhookDeliveries,
   WebhookEventType,
-} from "../db/schema/webhooks";
+} from "../db/schema/webhooks.js";
 import { eq, and, inArray } from "drizzle-orm";
 
 // Webhook payload interface

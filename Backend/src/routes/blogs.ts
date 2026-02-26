@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
-import { db } from "../db";
-import { blogs } from "../db/schema/blogs";
-import { authenticate, isAdmin, AuthRequest } from "../middleware/auth";
+import { db } from "../db/index.js";
+import { blogs } from "../db/schema/blogs.js";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
 import { eq, desc, sql, and, or, like } from "drizzle-orm";
 
 const router = express.Router();

@@ -2,12 +2,12 @@ import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { orders, orderItems, addresses, users } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth";
-import { ApiError } from "@/middleware/errorHandler";
+import { authenticate, AuthRequest } from "@/middleware/auth.js";
+import { ApiError } from "@/middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
-import { sendEmail } from "@/utils/emailService";
-import { emailTemplates } from "@/templates/emailTemplates";
-import { orderLimiter } from "@/middleware/rateLimiter";
+import { sendEmail } from "@/utils/emailService.js";
+import { emailTemplates } from "@/templates/emailTemplates.js";
+import { orderLimiter } from "@/middleware/rateLimiter.js";
 
 const router = Router();
 

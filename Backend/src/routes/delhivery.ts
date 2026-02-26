@@ -1,20 +1,20 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "../db/index.ts";
+import { db } from "../db/index.js";
 import {
   shipments,
   orders,
   orderItems,
   products,
   users,
-} from "../db/schema/index.ts";
+} from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
-import { authenticate, AuthRequest } from "../middleware/auth.ts";
-import { ApiError } from "../middleware/errorHandler.ts";
+import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
-import delhiveryService from "../utils/delhiveryService.ts";
-import { notifications } from "../utils/notifications.ts";
-import { sendEmail } from "../utils/emailService.ts";
-import { emailTemplates } from "../templates/emailTemplates.ts";
+import delhiveryService from "../utils/delhiveryService.js";
+import { notifications } from "../utils/notifications.js";
+import { sendEmail } from "../utils/emailService.js";
+import { emailTemplates } from "../templates/emailTemplates.js";
 
 const router = Router();
 
@@ -132,8 +132,8 @@ router.post(
           shippingAddress: shippingAddress,
           status: "PENDING",
           trackingEvents: [initialEvent],
-          shippingCost: order.shippingCost || "0",
-          weight: weight?.toString() || "0.5",
+          shippingCost: String(order.shippingCost || 0),
+          weight: String(weight || 0.5),
           shippedAt: new Date(),
         })
         .returning();

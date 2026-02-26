@@ -1,20 +1,20 @@
 import express, { Request, Response, NextFunction } from "express";
-import { db } from "../db";
+import { db } from "../db/index.js";
 import {
   webhooks,
   webhookDeliveries,
   integrations,
-} from "../db/schema/webhooks";
+} from "../db/schema/webhooks.js";
 import { eq, desc, and } from "drizzle-orm";
-import { authenticate } from "../middleware/auth";
-import { ApiError } from "../middleware/errorHandler";
+import { authenticate } from "../middleware/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 import {
   generateWebhookSecret,
   triggerWebhooks,
   retryWebhookDelivery,
   verifyRazorpaySignature,
   verifySignature,
-} from "../utils/webhookService";
+} from "../utils/webhookService.js";
 
 const router = express.Router();
 

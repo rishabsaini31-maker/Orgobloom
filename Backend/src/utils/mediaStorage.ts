@@ -13,8 +13,8 @@
 import fs from "fs";
 import path from "path";
 import { createHash } from "crypto";
-import { db } from "../db/index.ts";
-import { siteMedia } from "../db/schema/index.ts";
+import { db } from "../db/index.js";
+import { siteMedia } from "../db/schema/index.js";
 import { desc, eq, sql } from "drizzle-orm";
 
 // ===========================
@@ -49,7 +49,8 @@ export const mediaConfig = {
     provider: (process.env.CLOUD_STORAGE_PROVIDER || "supabase") as
       | "local"
       | "s3"
-      | "supabase",
+      | "supabase"
+      | "cloudinary",
     s3: {
       bucket: process.env.AWS_S3_BUCKET || "",
       region: process.env.AWS_REGION || "us-east-1",
@@ -60,6 +61,11 @@ export const mediaConfig = {
       url: process.env.SUPABASE_URL || "",
       serviceKey: process.env.SUPABASE_SERVICE_KEY || "",
       bucket: process.env.SUPABASE_STORAGE_BUCKET || "media",
+    },
+    cloudinary: {
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
+      apiKey: process.env.CLOUDINARY_API_KEY || "",
+      apiSecret: process.env.CLOUDINARY_API_SECRET || "",
     },
   },
 

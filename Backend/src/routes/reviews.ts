@@ -1,10 +1,10 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
-import { reviews } from "@/db/schema/reviews";
+import { reviews } from "@/db/schema/reviews.js";
 import { products } from "@/db/schema";
 import { eq, and, desc, avg, sql } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth";
-import { ApiError } from "@/middleware/errorHandler";
+import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth.js";
+import { ApiError } from "@/middleware/errorHandler.js";
 
 const router = Router();
 

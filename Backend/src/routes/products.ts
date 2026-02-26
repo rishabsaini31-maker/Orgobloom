@@ -86,14 +86,13 @@ router.post(
   },
 );
 
-import { db } from "../db/index.ts";
-import { products } from "../db/schema/index.ts";
+import { db } from "../db/index.js";
+import { products } from "../db/schema/index.js";
 import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
-import { eq, and, ilike, desc, sql, count } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.ts";
-import { productSchema } from "../utils/validations.ts";
-import { generateSlug } from "../utils/helpers.ts";
-import { ApiError } from "../middleware/errorHandler.ts";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
+import { productSchema } from "../utils/validations.js";
+import { generateSlug } from "../utils/helpers.js";
+import { ApiError } from "../middleware/errorHandler.js";
 
 // Duplicate router declaration removed
 

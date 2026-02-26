@@ -2,8 +2,8 @@ import { Router, Response, NextFunction } from "express";
 import { db } from "@/db";
 import { shipments, orders } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth";
-import { ApiError } from "@/middleware/errorHandler";
+import { authenticate, AuthRequest } from "@/middleware/auth.js";
+import { ApiError } from "@/middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
 
 const router = Router();

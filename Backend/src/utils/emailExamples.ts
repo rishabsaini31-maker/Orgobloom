@@ -5,8 +5,8 @@
  * with your existing routes (auth, orders, customers, etc.)
  */
 
-import { sendEmail } from "../utils/emailService";
-import { emailTemplates } from "../templates/emailTemplates";
+import { sendEmail } from "../utils/emailService.js";
+import { emailTemplates } from "../templates/emailTemplates.js";
 import axios from "axios";
 
 // ===== Example 1: Send Welcome Email on User Signup =====
