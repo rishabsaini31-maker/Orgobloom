@@ -51,9 +51,9 @@ export default function AdminProfileDropdown() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-xl z-50 border border-gray-100">
+        <div className="absolute right-0 mt-2 w-72 max-w-[90vw] bg-white rounded-lg shadow-xl z-50 border border-gray-100 flex flex-col max-h-[80vh]">
           {/* User Info */}
-          <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-blue-50">
+          <div className="px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-primary-50 to-blue-50 flex-shrink-0">
             <div className="flex items-center mb-3">
               <div className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">
                 {user.name?.charAt(0).toUpperCase() ||
@@ -72,7 +72,7 @@ export default function AdminProfileDropdown() {
           </div>
 
           {/* Menu Items */}
-          <div className="py-2">
+          <div className="py-2 overflow-y-auto flex-1">
             <Link
               href="/dashboard/profile"
               onClick={() => setIsOpen(false)}

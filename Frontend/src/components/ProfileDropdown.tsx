@@ -14,6 +14,7 @@ export default function ProfileDropdown() {
   const [dropdownPosition, setDropdownPosition] = useState({
     top: 0,
     right: 0,
+    maxHeight: "60vh",
   });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -23,13 +24,32 @@ export default function ProfileDropdown() {
     setMounted(true);
   }, []);
 
-  // Calculate dropdown position when opened
+  // Calculate dropdown position and max height for mobile
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+
+      // Calculate max height: leave 20px padding from edges
+      const maxHeightBelow = Math.max(200, spaceBelow - 20);
+      const maxHeightAbove = Math.max(200, spaceAbove - 20);
+
+      // Use space below if enough, otherwise use space above
+      const shouldShowAbove = spaceBelow < 300 && spaceAbove > spaceBelow;
+
+      const maxHeight = shouldShowAbove
+        ? Math.min(maxHeightAbove, window.innerHeight * 0.8)
+        : Math.min(maxHeightBelow, window.innerHeight * 0.8);
+
+      const topPosition = shouldShowAbove
+        ? rect.top - maxHeight - 8
+        : rect.bottom + 8;
+
       setDropdownPosition({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
+        top: Math.max(10, topPosition),
+        right: Math.max(10, window.innerWidth - rect.right),
+        maxHeight: `${maxHeight}px`,
       });
     }
   }, [isOpen]);
@@ -75,14 +95,15 @@ export default function ProfileDropdown() {
   const dropdownContent = (
     <div
       ref={dropdownRef}
-      className="fixed bg-white rounded-xl shadow-2xl z-[9999] border border-gray-200 w-72"
+      className="fixed bg-white rounded-xl shadow-2xl z-[9999] border border-gray-200 w-72 max-w-[90vw] flex flex-col"
       style={{
         top: dropdownPosition.top,
         right: dropdownPosition.right,
+        maxHeight: dropdownPosition.maxHeight,
       }}
     >
       {/* User Info */}
-      <div className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+      <div className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl flex-shrink-0">
         <p className="text-sm text-gray-600">Signed in as</p>
         <p className="text-sm font-semibold text-gray-900">{user.email}</p>
         {user.name && (
@@ -90,9 +111,9 @@ export default function ProfileDropdown() {
         )}
       </div>
 
-      {/* Menu Items */}
+      {/* Menu Items - SCROLLABLE */}
       <div
-        className="py-2 max-h-[60vh] overflow-y-auto"
+        className="overflow-y-auto flex-1 py-2"
         style={{
           WebkitOverflowScrolling: "touch",
           touchAction: "pan-y",
