@@ -133,13 +133,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadsDir));
 
-// Apply rate limiting to all routes
-app.use("/api/", apiLimiter);
-
-// Health check
+// Health check endpoint (before rate limiting to avoid throttling)
 app.get("/health", (req: Request, res: Response) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
+
+// Health check for monitoring tools
+app.get("/api/healthz", (req: Request, res: Response) => {
+  res.json({
+    status: "healthy",
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV,
+  });
+});
+
+// Apply rate limiting to all routes
+app.use("/api/", apiLimiter);
 
 // Routes
 app.use("/api/auth", authRoutes);
