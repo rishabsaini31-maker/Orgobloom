@@ -11,6 +11,17 @@ import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redisClient } from "../utils/redis.js";
 
+// Helper to get consistent client IP even behind proxy
+function getClientIP(req: any): string {
+  // Check X-Forwarded-For first (for proxy scenarios)
+  const forwardedFor = req.get("x-forwarded-for");
+  if (forwardedFor) {
+    const ips = forwardedFor.split(",").map((ip: string) => ip.trim());
+    return ips[0] || "unknown";
+  }
+  return req.ip || req.socket?.remoteAddress || "unknown";
+}
+
 // Cache for Redis stores - created lazily on first use
 const storeCache = new Map<string, RedisStore | null>();
 
@@ -59,8 +70,16 @@ const orderLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   store: getRedisStore("rl:orders:"),
+  keyGenerator: (req, res) => {
+    const ip = getClientIP(req);
+    console.log(`[RATE LIMIT DEBUG] Order attempt from IP: ${ip}`);
+    return ip;
+  },
   handler: (req, res) => {
-    console.log(`[RATE LIMIT] Order rate limit exceeded for IP: ${req.ip}`);
+    const ip = getClientIP(req);
+    console.log(
+      `[RATE LIMIT] ❌ Order blocked for IP: ${ip} - Too many attempts`,
+    );
     res.status(429).json({
       error: "Too many orders",
       message: "Please try again after 1 hour",
