@@ -28,7 +28,7 @@ export const connectRedis = async (): Promise<void> => {
   if (isConnected) return;
 
   console.log("🔄 Attempting to connect to Redis...");
-  console.log("📍 Redis URL:", redisUrl.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
+  console.log("📍 Redis URL:", redisUrl.replace(/:[^:@]+@/, ":****@")); // Hide password in logs
 
   try {
     await redisClient.connect();
@@ -290,3 +290,6 @@ export default {
   productCache,
   isConnected: () => isConnected,
 };
+
+// Export redisClient for rate limiters
+export { redisClient };

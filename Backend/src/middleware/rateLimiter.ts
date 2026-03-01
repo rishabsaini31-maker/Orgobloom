@@ -1,4 +1,42 @@
 import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { redisClient } from "../utils/redis.js";
+
+// Cache for Redis stores - created lazily on first use
+const storeCache = new Map<string, RedisStore | null>();
+
+// Helper to get or create Redis store with proper sendCommand
+// Returns undefined if Redis isn't available, falling back to memory store
+function getRedisStore(prefix: string) {
+  // Return cached store if available
+  if (storeCache.has(prefix)) {
+    return storeCache.get(prefix) || undefined;
+  }
+
+  try {
+    // Check if Redis is connected
+    if (!redisClient.isReady) {
+      console.warn(`⚠️  Redis not ready for ${prefix}, using memory store`);
+      storeCache.set(prefix, null);
+      return undefined; // Fallback to memory store
+    }
+
+    const store = new RedisStore({
+      // @ts-expect-error - Redis store types mismatch
+      client: redisClient,
+      prefix: prefix,
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+    });
+
+    console.log(`✅ Created Redis store for ${prefix}`);
+    storeCache.set(prefix, store);
+    return store;
+  } catch (error) {
+    console.warn(`⚠️  Redis store failed for ${prefix}:`, error);
+    storeCache.set(prefix, null);
+    return undefined; // Fallback to memory store
+  }
+}
 
 // Rate limiter for login attempts
 // Limits: 5 attempts per 15 minutes per IP
@@ -9,16 +47,17 @@ export const loginLimiter = rateLimit({
   message: {
     error: "Too many login attempts",
     message: "Please try again after 15 minutes",
-    retryAfter: "15 minutes"
+    retryAfter: "15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:login:"),
   handler: (req, res) => {
     console.log(`[RATE LIMIT] Login rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
       error: "Too many login attempts",
       message: "Please try again after 15 minutes",
-      retryAfter: "15 minutes"
+      retryAfter: "15 minutes",
     });
   },
 });
@@ -32,16 +71,19 @@ export const registerLimiter = rateLimit({
   message: {
     error: "Too many registration attempts",
     message: "Please try again after 1 hour",
-    retryAfter: "1 hour"
+    retryAfter: "1 hour",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:register:"),
   handler: (req, res) => {
-    console.log(`[RATE LIMIT] Registration rate limit exceeded for IP: ${req.ip}`);
+    console.log(
+      `[RATE LIMIT] Registration rate limit exceeded for IP: ${req.ip}`,
+    );
     res.status(429).json({
       error: "Too many registration attempts",
       message: "Please try again after 1 hour",
-      retryAfter: "1 hour"
+      retryAfter: "1 hour",
     });
   },
 });
@@ -58,8 +100,11 @@ export const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:api:"),
   handler: (req, res) => {
-    console.log(`[RATE LIMIT] API rate limit exceeded for IP: ${req.ip} on ${req.method} ${req.path}`);
+    console.log(
+      `[RATE LIMIT] API rate limit exceeded for IP: ${req.ip} on ${req.method} ${req.path}`,
+    );
     res.status(429).json({
       error: "Too many requests",
       message: "Please try again later",
@@ -76,16 +121,17 @@ export const orderLimiter = rateLimit({
   message: {
     error: "Too many orders",
     message: "Please try again after 1 hour",
-    retryAfter: "1 hour"
+    retryAfter: "1 hour",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:order:"),
   handler: (req, res) => {
     console.log(`[RATE LIMIT] Order rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({
       error: "Too many orders",
       message: "Please try again after 1 hour",
-      retryAfter: "1 hour"
+      retryAfter: "1 hour",
     });
   },
 });
@@ -99,16 +145,19 @@ export const passwordResetLimiter = rateLimit({
   message: {
     error: "Too many password reset attempts",
     message: "Please try again after 1 hour",
-    retryAfter: "1 hour"
+    retryAfter: "1 hour",
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:pwd-reset:"),
   handler: (req, res) => {
-    console.log(`[RATE LIMIT] Password reset rate limit exceeded for IP: ${req.ip}`);
+    console.log(
+      `[RATE LIMIT] Password reset rate limit exceeded for IP: ${req.ip}`,
+    );
     res.status(429).json({
       error: "Too many password reset attempts",
       message: "Please try again after 1 hour",
-      retryAfter: "1 hour"
+      retryAfter: "1 hour",
     });
   },
 });

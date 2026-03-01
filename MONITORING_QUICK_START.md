@@ -7,11 +7,13 @@ Your complete monitoring toolkit is ready! Use these commands to monitor your **
 ## 📦 What You Have
 
 ### 3 Monitoring Tools
+
 1. **cold-start-monitor.js** - Detects when Render spins down (free tier issue)
 2. **storage-monitor.js** - Tracks Supabase storage usage (1GB limit)
 3. **load-test.js** - Tests with 20+ concurrent users (capacity check)
 
 ### Documentation
+
 - **README.md** - Comprehensive monitoring guide
 - **setup.sh** - Automated setup script
 
@@ -27,6 +29,7 @@ bash setup.sh
 ```
 
 This will:
+
 - Create monitoring directory
 - Make scripts executable
 - Create `.env.monitoring` template
@@ -69,6 +72,7 @@ node load-test.js 20 60
 ## 📊 What Each Tool Does
 
 ### ❄️ Cold Start Monitor
+
 ```bash
 node cold-start-monitor.js
 
@@ -83,6 +87,7 @@ node cold-start-monitor.js
 ```
 
 ### 💾 Storage Monitor
+
 ```bash
 source .env.monitoring && node storage-monitor.js
 
@@ -99,6 +104,7 @@ source .env.monitoring && node storage-monitor.js
 ```
 
 ### 🔥 Load Test
+
 ```bash
 # Test with 20 concurrent users (60 seconds)
 node load-test.js 20 60
@@ -120,6 +126,7 @@ node load-test.js 20 60
 ## 📈 Interpret Results
 
 ### Cold Start Monitor
+
 ```
 ✅ Output: [WARM] Response: 145ms
    → Server is running, no issue
@@ -135,6 +142,7 @@ What to do:
 ```
 
 ### Storage Monitor
+
 ```
 Usage: 24.5% [███░░░░░░░░░░░░░░░░]
 Remaining: 773.55 MB
@@ -149,6 +157,7 @@ Days Until Full: 327 days (10.9 months)
 ```
 
 ### Load Test
+
 ```
 Test: 20 concurrent users for 60 seconds
 
@@ -206,16 +215,19 @@ Add to your crotab (`crontab -e`):
 ## 💡 Monitoring Schedule
 
 ### Daily (Automated)
+
 - ✅ Cold start checks run automatically
 - ✅ Storage checks run at 6 AM
 
 ### Weekly (Manual - Sunday 2 PM)
+
 ```bash
 cd monitoring
 node load-test.js 20 60
 ```
 
 ### Monthly (Review)
+
 ```bash
 # View statistics
 node cold-start-monitor.js stats
@@ -232,18 +244,21 @@ cat load-test-report.json
 ## 🚨 Red Flags → Upgrade Now
 
 ### Render (Cold Starts)
+
 ```
 ❌ If: > 5 cold starts per day
    Then: Upgrade to Render Pro ($7/month)
 ```
 
 ### Supabase (Storage)
+
 ```
 ❌ If: > 750 MB used OR < 60 days until full
    Then: Upgrade to Supabase Pro ($25/month)
 ```
 
 ### Load Test (Capacity)
+
 ```
 ❌ If: Load test fails with 20 concurrent users
    Then: Upgrade your plan (combined $32/month recommended)
@@ -286,12 +301,14 @@ monitoring/
 ## 🆘 Troubleshooting
 
 ### "Command not found: node"
+
 ```bash
 # Install Node.js from https://nodejs.org
 # Verify: node --version
 ```
 
 ### "SUPABASE_URL is not set"
+
 ```bash
 # Make sure you sourced the config:
 source monitoring/.env.monitoring
@@ -301,6 +318,7 @@ node storage-monitor.js
 ```
 
 ### Load test fails to connect
+
 ```bash
 # Check if backend is running
 curl https://orgobloom.onrender.com/api/healthz
@@ -309,6 +327,7 @@ curl https://orgobloom.onrender.com/api/healthz
 ```
 
 ### Monitoring scripts won't run
+
 ```bash
 # Make them executable:
 chmod +x monitoring/*.js

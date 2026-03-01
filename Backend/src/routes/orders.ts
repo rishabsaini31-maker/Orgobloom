@@ -8,6 +8,44 @@ import { createId } from "@paralleldrive/cuid2";
 import { sendEmail } from "../utils/emailService.js";
 import { emailTemplates } from "../templates/emailTemplates.js";
 import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
+import { redisClient } from "../utils/redis.js";
+
+// Cache for Redis stores - created lazily on first use
+const storeCache = new Map<string, RedisStore | null>();
+
+// Helper to get or create Redis store with proper sendCommand
+// Returns undefined if Redis isn't available, falling back to memory store
+function getRedisStore(prefix: string) {
+  // Return cached store if available
+  if (storeCache.has(prefix)) {
+    return storeCache.get(prefix) || undefined;
+  }
+
+  try {
+    // Check if Redis is connected
+    if (!redisClient.isReady) {
+      console.warn(`⚠️  Redis not ready for ${prefix}, using memory store`);
+      storeCache.set(prefix, null);
+      return undefined; // Fallback to memory store
+    }
+
+    const store = new RedisStore({
+      // @ts-expect-error - Redis store types mismatch
+      client: redisClient,
+      prefix: prefix,
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+    });
+
+    console.log(`✅ Created Redis store for ${prefix}`);
+    storeCache.set(prefix, store);
+    return store;
+  } catch (error) {
+    console.warn(`⚠️  Redis store failed for ${prefix}:`, error);
+    storeCache.set(prefix, null);
+    return undefined; // Fallback to memory store
+  }
+}
 
 // Define orderLimiter locally to avoid import issues
 const orderLimiter = rateLimit({
@@ -20,6 +58,7 @@ const orderLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  store: getRedisStore("rl:orders:"),
   handler: (req, res) => {
     console.log(`[RATE LIMIT] Order rate limit exceeded for IP: ${req.ip}`);
     res.status(429).json({

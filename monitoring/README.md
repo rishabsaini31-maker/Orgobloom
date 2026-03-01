@@ -7,6 +7,7 @@ Complete guide for monitoring **cold starts**, **storage usage**, and **load cap
 ## 1. 🥶 COLD START MONITORING
 
 ### What are Cold Starts?
+
 - **Free Render tier spins down after 15 minutes of inactivity**
 - Next request takes 15-30 seconds to start (server startup time)
 - Users experience significant delays during spin-up
@@ -44,17 +45,18 @@ node monitoring/cold-start-monitor.js clear
 ```
 
 ### Logs Location
+
 - Stored in: `monitoring/cold-starts.log`
 - JSON format for analysis
 - Tracks: timestamp, response time, cold start count
 
 ### Action Items
 
-| Cold Starts/Day | Action |
-|---|---|
-| 0-2 | ✅ Normal - app has steady traffic |
-| 3-5 | ⚠️ Warning - traffic pattern irregular |
-| 5+ | 🚨 Upgrade - consider Render Pro ($7/mo) |
+| Cold Starts/Day | Action                                   |
+| --------------- | ---------------------------------------- |
+| 0-2             | ✅ Normal - app has steady traffic       |
+| 3-5             | ⚠️ Warning - traffic pattern irregular   |
+| 5+              | 🚨 Upgrade - consider Render Pro ($7/mo) |
 
 ---
 
@@ -90,7 +92,7 @@ node monitoring/storage-monitor.js clear
 
 ### Getting Your Credentials
 
-1. **SUPABASE_URL**: 
+1. **SUPABASE_URL**:
    - Go to Supabase Dashboard → Project Settings
    - Copy: `https://[project-id].supabase.co`
 
@@ -138,6 +140,7 @@ Days Until Full: 327 days (10.9 months)
 ```
 
 **Windows Task Scheduler**:
+
 ```
 Program: node
 Arguments: monitoring/storage-monitor.js
@@ -149,6 +152,7 @@ Run: Daily at 6:00 AM
 ## 3. 🔥 LOAD TESTING (20+ Concurrent Users)
 
 ### What is a Load Test?
+
 - Simulates multiple users making requests simultaneously
 - Tests if your app can handle peak traffic
 - Identifies performance bottlenecks
@@ -233,6 +237,7 @@ node monitoring/load-test.js 100 30
 ```
 
 ### Report Location
+
 - Saved in: `monitoring/load-test-report.json`
 - Contains detailed metrics for analysis
 - Can be used for trend analysis over time
@@ -242,6 +247,7 @@ node monitoring/load-test.js 100 30
 ## 📋 RECOMMENDED MONITORING SCHEDULE
 
 ### Daily (Automated)
+
 ```bash
 # Cold start check - continuous in background
 node monitoring/cold-start-monitor.js &
@@ -251,6 +257,7 @@ node monitoring/cold-start-monitor.js &
 ```
 
 ### Weekly (Manual)
+
 ```bash
 # Load test with current projected concurrent users
 node monitoring/load-test.js 20 60
@@ -260,6 +267,7 @@ node monitoring/cold-start-monitor.js stats
 ```
 
 ### Monthly (Review)
+
 - Analyze growth trends
 - Project when upgrades are needed
 - Plan infrastructure changes
@@ -294,6 +302,7 @@ node monitoring/cold-start-monitor.js stats
 ## 💰 UPGRADE OPTIONS
 
 ### Render Pro ($7/month)
+
 ```
 Benefit: Removes cold starts
 Install: `npm install -g render-cli`
@@ -302,6 +311,7 @@ Install: `npm install -g render-cli`
 ```
 
 ### Supabase Pro ($25/month)
+
 ```
 Benefits: 8 GB storage, higher limits
 Visit: https://supabase.com/dashboard
@@ -309,6 +319,7 @@ Click: Project → Project Settings → Update Plan
 ```
 
 ### Recommendation: Start with Render Pro
+
 ```
 Phase 1 ($7):  Render Pro (eliminate cold starts)
 Phase 2 (+$25): Supabase Pro (expand capacity)

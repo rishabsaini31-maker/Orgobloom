@@ -8,36 +8,41 @@ import path from "path";
 import fs from "fs";
 import http from "http";
 import { errorHandler } from "./middleware/errorHandler.js";
-import { apiLimiter } from "./middleware/rateLimiter.js";
 import { db } from "./db/index.js";
 import { sql } from "drizzle-orm";
 import { connectRedis } from "./utils/redis.js";
 import { initializeSocket } from "./utils/notifications.js";
 
-// Import routes
-import authRoutes from "./routes/auth.js";
-import productRoutes from "./routes/products.js";
-import adminRoutes from "./routes/admin.js";
-import profileRoutes from "./routes/profile.js";
-import customersRoutes from "./routes/customers.js";
-import ordersRoutes from "./routes/orders.js";
-import addressesRoutes from "./routes/addresses.js";
-import emailRoutes from "./routes/email.js";
-import siteMediaRoutes from "./routes/siteMedia.js";
-import paymentRoutes from "./routes/payments.js";
-import blogRoutes from "./routes/blogs.js";
-import bulkRoutes from "./routes/bulk.js";
-import searchRoutes from "./routes/search.js";
-import auditLogsRoutes from "./routes/auditLogs.js";
-import shipmentsRoutes from "./routes/shipments.js";
-import webhooksRoutes from "./routes/webhooks.js";
-import stripeRoutes from "./routes/stripe.js";
-import shiprocketRoutes from "./routes/shiprocket.js";
-import delhiveryRoutes from "./routes/delhivery.js";
-import refundRoutes from "./routes/refunds.js";
-import fshipRoutes from "./routes/fship.js";
-
 dotenv.config();
+
+// Connect to Redis FIRST - before importing rate limiters
+await connectRedis();
+
+// Import rate limiters AFTER Redis is connected
+const { apiLimiter } = await import("./middleware/rateLimiter.js");
+
+// Import routes AFTER rate limiters are ready
+const authRoutes = (await import("./routes/auth.js")).default;
+const productRoutes = (await import("./routes/products.js")).default;
+const adminRoutes = (await import("./routes/admin.js")).default;
+const profileRoutes = (await import("./routes/profile.js")).default;
+const customersRoutes = (await import("./routes/customers.js")).default;
+const ordersRoutes = (await import("./routes/orders.js")).default;
+const addressesRoutes = (await import("./routes/addresses.js")).default;
+const emailRoutes = (await import("./routes/email.js")).default;
+const siteMediaRoutes = (await import("./routes/siteMedia.js")).default;
+const paymentRoutes = (await import("./routes/payments.js")).default;
+const blogRoutes = (await import("./routes/blogs.js")).default;
+const bulkRoutes = (await import("./routes/bulk.js")).default;
+const searchRoutes = (await import("./routes/search.js")).default;
+const auditLogsRoutes = (await import("./routes/auditLogs.js")).default;
+const shipmentsRoutes = (await import("./routes/shipments.js")).default;
+const webhooksRoutes = (await import("./routes/webhooks.js")).default;
+const stripeRoutes = (await import("./routes/stripe.js")).default;
+const shiprocketRoutes = (await import("./routes/shiprocket.js")).default;
+const delhiveryRoutes = (await import("./routes/delhivery.js")).default;
+const refundRoutes = (await import("./routes/refunds.js")).default;
+const fshipRoutes = (await import("./routes/fship.js")).default;
 
 const app = express();
 app.set("etag", false);
@@ -416,7 +421,6 @@ server.listen(PORT, async () => {
 
   await testDBConnection();
   await runMigrations();
-  await connectRedis();
 });
 
 export default app;

@@ -91,7 +91,14 @@ export default function ProfileDropdown() {
       </div>
 
       {/* Menu Items */}
-      <div className="py-2 max-h-[60vh] overflow-y-auto">
+      <div
+        className="py-2 max-h-[60vh] overflow-y-auto"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          touchAction: "pan-y",
+          overscrollBehaviorY: "contain",
+        }}
+      >
         {/* Account Section */}
         <div className="px-4 py-2">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
