@@ -7,7 +7,7 @@ import delhiveryService from "./delhiveryService.js";
 import fshipService from "./fshipService.js";
 import { notifications } from "./notifications.js";
 import { sendEmail } from "./emailService.js";
-import { emailTemplates } from "../templates/emailTemplates";
+import { emailTemplates } from "../templates/emailTemplates.js";
 import { users } from "../db/schema/index.js";
 
 // Shipment status mapping
