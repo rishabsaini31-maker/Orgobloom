@@ -46,7 +46,7 @@ export default function ProductCarousel({
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
       {/* Left: Product Carousel */}
-      <div className="sticky top-20">
+      <div className="lg:sticky lg:top-20">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {/* Main Image */}
           <div className="relative w-full aspect-square bg-gradient-to-br from-primary-50 to-green-50 flex items-center justify-center overflow-hidden group">
