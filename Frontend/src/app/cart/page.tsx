@@ -350,7 +350,7 @@ export default function CartPage() {
                             fill
                             sizes="80px"
                             className="object-cover"
-                            unoptimized
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-3xl">
@@ -633,7 +633,10 @@ export default function CartPage() {
                     amount={total}
                     customerName={user?.name || "Customer"}
                     customerEmail={user?.email || ""}
-                    customerPhone={addresses.find(a => a.id === selectedAddress)?.phone || ""}
+                    customerPhone={
+                      addresses.find((a) => a.id === selectedAddress)?.phone ||
+                      ""
+                    }
                     onSuccess={handlePaymentSuccess}
                     onFailure={handlePaymentFailure}
                   />

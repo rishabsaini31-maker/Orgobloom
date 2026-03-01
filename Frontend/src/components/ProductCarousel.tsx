@@ -57,16 +57,16 @@ export default function ProductCarousel({
                   src={images[currentImageIndex]}
                   alt=""
                   fill
-                  unoptimized
                   className="object-cover blur-2xl scale-125 opacity-40"
                   aria-hidden="true"
+                  priority={false}
                 />
                 <Image
                   src={images[currentImageIndex]}
                   alt={product.name}
                   fill
-                  unoptimized
                   className="object-contain group-hover:scale-105 transition-transform duration-500 relative z-10"
+                  priority={false}
                 />
               </>
             ) : (
@@ -107,8 +107,9 @@ export default function ProductCarousel({
                     src={img}
                     alt={`${product.name} ${idx + 1}`}
                     fill
-                    unoptimized
+                    sizes="64px"
                     className="object-contain"
+                    loading="lazy"
                   />
                 </button>
               ))}

@@ -87,17 +87,8 @@ export const authApi = {
 // Products API
 export const productsApi = {
   getAll: (params?: any) => {
-    // Add cache-busting timestamp if not provided
-    const queryParams = {
-      ...params,
-      _t: params?._t || Date.now(),
-    };
     return api.get("/products", {
-      params: queryParams,
-      headers: {
-        "Cache-Control": "no-cache",
-        Pragma: "no-cache",
-      },
+      params: params,
     });
   },
   getById: (id: string) => api.get(`/products/${id}`),

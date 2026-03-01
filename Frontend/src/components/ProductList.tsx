@@ -12,18 +12,17 @@ export default function ProductList({ featured }: ProductListProps) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["products", { featured }],
     queryFn: async () => {
-      // Add timestamp to bypass cache and get fresh data
       const response = await productsApi.getAll({
         featured,
         limit: 6,
-        _t: Date.now(),
       });
       return response.data;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 0, // Don't cache
-    refetchOnMount: true, // Refetch when component mounts
-    refetchOnWindowFocus: true, // Refetch when window gets focus
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData,
   });
 
   if (isLoading) {

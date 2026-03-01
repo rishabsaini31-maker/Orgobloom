@@ -65,7 +65,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         onMouseLeave={() => setIsHovered(false)}
       >
         {/* Premium Border Gradient */}
-        <div className={`absolute inset-0 rounded-3xl transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+        <div
+          className={`absolute inset-0 rounded-3xl transition-opacity duration-500 ${isHovered ? "opacity-100" : "opacity-0"}`}
+        >
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary-400 via-emerald-400 to-green-400 opacity-20"></div>
         </div>
 
@@ -86,7 +88,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="object-cover blur-xl scale-110 opacity-30"
                 aria-hidden="true"
                 loading="lazy"
-                unoptimized
+                priority={false}
               />
               <Image
                 src={product.images[0]}
@@ -98,7 +100,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 }`}
                 onLoad={() => setImageLoaded(true)}
                 loading="lazy"
-                unoptimized
+                priority={false}
               />
             </>
           ) : product.imageUrl ? (
@@ -111,7 +113,6 @@ export default function ProductCard({ product }: ProductCardProps) {
                 className="object-cover blur-xl scale-110 opacity-30"
                 aria-hidden="true"
                 loading="lazy"
-                unoptimized
               />
               <Image
                 src={product.imageUrl}
@@ -123,7 +124,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                 }`}
                 onLoad={() => setImageLoaded(true)}
                 loading="lazy"
-                unoptimized
+                priority={false}
               />
             </>
           ) : (
@@ -165,7 +166,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             <div className="relative">
               <div className="absolute inset-0 bg-green-500 blur-md opacity-50 rounded-full"></div>
               <div className="relative bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg flex items-center gap-1.5">
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -285,9 +290,13 @@ export default function ProductCard({ product }: ProductCardProps) {
               </div>
               <div className="text-right">
                 <span className="inline-flex items-center gap-1 text-xs text-green-600 font-semibold bg-green-50 px-3 py-1.5 rounded-full">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
-                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"/>
+                  <svg
+                    className="w-3 h-3"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                   </svg>
                   Free Delivery
                 </span>
@@ -297,7 +306,9 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Bottom Accent Line */}
-        <div className={`h-1 bg-gradient-to-r from-primary-500 via-emerald-500 to-green-500 transition-transform duration-500 origin-left ${isHovered ? 'scale-x-100' : 'scale-x-0'}`}></div>
+        <div
+          className={`h-1 bg-gradient-to-r from-primary-500 via-emerald-500 to-green-500 transition-transform duration-500 origin-left ${isHovered ? "scale-x-100" : "scale-x-0"}`}
+        ></div>
       </div>
     </Link>
   );

@@ -261,7 +261,7 @@ export default function ProductsPage() {
                                 sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-110 transition-transform duration-300"
                                 loading="lazy"
-                                unoptimized
+                                priority={false}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-gray-100">
