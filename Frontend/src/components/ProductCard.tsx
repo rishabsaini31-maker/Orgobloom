@@ -4,18 +4,44 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCartStore } from "@/store/cartStore";
 import toast from "react-hot-toast";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 
 interface ProductCardProps {
   product: any;
+  priority?: boolean;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  priority = false,
+}: ProductCardProps) {
   const { addItem } = useCartStore();
   const [isHovered, setIsHovered] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const primaryImageSrc = useMemo(() => {
+    const imageArray = Array.isArray(product.images)
+      ? product.images.filter(
+          (url: unknown) => typeof url === "string" && url.trim().length > 0,
+        )
+      : [];
+
+    if (imageArray.length > 0) return imageArray[0] as string;
+    if (
+      typeof product.imageUrl === "string" &&
+      product.imageUrl.trim().length > 0
+    )
+      return product.imageUrl;
+    return "";
+  }, [product.images, product.imageUrl]);
+
+  useEffect(() => {
+    setImageLoaded(false);
+    setImageFailed(false);
+  }, [primaryImageSrc]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -78,53 +104,38 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div className="absolute bottom-0 right-0 w-20 h-20 bg-gradient-to-tl from-emerald-100 to-transparent opacity-50"></div>
 
           {/* Blurred Background */}
-          {product.images && product.images.length > 0 ? (
+          {primaryImageSrc && !imageFailed ? (
             <>
               <Image
-                src={product.images[0]}
+                src={primaryImageSrc}
                 alt=""
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover blur-xl scale-110 opacity-30"
                 aria-hidden="true"
-                loading="lazy"
-                priority={false}
+                loading={priority ? "eager" : "lazy"}
+                priority={priority}
+                quality={50}
+                onError={() => setImageFailed(true)}
               />
               <Image
-                src={product.images[0]}
+                src={primaryImageSrc}
                 alt={product.name}
                 fill
-                sizes="(max-width: 768px) 100vw, 50vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className={`object-contain group-hover:scale-110 transition-transform duration-700 ease-out relative z-10 ${
                   imageLoaded ? "opacity-100" : "opacity-0"
                 }`}
                 onLoad={() => setImageLoaded(true)}
-                loading="lazy"
-                priority={false}
-              />
-            </>
-          ) : product.imageUrl ? (
-            <>
-              <Image
-                src={product.imageUrl}
-                alt=""
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover blur-xl scale-110 opacity-30"
-                aria-hidden="true"
-                loading="lazy"
-              />
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className={`object-contain group-hover:scale-110 transition-transform duration-700 ease-out relative z-10 ${
-                  imageLoaded ? "opacity-100" : "opacity-0"
-                }`}
-                onLoad={() => setImageLoaded(true)}
-                loading="lazy"
-                priority={false}
+                onError={() => {
+                  setImageFailed(true);
+                  setImageLoaded(false);
+                }}
+                loading={priority ? "eager" : "lazy"}
+                priority={priority}
+                quality={75}
+                placeholder="blur"
+                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
               />
             </>
           ) : (
@@ -146,7 +157,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
 
           {/* Loading Skeleton */}
-          {!imageLoaded && (product.images?.length > 0 || product.imageUrl) && (
+          {!imageLoaded && !imageFailed && primaryImageSrc && (
             <div className="absolute inset-0 flex items-center justify-center z-20">
               <div className="w-10 h-10 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
             </div>

@@ -120,7 +120,7 @@ export default function ProductList({ featured }: ProductListProps) {
             style={{ animationDelay: `${index * 0.1}s` }}
             className="opacity-0 animate-fade-in-up"
           >
-            <ProductCard product={product} />
+            <ProductCard product={product} priority={index < 3} />
           </div>
         ))}
       </div>

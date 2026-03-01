@@ -351,6 +351,7 @@ export default function CartPage() {
                             sizes="80px"
                             className="object-cover"
                             loading="lazy"
+                            quality={75}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-3xl">

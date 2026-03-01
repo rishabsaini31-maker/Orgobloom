@@ -59,14 +59,17 @@ export default function ProductCarousel({
                   fill
                   className="object-cover blur-2xl scale-125 opacity-40"
                   aria-hidden="true"
-                  priority={false}
+                  priority={currentImageIndex === 0}
+                  quality={30}
                 />
                 <Image
                   src={images[currentImageIndex]}
                   alt={product.name}
                   fill
                   className="object-contain group-hover:scale-105 transition-transform duration-500 relative z-10"
-                  priority={false}
+                  priority={currentImageIndex === 0}
+                  quality={85}
+                  sizes="(max-width: 768px) 100vw, 600px"
                 />
               </>
             ) : (

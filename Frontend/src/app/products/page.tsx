@@ -17,6 +17,9 @@ export default function ProductsPage() {
     [key: string]: string;
   }>({});
   const [activeFilter, setActiveFilter] = useState("all");
+  const [failedImageIds, setFailedImageIds] = useState<Record<string, boolean>>(
+    {},
+  );
 
   // Fetch products from API with optimized query settings
   const {
@@ -24,9 +27,9 @@ export default function ProductsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["products"],
+    queryKey: ["products", "all"],
     queryFn: async () => {
-      const response = await productsApi.getAll();
+      const response = await productsApi.getAll({ limit: 50 });
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -248,20 +251,29 @@ export default function ProductsPage() {
                 {/* Products Grid */}
                 {filteredProducts.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-                    {filteredProducts.map((product: any) => (
+                    {filteredProducts.map((product: any, index: number) => (
                       <Link key={product.id} href={`/products/${product.slug}`}>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 group cursor-pointer h-full flex flex-col">
                           {/* Product Image */}
                           <div className="relative h-64 bg-gray-200 overflow-hidden">
-                            {product.imageUrl ? (
+                            {product.imageUrl && !failedImageIds[product.id] ? (
                               <Image
                                 src={product.imageUrl}
                                 alt={product.name}
                                 fill
                                 sizes="(max-width: 768px) 100vw, 50vw"
                                 className="object-cover group-hover:scale-110 transition-transform duration-300"
-                                loading="lazy"
-                                priority={false}
+                                loading={index < 4 ? "eager" : "lazy"}
+                                priority={index < 4}
+                                quality={80}
+                                placeholder="blur"
+                                blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
+                                onError={() =>
+                                  setFailedImageIds((prev) => ({
+                                    ...prev,
+                                    [product.id]: true,
+                                  }))
+                                }
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center bg-gray-100">
