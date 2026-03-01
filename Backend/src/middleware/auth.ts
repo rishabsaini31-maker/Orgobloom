@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "@/db/schema";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { User } from "../db/schema/index.js";
+import { db } from "../db/index.js";
+import { users } from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
 
 // Use type assertion approach to avoid interface extension issues

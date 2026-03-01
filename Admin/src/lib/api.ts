@@ -13,16 +13,25 @@ const getApiUrl = () => {
   ) {
     return "http://localhost:8000/api";
   }
-  // Production fallback - this should be set in Vercel environment variables
+  // Production fallback
   console.warn(
     "NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.",
   );
-  return "http://localhost:8000/api";
+  return "https://orgobloom.onrender.com/api";
 };
 
 const API_URL = getApiUrl();
 
 console.log("[API] Using API URL:", API_URL);
+console.log(
+  "[API] NEXT_PUBLIC_API_URL env var:",
+  process.env.NEXT_PUBLIC_API_URL || "NOT SET",
+);
+
+// Make API URL available for debugging
+if (typeof window !== "undefined") {
+  (window as any).__NEXT_PUBLIC_API_URL = API_URL;
+}
 
 export const api = axios.create({
   baseURL: API_URL,

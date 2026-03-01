@@ -1,20 +1,81 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "../db/index.js";
+import { users } from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
-import { hashPassword, comparePassword, generateToken } from "@/utils/auth";
-import { registerSchema, loginSchema } from "@/utils/validations";
-import { ApiError } from "@/middleware/errorHandler";
-import {
-  loginLimiter,
-  registerLimiter,
-  passwordResetLimiter,
-} from "@/middleware/rateLimiter";
-import { AuthRequest } from "@/middleware/auth";
+import { hashPassword, comparePassword, generateToken } from "../utils/auth.js";
+import { registerSchema, loginSchema } from "../utils/validations.js";
+import { ApiError } from "../middleware/errorHandler.js";
+import { AuthRequest } from "../middleware/auth.js";
 import { OAuth2Client } from "google-auth-library";
-import { sendEmail } from "@/utils/emailService";
-import { emailTemplates } from "@/templates/emailTemplates";
+import { sendEmail } from "../utils/emailService.js";
+import { emailTemplates } from "../templates/emailTemplates.js";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
+
+// Define rate limiters locally to avoid import issues with rateLimiter.ts
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 login attempts per 15 minutes per IP
+  message: {
+    error: "Too many login attempts",
+    message: "Please try again after 15 minutes",
+    retryAfter: "15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Login rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many login attempts",
+      message: "Please try again after 15 minutes",
+      retryAfter: "15 minutes",
+    });
+  },
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 registrations per hour per IP
+  message: {
+    error: "Too many registration attempts",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(
+      `[RATE LIMIT] Registration rate limit exceeded for IP: ${req.ip}`,
+    );
+    res.status(429).json({
+      error: "Too many registration attempts",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour",
+    });
+  },
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 password reset attempts per hour
+  message: {
+    error: "Too many password reset attempts",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(
+      `[RATE LIMIT] Password reset rate limit exceeded for IP: ${req.ip}`,
+    );
+    res.status(429).json({
+      error: "Too many password reset attempts",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour",
+    });
+  },
+});
 
 // In-memory store for password reset codes (email -> { code, expires, attempts })
 const resetCodes: Map<
@@ -383,11 +444,9 @@ router.get("/google/callback", async (req, res, next) => {
       existingUser = updatedUser;
     }
     if (existingUser.isBlocked) {
-      return res
-        .status(403)
-        .json({
-          error: "Your account has been blocked. Please contact support.",
-        });
+      return res.status(403).json({
+        error: "Your account has been blocked. Please contact support.",
+      });
     }
     const authToken = generateToken(existingUser);
     const { password, ...userWithoutPassword } = existingUser;
@@ -402,6 +461,7 @@ router.get("/google/callback", async (req, res, next) => {
 });
 
 // Forgot Password - Send verification code
+
 router.post(
   "/forgot-password",
   passwordResetLimiter,

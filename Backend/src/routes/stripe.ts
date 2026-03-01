@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { orders, payments } from "@/db/schema";
+import { db } from "../db/index.js";
+import { orders, payments } from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth.js";
-import { ApiError } from "@/middleware/errorHandler.js";
+import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 import Stripe from "stripe";
 
 const router = Router();

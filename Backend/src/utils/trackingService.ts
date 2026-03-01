@@ -1,5 +1,5 @@
-import { db } from "@/db";
-import { shipments, orders } from "@/db/schema";
+import { db } from "../db/index.js";
+import { shipments, orders } from "../db/schema/index.js";
 import { eq, and, inArray } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
 import shiprocketService from "./shiprocketService.js";
@@ -7,8 +7,8 @@ import delhiveryService from "./delhiveryService.js";
 import fshipService from "./fshipService.js";
 import { notifications } from "./notifications.js";
 import { sendEmail } from "./emailService.js";
-import { emailTemplates } from "@/templates/emailTemplates";
-import { users } from "@/db/schema";
+import { emailTemplates } from "../templates/emailTemplates";
+import { users } from "../db/schema/index.js";
 
 // Shipment status mapping
 const SHIPMENT_STATUS_MAP: Record<string, Record<string, string>> = {

@@ -1,4 +1,4 @@
-import { ApiError } from "@/middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
 
 // Shiprocket API configuration
 const SHIPROCKET_BASE_URL =

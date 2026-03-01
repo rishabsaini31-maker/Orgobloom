@@ -1,9 +1,9 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { orders, products, users, appSettings } from "@/db/schema";
+import { db } from "../db/index.js";
+import { orders, products, users, appSettings } from "../db/schema/index.js";
 import { eq, sql, gte, and, lt, desc } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth.js";
-import { generateSlug } from "@/utils/helpers.js";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
+import { generateSlug } from "../utils/helpers.js";
 import { createId } from "@paralleldrive/cuid2";
 import multer from "multer";
 import path from "path";
@@ -32,7 +32,7 @@ const productImageStorage = multer.diskStorage({
 
 const productImagesUpload = multer({
   storage: productImageStorage,
-  limits: { fileSize: 5 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.mimetype)) {
@@ -757,45 +757,50 @@ router.post(
   isAdmin,
   productImagesUpload.array("images", 6),
   async (req: AuthRequest, res: Response) => {
-    const files = req.files as
-      | { path: string; originalname: string; mimetype: string }[]
-      | undefined;
+    try {
+      const files = req.files as
+        | { path: string; originalname: string; mimetype: string }[]
+        | undefined;
 
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No images uploaded" });
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No images uploaded" });
+      }
+
+      const { getStorageProvider } = await import("../utils/mediaStorage.js");
+      const storageProvider = getStorageProvider();
+
+      const urls: string[] = [];
+      const crypto = await import("crypto");
+      const path = await import("path");
+      const fs = await import("fs");
+
+      for (const file of files) {
+        const timestamp = Date.now();
+        const hash = crypto
+          .createHash("sha256")
+          .update(file.originalname + timestamp)
+          .digest("hex")
+          .substring(0, 8);
+        const key = `products/${timestamp}-${hash}${path.extname(file.originalname)}`;
+
+        const result = await storageProvider.upload(
+          file.path,
+          key,
+          file.mimetype || "image/jpeg",
+        );
+        urls.push(result.url);
+        fs.unlinkSync(file.path);
+      }
+
+      res.json({ urls });
+    } catch (error) {
+      console.error("[ADMIN_UPLOAD] Product image upload failed:", error);
+      res.status(500).json({
+        error: "Product image upload failed",
+        details:
+          error instanceof Error ? error.message : "Unknown upload error",
+      });
     }
-
-    // Import SupabaseStorageProvider and create instance
-    const { getStorageProvider } = await import("@/utils/mediaStorage");
-    const storageProvider = getStorageProvider();
-
-    const urls: string[] = [];
-    // Import ESM modules
-    const crypto = await import("crypto");
-    const path = await import("path");
-    const fs = await import("fs");
-
-    for (const file of files) {
-      // Generate unique key for Supabase Storage
-      const timestamp = Date.now();
-      const hash = crypto
-        .createHash("sha256")
-        .update(file.originalname + timestamp)
-        .digest("hex")
-        .substring(0, 8);
-      const key = `products/${timestamp}-${hash}${path.extname(file.originalname)}`;
-
-      const result = await storageProvider.upload(
-        file.path,
-        key,
-        file.mimetype || "image/jpeg",
-      );
-      urls.push(result.url);
-      // Clean up temp file
-      fs.unlinkSync(file.path);
-    }
-
-    res.json({ urls });
   },
 );
 

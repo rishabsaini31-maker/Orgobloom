@@ -5,7 +5,7 @@
  * Documentation: https://fship.in/docs
  */
 
-import { ApiError } from "@/middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
 
 // Fship API configuration
 const FSHIP_BASE_URL =

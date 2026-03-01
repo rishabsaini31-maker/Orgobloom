@@ -1,5 +1,5 @@
-import { db } from "@/db";
-import { auditLogs } from "@/db/schema/auditLogs";
+import { db } from "../db/index.js";
+import { auditLogs } from "../db/schema/auditLogs";
 import { Request } from "express";
 
 export type AuditAction =

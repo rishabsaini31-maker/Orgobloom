@@ -99,12 +99,24 @@ const EmptyProductModal = ({
       const uploadData = new FormData();
       images.forEach((image) => uploadData.append("images", image));
 
+      console.log("[UPLOAD] Uploading images:", images.length, "files");
+      console.log(
+        "[UPLOAD] API URL:",
+        (window as any).__NEXT_PUBLIC_API_URL ||
+          process.env.NEXT_PUBLIC_API_URL ||
+          "fallback",
+      );
+
       const uploadResponse = await adminApi.uploadProductImages(uploadData);
+      console.log("[UPLOAD] Upload response:", uploadResponse.data);
+
       const uploadedUrls = uploadResponse.data?.urls || [];
 
       if (!uploadedUrls.length) {
-        throw new Error("Image upload failed");
+        throw new Error("Image upload failed - no URLs returned from server");
       }
+
+      console.log("[UPLOAD] Successfully uploaded:", uploadedUrls);
 
       const productPayload = {
         ...formData,

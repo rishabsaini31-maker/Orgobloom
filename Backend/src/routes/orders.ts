@@ -1,13 +1,34 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { orders, orderItems, addresses, users } from "@/db/schema";
+import { db } from "../db/index.js";
+import { orders, orderItems, addresses, users } from "../db/schema/index.js";
 import { eq, and } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth.js";
-import { ApiError } from "@/middleware/errorHandler.js";
+import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
-import { sendEmail } from "@/utils/emailService.js";
-import { emailTemplates } from "@/templates/emailTemplates.js";
-import { orderLimiter } from "@/middleware/rateLimiter.js";
+import { sendEmail } from "../utils/emailService.js";
+import { emailTemplates } from "../templates/emailTemplates.js";
+import rateLimit from "express-rate-limit";
+
+// Define orderLimiter locally to avoid import issues
+const orderLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 orders per hour per IP
+  message: {
+    error: "Too many orders",
+    message: "Please try again after 1 hour",
+    retryAfter: "1 hour",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`[RATE LIMIT] Order rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: "Too many orders",
+      message: "Please try again after 1 hour",
+      retryAfter: "1 hour",
+    });
+  },
+});
 
 const router = Router();
 

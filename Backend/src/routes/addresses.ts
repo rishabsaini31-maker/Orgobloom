@@ -1,9 +1,9 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { addresses } from "@/db/schema";
+import { db } from "../db/index.js";
+import { addresses } from "../db/schema/index.js";
 import { eq, and } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth.js";
-import { ApiError } from "@/middleware/errorHandler.js";
+import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 
 const router = Router();
 

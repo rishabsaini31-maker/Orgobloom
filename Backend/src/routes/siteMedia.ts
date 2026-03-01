@@ -11,10 +11,10 @@
  */
 
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { siteMedia } from "@/db/schema";
+import { db } from "../db/index.js";
+import { siteMedia } from "../db/schema/index.js";
 import { desc, eq } from "drizzle-orm";
-import { authenticate, isAdmin, AuthRequest } from "@/middleware/auth.js";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
@@ -33,7 +33,7 @@ import {
   cleanupExpiredUploads,
   formatBytes,
   mediaConfig,
-} from "@/utils/mediaStorage";
+} from "../utils/mediaStorage";
 
 const router = Router();
 
@@ -155,7 +155,7 @@ router.get(
   authenticate,
   isAdmin,
   async (_req: AuthRequest, res: Response) => {
-    const { getGlobalStorageUsage } = await import("@/utils/mediaStorage");
+    const { getGlobalStorageUsage } = await import("../utils/mediaStorage.js");
     const quota = await getGlobalStorageUsage();
     res.json({
       used: formatBytes(quota.usedBytes),

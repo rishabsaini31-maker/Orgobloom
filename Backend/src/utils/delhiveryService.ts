@@ -1,4 +1,4 @@
-import { ApiError } from "@/middleware/errorHandler";
+import { ApiError } from "../middleware/errorHandler";
 
 // Delhivery API configuration
 const DELHIVERY_BASE_URL =

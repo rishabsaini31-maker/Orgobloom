@@ -3,6 +3,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { createHash } from "crypto";
+import sharp from "sharp";
 const router = Router();
 
 // Supabase Storage Provider
@@ -29,7 +30,7 @@ const tempStorage = multer.diskStorage({
 
 const upload = multer({
   storage: tempStorage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for Supabase
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit (reduced from 50MB)
   fileFilter: (_req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|webp/;
     const extname = allowedTypes.test(
@@ -43,38 +44,69 @@ const upload = multer({
   },
 });
 
+const productImageUpload = upload.fields([
+  { name: "image", maxCount: 6 },
+  { name: "images", maxCount: 6 },
+]);
+
 // POST /products/upload-image - Uses Supabase Storage
 router.post(
   "/upload-image",
-  upload.array("image", 6),
+  productImageUpload,
   async (req: AuthRequest, res: Response) => {
     try {
-      if (!req.file) {
+      const fileMap = req.files as
+        | { [fieldname: string]: Express.Multer.File[] }
+        | undefined;
+      const files = [...(fileMap?.image || []), ...(fileMap?.images || [])];
+
+      if (!files.length) {
         return res.status(400).json({ error: "No image uploaded" });
       }
 
       const storageProvider = getStorageProvider();
-      const fileBuffer = fs.readFileSync(req.file.path);
-      const mimeType = req.file.mimetype || "image/jpeg";
 
-      // Generate unique key for Supabase Storage
-      const timestamp = Date.now();
-      const hash = createHash("sha256")
-        .update(req.file.originalname + timestamp)
-        .digest("hex")
-        .substring(0, 8);
-      const key = `products/${timestamp}-${hash}${path.extname(req.file.originalname)}`;
+      const uploaded = await Promise.all(
+        files.map(async (file) => {
+          const timestamp = Date.now();
+          const hash = createHash("sha256")
+            .update(file.originalname + timestamp)
+            .digest("hex")
+            .substring(0, 8);
+          const key = `products/${timestamp}-${hash}.webp`;
 
-      const result: CloudUploadResult = await storageProvider.upload(
-        req.file.path,
-        key,
-        mimeType,
+          const processedPath = path.join(
+            tempDir,
+            `processed-${path.basename(file.path)}.webp`,
+          );
+
+          await sharp(file.path)
+            .resize(1200, 1200, {
+              fit: "inside",
+              withoutEnlargement: true,
+            })
+            .webp({ quality: 85 })
+            .toFile(processedPath);
+
+          const result: CloudUploadResult = await storageProvider.upload(
+            processedPath,
+            key,
+            "image/webp",
+          );
+
+          fs.unlinkSync(processedPath);
+          fs.unlinkSync(file.path);
+
+          return { url: result.url, key: result.key };
+        }),
       );
 
-      // Clean up temp file
-      fs.unlinkSync(req.file.path);
-
-      res.json({ url: result.url, key: result.key });
+      res.json({
+        url: uploaded[0]?.url,
+        key: uploaded[0]?.key,
+        urls: uploaded.map((item) => item.url),
+        keys: uploaded.map((item) => item.key),
+      });
     } catch (error) {
       console.error("Upload error:", error);
       res.status(500).json({ error: "Image upload failed" });
@@ -118,6 +150,81 @@ const fixImageUrl = (url: string | null): string | null => {
   return url;
 };
 
+const fixImageList = (images: unknown): string[] => {
+  if (!images) return [];
+
+  const parsedImages =
+    typeof images === "string"
+      ? (() => {
+          try {
+            const parsed = JSON.parse(images);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        })()
+      : Array.isArray(images)
+        ? images
+        : [];
+
+  return parsedImages
+    .filter(
+      (url): url is string => typeof url === "string" && url.trim().length > 0,
+    )
+    .map((url) => fixImageUrl(url) || "")
+    .filter((url) => url.length > 0);
+};
+
+const checkImageUrl = async (
+  imageUrl: string,
+): Promise<{
+  ok: boolean;
+  status: number | null;
+  latencyMs: number;
+  error?: string;
+}> => {
+  const start = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const headResponse = await fetch(imageUrl, {
+      method: "HEAD",
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (headResponse.ok) {
+      return {
+        ok: true,
+        status: headResponse.status,
+        latencyMs: Date.now() - start,
+      };
+    }
+
+    const getResponse = await fetch(imageUrl, {
+      method: "GET",
+      signal: controller.signal,
+    });
+
+    return {
+      ok: getResponse.ok,
+      status: getResponse.status,
+      latencyMs: Date.now() - start,
+      error: getResponse.ok ? undefined : `HTTP ${getResponse.status}`,
+    };
+  } catch (error) {
+    clearTimeout(timeout);
+    return {
+      ok: false,
+      status: null,
+      latencyMs: Date.now() - start,
+      error: error instanceof Error ? error.message : "Unknown fetch error",
+    };
+  }
+};
+
 // Get all products (public) - Optimized with database-level pagination
 router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -158,6 +265,7 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
     const productsWithFixedImages = paginatedProducts.map((p) => ({
       ...p,
       imageUrl: fixImageUrl(p.imageUrl),
+      images: fixImageList((p as any).images),
     }));
 
     // Disable caching to always show fresh products
@@ -183,6 +291,76 @@ router.get("/", async (req: AuthRequest, res: Response, next: NextFunction) => {
   }
 });
 
+// Check product image URL health (admin only)
+router.get(
+  "/image-health",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 200, 500);
+
+      const productRows = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          imageUrl: products.imageUrl,
+          images: products.images,
+          updatedAt: products.updatedAt,
+        })
+        .from(products)
+        .orderBy(desc(products.updatedAt))
+        .limit(limit);
+
+      const checks = await Promise.all(
+        productRows.flatMap((product) => {
+          const normalizedPrimary = fixImageUrl(product.imageUrl);
+          const normalizedList = fixImageList((product as any).images);
+          const allUrls = Array.from(
+            new Set(
+              [normalizedPrimary, ...normalizedList].filter(
+                (url): url is string =>
+                  typeof url === "string" && url.length > 0,
+              ),
+            ),
+          );
+
+          return allUrls.map(async (url) => {
+            const result = await checkImageUrl(url);
+            return {
+              productId: product.id,
+              productName: product.name,
+              imageUrl: url,
+              ok: result.ok,
+              status: result.status,
+              latencyMs: result.latencyMs,
+              error: result.error,
+            };
+          });
+        }),
+      );
+
+      const totalChecked = checks.length;
+      const broken = checks.filter((item) => !item.ok);
+      const slow = checks.filter((item) => item.ok && item.latencyMs > 1500);
+
+      res.json({
+        success: true,
+        summary: {
+          productsScanned: productRows.length,
+          totalUrlsChecked: totalChecked,
+          brokenCount: broken.length,
+          slowCount: slow.length,
+        },
+        broken,
+        slow,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // Get product by ID (public)
 router.get(
   "/:id",
@@ -201,6 +379,7 @@ router.get(
       const fixedProduct = {
         ...product,
         imageUrl: fixImageUrl(product.imageUrl),
+        images: fixImageList((product as any).images),
       };
       res.json({ product: fixedProduct });
     } catch (error) {
@@ -227,6 +406,7 @@ router.get(
       const fixedProduct = {
         ...product,
         imageUrl: fixImageUrl(product.imageUrl),
+        images: fixImageList((product as any).images),
       };
       res.json({ product: fixedProduct });
     } catch (error) {

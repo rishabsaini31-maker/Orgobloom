@@ -1,10 +1,10 @@
 import { Router, Response, NextFunction } from "express";
-import { db } from "@/db";
-import { users } from "@/db/schema";
+import { db } from "../db/index.js";
+import { users } from "../db/schema/index.js";
 import { eq } from "drizzle-orm";
-import { authenticate, AuthRequest } from "@/middleware/auth.js";
-import { comparePassword, hashPassword } from "@/utils/auth.js";
-import { ApiError } from "@/middleware/errorHandler.js";
+import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { comparePassword, hashPassword } from "../utils/auth.js";
+import { ApiError } from "../middleware/errorHandler.js";
 
 const router = Router();
 
