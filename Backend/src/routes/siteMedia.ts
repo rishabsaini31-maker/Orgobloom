@@ -33,7 +33,7 @@ import {
   cleanupExpiredUploads,
   formatBytes,
   mediaConfig,
-} from "../utils/mediaStorage";
+} from "../utils/mediaStorage.js";
 
 const router = Router();
 
