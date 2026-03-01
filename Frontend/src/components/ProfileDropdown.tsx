@@ -101,6 +101,7 @@ export default function ProfileDropdown() {
         right: dropdownPosition.right,
         maxHeight: dropdownPosition.maxHeight,
         height: dropdownPosition.maxHeight,
+        overscrollBehavior: "contain",
       }}
     >
       {/* User Info */}
@@ -114,11 +115,21 @@ export default function ProfileDropdown() {
 
       {/* Menu Items - SCROLLABLE */}
       <div
-        className="overflow-y-auto flex-1 py-2"
+        className="overflow-y-auto flex-1 py-2 touch-none"
         style={{
           WebkitOverflowScrolling: "touch",
-          touchAction: "pan-y",
-          overscrollBehaviorY: "contain",
+          overscrollBehavior: "contain",
+          touchAction: "none",
+        }}
+        onWheel={(e) => {
+          const element = e.currentTarget;
+          const isAtTop = element.scrollTop === 0;
+          const isAtBottom =
+            element.scrollTop + element.clientHeight === element.scrollHeight;
+
+          if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
+            e.preventDefault();
+          }
         }}
       >
         {/* Account Section */}
