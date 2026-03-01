@@ -95,11 +95,12 @@ export default function ProfileDropdown() {
   const dropdownContent = (
     <div
       ref={dropdownRef}
-      className="fixed bg-white rounded-xl shadow-2xl z-[9999] border border-gray-200 w-72 max-w-[90vw] flex flex-col"
+      className="fixed bg-white rounded-xl shadow-2xl z-[9999] border border-gray-200 w-72 max-w-[90vw] flex flex-col overflow-hidden"
       style={{
         top: dropdownPosition.top,
         right: dropdownPosition.right,
         maxHeight: dropdownPosition.maxHeight,
+        height: dropdownPosition.maxHeight,
       }}
     >
       {/* User Info */}
