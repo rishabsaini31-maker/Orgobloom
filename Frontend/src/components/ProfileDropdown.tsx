@@ -232,6 +232,7 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
+        style={{ touchAction: "none" }}
       />
       <div
         ref={dropdownRef}
@@ -243,15 +244,22 @@ export default function ProfileDropdown() {
           borderTopLeftRadius: "20px",
           borderTopRightRadius: "20px",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
+          touchAction: "none",
         }}
       >
         {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div 
+          className="flex justify-center pt-3 pb-1 flex-shrink-0"
+          style={{ touchAction: "none" }}
+        >
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
         {/* Header with user info */}
-        <div className="px-6 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50">
+        <div 
+          className="px-6 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50"
+          style={{ touchAction: "none" }}
+        >
           <p className="text-sm font-semibold text-gray-900 truncate">
             {user.email}
           </p>
@@ -260,13 +268,14 @@ export default function ProfileDropdown() {
           )}
         </div>
 
-        {/* Scrollable menu area - fixed size */}
+        {/* Scrollable menu area - ONLY this area allows scrolling */}
         <div
           ref={scrollableRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden"
+          className="flex-1 overflow-y-scroll overflow-x-hidden"
           style={{
             WebkitOverflowScrolling: "touch",
-            scrollBehavior: "smooth",
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
           }}
         >
           <div className="divide-y divide-gray-100">{renderMenuItems()}</div>
