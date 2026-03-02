@@ -192,7 +192,7 @@ router.post(
           createdOrder.total,
           "5-7 business days",
         );
-        await sendEmail({
+        sendEmail({
           to: orderUser.email,
           subject: orderConfirmationContent.subject,
           html: orderConfirmationContent.html,
@@ -209,7 +209,7 @@ router.post(
         `New Order: ${createdOrder.orderNumber}`,
         `New order placed by ${orderUser?.name || orderUser?.email}\n\nOrder Details:\n- Order Number: ${createdOrder.orderNumber}\n- Total: $${createdOrder.total}\n- Items: ${items.length}\n- Status: ${createdOrder.status}\n\nPlease review in the admin panel.`,
       );
-      await sendEmail({
+      sendEmail({
         to: adminEmail,
         subject: adminNotificationContent.subject,
         html: adminNotificationContent.html,
