@@ -11,8 +11,13 @@ import { randomUUID } from "crypto";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { connectRedis } from "./utils/redis.js";
 import { initializeSocket } from "./utils/notifications.js";
+import { config } from "./config/env.js";
 
 dotenv.config();
+
+// Validate environment variables immediately at startup
+// This will throw with detailed errors if required vars are missing
+console.log("🔍 Validating environment configuration...");
 
 // Connect to Redis FIRST - before importing rate limiters
 await connectRedis();
@@ -46,7 +51,7 @@ const fshipRoutes = (await import("./routes/fship.js")).default;
 const app = express();
 app.set("etag", false);
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = config.PORT;
 
 // Enable trust proxy for Render/Heroku etc.
 app.set("trust proxy", 1);
@@ -71,12 +76,12 @@ const getAllowedOrigins = () => {
     "http://localhost:3002",
     "http://localhost:8000",
     "http://localhost:5000",
-    process.env.FRONTEND_URL,
-    process.env.ADMIN_URL,
+    config.FRONTEND_URL,
+    config.ADMIN_URL,
   ].filter(Boolean) as string[];
 
   // In development, allow all origins
-  if (process.env.NODE_ENV !== "production") {
+  if (config.NODE_ENV !== "production") {
     return true; // Allow all origins in development
   }
 
