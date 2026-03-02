@@ -5,11 +5,20 @@ const initializeTransporter = () => {
   const isProduction = process.env.NODE_ENV === "production";
 
   if (isProduction || process.env.SMTP_PASSWORD) {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
+      throw new Error(
+        "SMTP_USER/SMTP_PASSWORD missing. Configure email credentials in environment variables.",
+      );
+    }
+
     // Production: Use Gmail/SMTP with credentials
     return nodemailer.createTransport({
       host: process.env.SMTP_HOST || "smtp.gmail.com",
       port: parseInt(process.env.SMTP_PORT || "587"),
       secure: process.env.SMTP_SECURE === "true", // false for TLS, true for SSL
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASSWORD,
@@ -39,6 +48,14 @@ let transporter: any = null;
 export const getTransporter = async () => {
   if (!transporter) {
     transporter = await initializeTransporter();
+
+    try {
+      await transporter.verify();
+      console.log("✅ SMTP transporter verified");
+    } catch (error) {
+      console.error("❌ SMTP verification failed:", error);
+      throw error;
+    }
   }
   return transporter;
 };
@@ -68,7 +85,12 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
       bcc: options.bcc,
     };
 
-    const info = await transporter.sendMail(mailOptions);
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Email send timeout after 15 seconds")), 15000);
+    });
+
+    const info: any = await Promise.race([sendPromise, timeoutPromise]);
 
     console.log("✅ Email sent:", {
       messageId: info.messageId,
