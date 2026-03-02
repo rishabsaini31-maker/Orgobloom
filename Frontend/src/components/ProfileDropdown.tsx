@@ -66,22 +66,12 @@ export default function ProfileDropdown() {
       }
     };
 
-    // Only close on scroll outside the dropdown
-    const handleScroll = (event: Event) => {
-      if (isOpen && dropdownRef.current) {
-        // Check if the scroll is happening inside the dropdown
-        const target = event.target as Node;
-        if (!dropdownRef.current.contains(target)) {
-          setIsOpen(false);
-        }
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    window.addEventListener("scroll", handleScroll, true);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      window.removeEventListener("scroll", handleScroll, true);
     };
   }, [isOpen]);
 
@@ -120,7 +110,10 @@ export default function ProfileDropdown() {
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
         }}
-        onTouchStart={(e) => {
+        onTouchMove={(e) => {
+          e.stopPropagation();
+        }}
+        onMouseMove={(e) => {
           e.stopPropagation();
         }}
         onWheel={(e) => {
