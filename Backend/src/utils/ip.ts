@@ -51,7 +51,11 @@ export function isValidIP(ip: string): boolean {
  * Get IP geo location info (stub for future enhancement)
  * Can be enhanced with GeoIP databases later
  */
-export function getIPInfo(ip: string): { ip: string; country?: string; city?: string } {
+export function getIPInfo(ip: string): {
+  ip: string;
+  country?: string;
+  city?: string;
+} {
   return {
     ip,
     // TODO: Integrate with MaxMind or similar service

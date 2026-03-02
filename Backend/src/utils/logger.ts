@@ -58,7 +58,8 @@ export function logHttpRequest(
   duration: number,
   requestId: string,
 ) {
-  const level = statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
+  const level =
+    statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
   logger[level](
     {
       requestId,
@@ -169,7 +170,8 @@ export function logExternalApi(
   requestId?: string,
   error?: Error,
 ) {
-  const level = statusCode >= 500 || error ? "error" : statusCode >= 400 ? "warn" : "info";
+  const level =
+    statusCode >= 500 || error ? "error" : statusCode >= 400 ? "warn" : "info";
   logger[level](
     {
       requestId,

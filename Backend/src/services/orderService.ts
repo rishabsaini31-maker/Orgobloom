@@ -104,7 +104,12 @@ export async function getUserOrdersWithItems(userId: string) {
   const allItems = await db
     .select()
     .from(orderItems)
-    .where(inArray(orderItems.orderId, userOrders.map((o) => o.id)));
+    .where(
+      inArray(
+        orderItems.orderId,
+        userOrders.map((o) => o.id),
+      ),
+    );
 
   // Group items by order ID
   const itemsByOrderId = new Map<string, typeof allItems>();

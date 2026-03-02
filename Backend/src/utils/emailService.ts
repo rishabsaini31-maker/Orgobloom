@@ -87,7 +87,10 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
 
     const sendPromise = transporter.sendMail(mailOptions);
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error("Email send timeout after 15 seconds")), 15000);
+      setTimeout(
+        () => reject(new Error("Email send timeout after 15 seconds")),
+        15000,
+      );
     });
 
     const info: any = await Promise.race([sendPromise, timeoutPromise]);

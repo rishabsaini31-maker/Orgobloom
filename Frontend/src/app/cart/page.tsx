@@ -162,16 +162,17 @@ export default function CartPage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        body: JSON.stringify({
-          fullName: newAddress.name,
-          phone: newAddress.phone,
-          addressLine1: newAddress.address,
-          city: newAddress.city,
-          state: newAddress.state,
-          pincode: newAddress.pincode,
-          isDefault: addresses.length === 0, // Make first address default
-        }),
-      });
+          body: JSON.stringify({
+            fullName: newAddress.name,
+            phone: newAddress.phone,
+            addressLine1: newAddress.address,
+            city: newAddress.city,
+            state: newAddress.state,
+            pincode: newAddress.pincode,
+            isDefault: addresses.length === 0, // Make first address default
+          }),
+        },
+      );
 
       if (!response.ok) {
         const error = await response.json();
