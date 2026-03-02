@@ -2,16 +2,41 @@
 import { Router, Response } from "express";
 import { db } from "../db/index.js";
 import {
-  loyaltyProgram,
-  loyaltyTransactions,
-  loyaltyTierConfig,
-  loyaltyRewards,
+  loyaltyPoints,
+  loyaltyTiers,
+  userLoyalty,
 } from "../db/schema/loyalty.js";
-import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
 import { logger } from "../utils/logger.js";
-import { eq, desc, sql, and, lte, gte } from "drizzle-orm";
+import { eq, desc, sql, asc } from "drizzle-orm";
 
 const router = Router();
+
+async function getOrCreateDefaultTier() {
+  const existingTier = await db
+    .select()
+    .from(loyaltyTiers)
+    .orderBy(asc(loyaltyTiers.minPoints))
+    .limit(1);
+
+  if (existingTier[0]) {
+    return existingTier[0];
+  }
+
+  const created = await db
+    .insert(loyaltyTiers)
+    .values({
+      name: "BRONZE",
+      minPoints: 0,
+      maxPoints: 999,
+      pointsMultiplier: 1,
+      discountPercent: 0,
+      freeShipping: null,
+    })
+    .returning();
+
+  return created[0];
+}
 
 /**
  * @route   GET /api/loyalty/my-account
@@ -23,35 +48,50 @@ router.get(
   authenticate,
   async (req: AuthRequest, res: Response) => {
     try {
-      const userId = req.user?.id;
+      const userId = req.user?.id || "";
 
-      let account = await db.query.loyaltyProgram.findFirst({
-        where: (program) => eq(program.userId, userId || ""),
+      let account = await db.query.userLoyalty.findFirst({
+        where: (row) => eq(row.userId, userId),
       });
 
       if (!account) {
-        account = await db
-          .insert(loyaltyProgram)
-          .values({ userId: userId || "" })
+        const defaultTier = await getOrCreateDefaultTier();
+        const created = await db
+          .insert(userLoyalty)
+          .values({
+            userId,
+            totalPointsEarned: 0,
+            currentBalance: 0,
+            tierId: defaultTier.id,
+            totalRedeemed: 0,
+            totalExpired: 0,
+            updatedAt: new Date(),
+          })
           .returning();
+        account = created[0];
       }
 
       const transactions = await db
         .select()
-        .from(loyaltyTransactions)
-        .where(eq(loyaltyTransactions.userId, userId || ""))
-        .orderBy(desc(loyaltyTransactions.createdAt))
+        .from(loyaltyPoints)
+        .where(eq(loyaltyPoints.userId, userId))
+        .orderBy(desc(loyaltyPoints.createdAt))
         .limit(20);
 
-      const tierConfig = await db
-        .select()
-        .from(loyaltyTierConfig)
-        .where(eq(loyaltyTierConfig.name, account[0]?.tier || "BRONZE"));
+      const tierInfo = account.tierId
+        ? (
+            await db
+              .select()
+              .from(loyaltyTiers)
+              .where(eq(loyaltyTiers.id, account.tierId))
+              .limit(1)
+          )[0]
+        : null;
 
       res.json({
-        account: account[0],
+        account,
         recentTransactions: transactions,
-        tierInfo: tierConfig[0],
+        tierInfo,
       });
     } catch (error) {
       logger.error("Failed to fetch loyalty account", { error });
@@ -62,27 +102,15 @@ router.get(
 
 /**
  * @route   GET /api/loyalty/rewards
- * @desc    Get available loyalty rewards
+ * @desc    Get available loyalty rewards (placeholder)
  * @access  Authenticated users
  */
 router.get(
   "/rewards",
   authenticate,
-  async (req: AuthRequest, res: Response) => {
+  async (_req: AuthRequest, res: Response) => {
     try {
-      const rewards = await db
-        .select()
-        .from(loyaltyRewards)
-        .where(
-          and(
-            eq(loyaltyRewards.active, true),
-            lte(loyaltyRewards.validFrom, new Date()),
-            gte(loyaltyRewards.validTo, new Date()),
-          ),
-        )
-        .orderBy(loyaltyRewards.pointsRequired);
-
-      res.json(rewards);
+      res.json([]);
     } catch (error) {
       logger.error("Failed to fetch rewards", { error });
       res.status(500).json({ error: "Failed to fetch rewards" });
@@ -92,86 +120,16 @@ router.get(
 
 /**
  * @route   POST /api/loyalty/redeem
- * @desc    Redeem loyalty reward
+ * @desc    Redeem loyalty reward (currently unavailable)
  * @access  Authenticated users
  */
 router.post(
   "/redeem",
   authenticate,
-  async (req: AuthRequest, res: Response) => {
-    try {
-      const { rewardId } = req.body;
-      const userId = req.user?.id;
-
-      const reward = await db.query.loyaltyRewards.findFirst({
-        where: (rewards) => eq(rewards.id, rewardId as string),
-      });
-
-      if (!reward) {
-        return res.status(404).json({ error: "Reward not found" });
-      }
-
-      const account = await db.query.loyaltyProgram.findFirst({
-        where: (program) => eq(program.userId, userId || ""),
-      });
-
-      if (!account) {
-        return res.status(400).json({ error: "Loyalty account not found" });
-      }
-
-      if (account[0].availablePoints < reward.pointsRequired) {
-        return res.status(400).json({ error: "Insufficient loyalty points" });
-      }
-
-      if (
-        reward.maxRedemptions &&
-        reward.currentRedemptions >= reward.maxRedemptions
-      ) {
-        return res
-          .status(400)
-          .json({ error: "Reward redemption limit reached" });
-      }
-
-      // Create transaction
-      const transaction = await db
-        .insert(loyaltyTransactions)
-        .values({
-          userId: userId || "",
-          points: -reward.pointsRequired,
-          type: "REWARD",
-          description: `Redeemed: ${reward.name}`,
-          redeemedAt: new Date(),
-        })
-        .returning();
-
-      // Update account
-      await db
-        .update(loyaltyProgram)
-        .set({
-          availablePoints: sql`available_points - ${reward.pointsRequired}`,
-          updatedAt: new Date(),
-        })
-        .where(eq(loyaltyProgram.userId, userId || ""));
-
-      // Update reward redemptions
-      await db
-        .update(loyaltyRewards)
-        .set({
-          currentRedemptions: sql`current_redemptions + 1`,
-        })
-        .where(eq(loyaltyRewards.id, rewardId as string));
-
-      logger.info("Loyalty reward redeemed", { userId, rewardId });
-
-      res.json({
-        success: true,
-        transaction: transaction[0],
-        message: `Successfully redeemed ${reward.name}!`,
-      });
-    } catch (error) {
-      logger.error("Failed to redeem loyalty reward", { error });
-      res.status(500).json({ error: "Failed to redeem reward" });
-    }
+  async (_req: AuthRequest, res: Response) => {
+    res.status(501).json({
+      error: "Reward redemption is not configured yet",
+    });
   },
 );
 
@@ -183,50 +141,41 @@ router.post(
 router.get(
   "/admin/dashboard",
   authenticate,
-  async (req: AuthRequest, res: Response) => {
+  isAdmin,
+  async (_req: AuthRequest, res: Response) => {
     try {
-      // Total loyalty members
       const totalMembers = await db
         .select({ count: sql`count(*)` })
-        .from(loyaltyProgram);
+        .from(userLoyalty);
 
-      // Members by tier
       const membersByTier = await db
         .select({
-          tier: loyaltyProgram.tier,
-          count: sql`count(*) as member_count`,
+          tier: loyaltyTiers.name,
+          count: sql`count(*)`,
         })
-        .from(loyaltyProgram)
-        .groupBy(loyaltyProgram.tier);
+        .from(userLoyalty)
+        .leftJoin(loyaltyTiers, eq(userLoyalty.tierId, loyaltyTiers.id))
+        .groupBy(loyaltyTiers.name);
 
-      // Total points distributed
-      const totalPointsDistributed = await db
-        .select({
-          totalPoints: sql`sum(points) as total_points`,
-        })
-        .from(loyaltyTransactions);
+      const totalPointsInCirculation = await db
+        .select({ totalPoints: sql`sum(${userLoyalty.currentBalance})` })
+        .from(userLoyalty);
 
-      // Active rewards
-      const activeRewards = await db
-        .select({ count: sql`count(*)` })
-        .from(loyaltyRewards)
-        .where(eq(loyaltyRewards.active, true));
-
-      // Avg loyalty score by tier
       const avgPointsByTier = await db
         .select({
-          tier: loyaltyProgram.tier,
-          avgPoints: sql`avg(available_points) as avg_points`,
+          tier: loyaltyTiers.name,
+          avgPoints: sql`avg(${userLoyalty.currentBalance})`,
         })
-        .from(loyaltyProgram)
-        .groupBy(loyaltyProgram.tier);
+        .from(userLoyalty)
+        .leftJoin(loyaltyTiers, eq(userLoyalty.tierId, loyaltyTiers.id))
+        .groupBy(loyaltyTiers.name);
 
       res.json({
         summary: {
           totalMembers: Number(totalMembers[0]?.count || 0),
-          totalActiveRewards: Number(activeRewards[0]?.count || 0),
+          totalActiveRewards: 0,
           totalPointsInCirculation: Number(
-            totalPointsDistributed[0]?.totalPoints || 0,
+            totalPointsInCirculation[0]?.totalPoints || 0,
           ),
         },
         membersByTier,
@@ -247,28 +196,56 @@ router.get(
 router.post(
   "/admin/tiers",
   authenticate,
+  isAdmin,
   async (req: AuthRequest, res: Response) => {
     try {
-      const { name, minPointsRequired, discountPercentage, pointsMultiplier } =
-        req.body;
+      const {
+        name,
+        minPointsRequired,
+        discountPercentage,
+        pointsMultiplier,
+        maxPoints,
+      } = req.body;
 
-      if (!name || !minPointsRequired || !discountPercentage) {
+      if (
+        !name ||
+        minPointsRequired === undefined ||
+        discountPercentage === undefined
+      ) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      const tier = await db
-        .insert(loyaltyTierConfig)
-        .values({
-          name,
-          minPointsRequired,
-          discountPercentage,
-          pointsMultiplier: pointsMultiplier || 1,
-        })
-        .returning()
-        .onConflictDoUpdate({
-          target: loyaltyTierConfig.name,
-          set: { discountPercentage, pointsMultiplier },
-        });
+      const existingTier = await db
+        .select()
+        .from(loyaltyTiers)
+        .where(eq(loyaltyTiers.name, String(name)))
+        .limit(1);
+
+      let tier;
+      if (existingTier[0]) {
+        tier = await db
+          .update(loyaltyTiers)
+          .set({
+            minPoints: Number(minPointsRequired),
+            maxPoints: maxPoints === undefined ? null : Number(maxPoints),
+            discountPercent: Number(discountPercentage),
+            pointsMultiplier: Number(pointsMultiplier || 1),
+          })
+          .where(eq(loyaltyTiers.id, existingTier[0].id))
+          .returning();
+      } else {
+        tier = await db
+          .insert(loyaltyTiers)
+          .values({
+            name: String(name),
+            minPoints: Number(minPointsRequired),
+            maxPoints: maxPoints === undefined ? null : Number(maxPoints),
+            discountPercent: Number(discountPercentage),
+            pointsMultiplier: Number(pointsMultiplier || 1),
+            freeShipping: null,
+          })
+          .returning();
+      }
 
       res.json(tier[0]);
     } catch (error) {
