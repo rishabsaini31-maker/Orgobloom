@@ -1,4 +1,8 @@
+const path = require("path");
+
 /** @type {import('next').NextConfig} */
+const workspaceRoot = path.join(__dirname, "..");
+
 const nextConfig = {
   images: {
     remotePatterns: [
@@ -24,9 +28,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  // Explicit root avoids lockfile root inference warning in monorepo-like layout
+  outputFileTracingRoot: workspaceRoot,
+  // Keep Turbopack root aligned with outputFileTracingRoot to avoid Vercel warning
   turbopack: {
-    root: __dirname,
+    root: workspaceRoot,
   },
   // Increase webpack timeout for slow connections (used when running with --webpack flag)
   webpack: (config, { dev }) => {
