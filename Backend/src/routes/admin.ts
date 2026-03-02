@@ -1,6 +1,12 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "../db/index.js";
-import { orders, products, users, appSettings } from "../db/schema/index.js";
+import {
+  orders,
+  orderItems,
+  products,
+  users,
+  appSettings,
+} from "../db/schema/index.js";
 import { eq, sql, gte, and, lt, desc } from "drizzle-orm";
 import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
 import { generateSlug } from "../utils/helpers.js";
@@ -85,12 +91,45 @@ router.get(
         }
 
         const filteredOrders = await db
-          .select()
+          .select({
+            id: orders.id,
+            orderNumber: orders.orderNumber,
+            userId: orders.userId,
+            subtotal: orders.subtotal,
+            shippingCost: orders.shippingCost,
+            tax: orders.tax,
+            total: orders.total,
+            status: orders.status,
+            paymentStatus: orders.paymentStatus,
+            shippingAddress: orders.shippingAddress,
+            trackingNumber: orders.trackingNumber,
+            notes: orders.notes,
+            createdAt: orders.createdAt,
+            updatedAt: orders.updatedAt,
+            customerName: users.name,
+            email: users.email,
+          })
           .from(orders)
+          .leftJoin(users, eq(orders.userId, users.id))
           .where(eq(orders.status, dbStatus))
           .limit(limit)
           .offset(offset)
           .orderBy(orders.createdAt);
+
+        // Get items count for each order
+        const ordersWithItems = await Promise.all(
+          filteredOrders.map(async (order) => {
+            const [{ count }] = await db
+              .select({ count: sql<number>`count(*)::int` })
+              .from(orderItems)
+              .where(eq(orderItems.orderId, order.id));
+
+            return {
+              ...order,
+              itemsCount: Number(count),
+            };
+          }),
+        );
 
         // Get filtered count
         const [{ count }] = await db
@@ -101,7 +140,7 @@ router.get(
         const total = Number(count);
 
         res.json({
-          orders: filteredOrders,
+          orders: ordersWithItems,
           pagination: {
             page,
             limit,
@@ -112,11 +151,44 @@ router.get(
       } else {
         // Get all orders without status filter
         const paginatedOrders = await db
-          .select()
+          .select({
+            id: orders.id,
+            orderNumber: orders.orderNumber,
+            userId: orders.userId,
+            subtotal: orders.subtotal,
+            shippingCost: orders.shippingCost,
+            tax: orders.tax,
+            total: orders.total,
+            status: orders.status,
+            paymentStatus: orders.paymentStatus,
+            shippingAddress: orders.shippingAddress,
+            trackingNumber: orders.trackingNumber,
+            notes: orders.notes,
+            createdAt: orders.createdAt,
+            updatedAt: orders.updatedAt,
+            customerName: users.name,
+            email: users.email,
+          })
           .from(orders)
+          .leftJoin(users, eq(orders.userId, users.id))
           .limit(limit)
           .offset(offset)
           .orderBy(orders.createdAt);
+
+        // Get items count for each order
+        const ordersWithItems = await Promise.all(
+          paginatedOrders.map(async (order) => {
+            const [{ count }] = await db
+              .select({ count: sql<number>`count(*)::int` })
+              .from(orderItems)
+              .where(eq(orderItems.orderId, order.id));
+
+            return {
+              ...order,
+              itemsCount: Number(count),
+            };
+          }),
+        );
 
         // Get total count
         const [{ count }] = await db
@@ -126,7 +198,7 @@ router.get(
         const total = Number(count);
 
         res.json({
-          orders: paginatedOrders,
+          orders: ordersWithItems,
           pagination: {
             page,
             limit,
