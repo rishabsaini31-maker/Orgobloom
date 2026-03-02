@@ -120,10 +120,9 @@ export async function getUserOrdersWithItems(userId: string) {
     itemsByOrderId.get(item.orderId)!.push(item);
   });
 
-  // Map orders with their items
+  // Map orders with their item counts
   return userOrders.map((order) => ({
     ...order,
-    items: itemsByOrderId.get(order.id) || [],
-    itemsCount: itemsByOrderId.get(order.id)?.length || 0,
+    items: itemsByOrderId.get(order.id)?.length || 0,
   }));
 }

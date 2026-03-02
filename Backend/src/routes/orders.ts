@@ -220,7 +220,13 @@ router.get(
         order: {
           ...order,
           shippingAddress: JSON.parse(order.shippingAddress),
-          items: orderItemsList,
+          items: orderItemsList.map((item) => ({
+            id: item.id,
+            productId: item.productId,
+            productName: `Product ${item.productId}`,
+            quantity: item.quantity,
+            price: item.price,
+          })),
         },
       });
     } catch (error) {
