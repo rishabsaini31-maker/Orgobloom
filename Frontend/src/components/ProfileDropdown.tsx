@@ -15,9 +15,11 @@ export default function ProfileDropdown() {
     top: 0,
     right: 0,
     maxHeight: "60vh",
+    menuHeight: "300px",
   });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   // Ensure component is mounted (for portal)
   useEffect(() => {
@@ -46,11 +48,18 @@ export default function ProfileDropdown() {
         ? rect.top - maxHeight - 8
         : rect.bottom + 8;
 
-      setDropdownPosition({
-        top: Math.max(10, topPosition),
-        right: Math.max(10, window.innerWidth - rect.right),
-        maxHeight: `${maxHeight}px`,
-      });
+      // Calculate menu height: dropdown height minus header height
+      setTimeout(() => {
+        const headerHeight = headerRef.current?.offsetHeight || 80;
+        const menuHeight = maxHeight - headerHeight;
+        
+        setDropdownPosition({
+          top: Math.max(10, topPosition),
+          right: Math.max(10, window.innerWidth - rect.right),
+          maxHeight: `${maxHeight}px`,
+          menuHeight: `${menuHeight}px`,
+        });
+      }, 0);
     }
   }, [isOpen]);
 
@@ -69,7 +78,7 @@ export default function ProfileDropdown() {
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
@@ -95,7 +104,7 @@ export default function ProfileDropdown() {
       }}
     >
       {/* User Info */}
-      <div className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl flex-shrink-0">
+      <div ref={headerRef} className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl flex-shrink-0">
         <p className="text-sm text-gray-600">Signed in as</p>
         <p className="text-sm font-semibold text-gray-900">{user.email}</p>
         {user.name && (
@@ -105,8 +114,10 @@ export default function ProfileDropdown() {
 
       {/* Menu Items - SCROLLABLE */}
       <div
-        className="overflow-y-auto flex-1 py-2"
+        className="overflow-y-auto py-2"
         style={{
+          height: dropdownPosition.menuHeight,
+          minHeight: 0,
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
         }}
