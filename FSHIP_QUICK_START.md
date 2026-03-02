@@ -3,22 +3,26 @@
 ## What's Implemented
 
 ✅ **Shipment Management**
+
 - Create shipments directly with F Ship carrier
 - Track real-time delivery status
 - Cancel shipments if needed
 - Get shipping rates by location
 
 ✅ **Order Workflow**
+
 - Order → Confirmed → Create Shipment → F Ship → Tracked → Delivered
 - Automatic status updates
 - Email notifications to customer
 
 ✅ **Customer Tracking**
+
 - Public tracking page: `/track-order`
 - Email tracking link in shipment notification
 - Real-time updates from carrier
 
 ✅ **Admin Features**
+
 - Admin panel shipment management (APIs ready)
 - Filter shipments by status/carrier
 - View tracking timeline
@@ -27,6 +31,7 @@
 ## Quick Setup
 
 ### 1. Get F Ship API Key
+
 ```
 1. Go to https://fship.in
 2. Sign up → Complete KYC
@@ -35,7 +40,9 @@
 ```
 
 ### 2. Add to Environment
+
 **Backend/.env.local:**
+
 ```env
 FSHIP_API_KEY=your_api_key_here
 FSHIP_BASE_URL=https://api.fship.in/api/v1
@@ -44,6 +51,7 @@ FSHIP_BASE_URL=https://api.fship.in/api/v1
 **Restart Backend:** `npm run dev`
 
 ### 3. Test It
+
 ```bash
 # Get shipping rates
 curl "http://localhost:8000/api/shipments/rates?pincode=560001&state=Karnataka&weight=2"
@@ -54,10 +62,12 @@ curl "http://localhost:8000/api/shipments/rates?pincode=560001&state=Karnataka&w
 ## Admin Workflow
 
 ### Step 1: Receive Order
+
 - Customer places order → Payment processed
 - Order status: CONFIRMED
 
 ### Step 2: Create Shipment (Admin)
+
 ```
 POST /api/shipments/fship/create
 Authorization: Admin Token
@@ -68,6 +78,7 @@ Body: {
 ```
 
 **What happens:**
+
 - Order sent to F Ship carrier
 - Tracking number generated
 - Customer receives email with tracking link
@@ -75,12 +86,14 @@ Body: {
 - Order tracking number updated
 
 ### Step 3: Customer Tracks
+
 - Customer clicks link in email
 - OR goes to yoursite.com/track-order
 - Enters tracking number
 - Sees real-time delivery status
 
 ### Step 4: Order Delivered
+
 - F Ship updates carrier status
 - Shipment status → DELIVERED
 - Order status → DELIVERED automatically
@@ -88,6 +101,7 @@ Body: {
 ## API Endpoints (Admin Only)
 
 ### 1. Create Shipment with F Ship
+
 ```bash
 POST /api/shipments/fship/create
 Authorization: Bearer admin_token
@@ -112,6 +126,7 @@ Response:
 ```
 
 ### 2. Get Shipping Rates
+
 ```bash
 GET /api/shipments/rates?pincode=560001&state=Karnataka&weight=2
 
@@ -131,6 +146,7 @@ Response:
 ```
 
 ### 3. Cancel Shipment (if order not delivered)
+
 ```bash
 DELETE /api/shipments/tracking_number/cancel
 Authorization: Bearer admin_token
@@ -145,6 +161,7 @@ Response:
 ## Public API Endpoints (No Auth Required)
 
 ### Get Tracking Details
+
 ```bash
 GET /api/shipments/track/details/DL123456789
 
@@ -198,7 +215,7 @@ To add to admin dashboard, you would:
 - ✅ BlueDart
 - ✅ DTDC
 - ✅ India Post
-- ✅ FedEx  
+- ✅ FedEx
 - ✅ UPS
 - ✅ DPL
 
@@ -221,6 +238,7 @@ DELIVERED      → Order complete ✓
 ## Email Notifications
 
 Customer receives:
+
 1. **Order Confirmation** - When order placed
 2. **Shipment Notification**
    - Tracking number
@@ -232,6 +250,7 @@ Customer receives:
 ## Fallback Behavior
 
 If F Ship API is unavailable:
+
 - Shipment creation fails with error message
 - Customer doesn't get tracking
 - Manual shipment entry still works
@@ -240,16 +259,19 @@ If F Ship API is unavailable:
 ## Troubleshooting
 
 ### "F Ship is not configured"
+
 - Check FSHIP_API_KEY environment variable
 - Verify it's set in Backend/.env.local
 - Restart backend: `npm run dev`
 
 ### "Order not found"
+
 - Verify order ID is correct
 - Order must be in CONFIRMED status
 - Check database for order
 
 ### Tracking number not working
+
 - Wait 5-10 minutes for F Ship sync
 - Verify number is correct (case sensitive)
 - Check F Ship dashboard
@@ -257,6 +279,7 @@ If F Ship API is unavailable:
 ## Next: Admin Dashboard UI
 
 Would you like me to add:
+
 1. Admin shipment management page
 2. Bulk shipment creation
 3. Shipping report/analytics

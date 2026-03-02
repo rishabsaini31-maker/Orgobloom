@@ -1,4 +1,4 @@
-import { Router, Response, NextFunction } from "express";
+import { Router, Response, NextFunction, Request } from "express";
 import { db } from "../db/index.js";
 import { shipments, orders } from "../db/schema/index.js";
 import { eq, and } from "drizzle-orm";
@@ -6,7 +6,6 @@ import { authenticate, AuthRequest } from "../middleware/auth.js";
 import { ApiError } from "../middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
 import { shipmentService } from "../services/shipment/shipmentService.js";
-import { logger } from "../utils/logger.js";
 
 const router = Router();
 
@@ -111,11 +110,11 @@ router.post(
         throw new ApiError("Order ID is required", 400);
       }
 
-      logger.info(`[API] Creating F Ship shipment for order: ${orderId}`);
+      console.log(`[API] Creating F Ship shipment for order: ${orderId}`);
 
       const result = await shipmentService.createShipment(
         orderId,
-        preferredCarrier
+        preferredCarrier,
       );
 
       if (!result.success) {
@@ -130,7 +129,7 @@ router.post(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // Get tracking details with F Ship sync
@@ -138,13 +137,13 @@ router.get(
   "/track/details/:trackingNumber",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { trackingNumber } = req.params;
+      const { trackingNumber } = req.params as any;
 
       if (!trackingNumber) {
         throw new ApiError("Tracking number is required", 400);
       }
 
-      logger.info(`[API] Fetching tracking details for: ${trackingNumber}`);
+      console.log(`[API] Fetching tracking details for: ${trackingNumber}`);
 
       const result = await shipmentService.getTrackingDetails(trackingNumber);
 
@@ -159,7 +158,7 @@ router.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // Get shipping rates
@@ -167,18 +166,18 @@ router.get(
   "/rates",
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { pincode, state, weight } = req.query;
+      const { pincode, state, weight } = req.query as any;
 
       if (!pincode || !state) {
         throw new ApiError("Pincode and state are required", 400);
       }
 
-      logger.info(`[API] Fetching shipping rates for pincode: ${pincode}`);
+      console.log(`[API] Fetching shipping rates for pincode: ${pincode}`);
 
       const result = await shipmentService.getShippingRates(
         pincode as string,
         parseFloat(weight as string) || 2,
-        state as string
+        state as string,
       );
 
       if (!result.success) {
@@ -192,7 +191,7 @@ router.get(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // Admin: Cancel shipment
@@ -205,13 +204,13 @@ router.delete(
         throw new ApiError("Unauthorized", 403);
       }
 
-      const { trackingNumber } = req.params;
+      const { trackingNumber } = req.params as any;
 
       if (!trackingNumber) {
         throw new ApiError("Tracking number is required", 400);
       }
 
-      logger.info(`[API] Cancelling shipment: ${trackingNumber}`);
+      console.log(`[API] Cancelling shipment: ${trackingNumber}`);
 
       const result = await shipmentService.cancelShipment(trackingNumber);
 
@@ -226,7 +225,7 @@ router.delete(
     } catch (error) {
       next(error);
     }
-  }
+  },
 );
 
 // Admin: Update shipment status
@@ -369,7 +368,7 @@ router.get(
         throw new ApiError("Unauthorized", 403);
       }
 
-      const { status, carrier, page = "1", limit = "20" } = req.query;
+      const { status, carrier, page = "1", limit = "20" } = req.query as any;
 
       let allShipments;
 

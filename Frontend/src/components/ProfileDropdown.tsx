@@ -86,14 +86,14 @@ export default function ProfileDropdown() {
       document.addEventListener("mousedown", handleClickOutside);
       // Lock body scroll on mobile when dropdown is open
       if (isMobile) {
-        document.body.style.overflow = 'hidden';
+        document.body.style.overflow = "hidden";
       }
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       // Restore body scroll
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, isMobile]);
 
@@ -133,7 +133,9 @@ export default function ProfileDropdown() {
                 user.email?.charAt(0).toUpperCase()}
             </div>
             <div className="ml-3">
-              <p className="text-sm font-semibold text-gray-900">{user.email}</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {user.email}
+              </p>
               {user.name && (
                 <p className="text-xs text-gray-600">{user.name}</p>
               )}
@@ -607,10 +609,12 @@ export default function ProfileDropdown() {
       </button>
 
       {/* Render dropdown using portal to escape container constraints */}
-      {isOpen && mounted && createPortal(
-        isMobile ? mobileDropdownContent : dropdownContent, 
-        document.body
-      )}
+      {isOpen &&
+        mounted &&
+        createPortal(
+          isMobile ? mobileDropdownContent : dropdownContent,
+          document.body,
+        )}
     </div>
   );
 }

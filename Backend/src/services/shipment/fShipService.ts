@@ -1,5 +1,4 @@
 import axios from "axios";
-import { logger } from "../../utils/logger.js";
 
 interface FShipCreateShipmentPayload {
   order_id: string;
@@ -52,8 +51,8 @@ export class FShipService {
     this.baseUrl = process.env.FSHIP_BASE_URL || "https://api.fship.in/api/v1";
 
     if (!this.apiKey) {
-      logger.warn(
-        "[FShip] API Key not configured. Shipment integration disabled."
+      console.warn(
+        "[FShip] API Key not configured. Shipment integration disabled.",
       );
     }
   }
@@ -69,10 +68,10 @@ export class FShipService {
    * Create a shipment with F Ship
    */
   async createShipment(
-    payload: FShipCreateShipmentPayload
+    payload: FShipCreateShipmentPayload,
   ): Promise<FShipShipmentResponse> {
     if (!this.isConfigured()) {
-      logger.error("[FShip] API Key not configured");
+      console.error("[FShip] API Key not configured");
       return {
         success: false,
         error: "F Ship is not configured",
@@ -81,15 +80,15 @@ export class FShipService {
     }
 
     try {
-      logger.info(`[FShip] Creating shipment for order: ${payload.order_id}`);
+      console.log(`[FShip] Creating shipment for order: ${payload.order_id}`);
 
       const response = await axios.post(`${this.baseUrl}/shipments/create`, {
         api_key: this.apiKey,
         ...payload,
       });
 
-      logger.info(
-        `[FShip] Shipment created successfully: ${response.data.data?.shipment_id}`
+      console.log(
+        `[FShip] Shipment created successfully: ${response.data.data?.shipment_id}`,
       );
 
       return {
@@ -105,9 +104,9 @@ export class FShipService {
         },
       };
     } catch (error: any) {
-      logger.error(
+      console.error(
         `[FShip] Error creating shipment: ${error.message}`,
-        error.response?.data
+        error.response?.data,
       );
       return {
         success: false,
@@ -143,7 +142,7 @@ export class FShipService {
     }
 
     try {
-      logger.info(`[FShip] Fetching tracking details for: ${trackingNumber}`);
+      console.log(`[FShip] Fetching tracking details for: ${trackingNumber}`);
 
       const response = await axios.get(`${this.baseUrl}/shipments/track`, {
         params: {
@@ -162,9 +161,9 @@ export class FShipService {
         },
       };
     } catch (error: any) {
-      logger.error(
+      console.error(
         `[FShip] Error fetching tracking details: ${error.message}`,
-        error.response?.data
+        error.response?.data,
       );
       return {
         success: false,
@@ -189,7 +188,7 @@ export class FShipService {
     }
 
     try {
-      logger.info(`[FShip] Cancelling shipment: ${trackingNumber}`);
+      console.log(`[FShip] Cancelling shipment: ${trackingNumber}`);
 
       const response = await axios.post(`${this.baseUrl}/shipments/cancel`, {
         api_key: this.apiKey,
@@ -201,9 +200,9 @@ export class FShipService {
         message: "Shipment cancelled successfully",
       };
     } catch (error: any) {
-      logger.error(
+      console.error(
         `[FShip] Error cancelling shipment: ${error.message}`,
-        error.response?.data
+        error.response?.data,
       );
       return {
         success: false,
@@ -219,7 +218,7 @@ export class FShipService {
   async getShippingRates(
     pincode: string,
     weight: number,
-    destination_state: string
+    destination_state: string,
   ): Promise<{
     success: boolean;
     data?: Array<{
@@ -237,8 +236,8 @@ export class FShipService {
     }
 
     try {
-      logger.info(
-        `[FShip] Fetching rates for pincode: ${pincode}, weight: ${weight}kg`
+      console.log(
+        `[FShip] Fetching rates for pincode: ${pincode}, weight: ${weight}kg`,
       );
 
       const response = await axios.get(`${this.baseUrl}/shipments/rates`, {
@@ -259,13 +258,14 @@ export class FShipService {
             estimated_delivery_days: rate.estimated_delivery_days,
           }))
           .sort(
-            (a: any, b: any) => a.estimated_delivery_days - b.estimated_delivery_days
+            (a: any, b: any) =>
+              a.estimated_delivery_days - b.estimated_delivery_days,
           ),
       };
     } catch (error: any) {
-      logger.error(
+      console.error(
         `[FShip] Error fetching rates: ${error.message}`,
-        error.response?.data
+        error.response?.data,
       );
       return {
         success: false,

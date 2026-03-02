@@ -1,11 +1,13 @@
 # F Ship Integration Guide
 
 ## Overview
+
 Complete shipment management system integrated with F Ship for real-time tracking, order fulfillment, and shipping automation.
 
 ## Setup & Configuration
 
 ### 1. Environment Variables
+
 Add these to your `.env.local`:
 
 ```env
@@ -19,6 +21,7 @@ Get your API key from F Ship dashboard: https://panel.fship.in/
 ### 2. API Endpoints
 
 #### Create Shipment (with F Ship)
+
 ```bash
 POST /api/shipments/fship/create
 Authorization: Bearer <admin_token>
@@ -43,6 +46,7 @@ Response:
 ```
 
 #### Get Tracking Details
+
 ```bash
 GET /api/shipments/track/details/:trackingNumber
 
@@ -76,6 +80,7 @@ Response:
 ```
 
 #### Get Shipping Rates
+
 ```bash
 GET /api/shipments/rates?pincode=560001&state=Karnataka&weight=2
 
@@ -98,6 +103,7 @@ Response:
 ```
 
 #### Cancel Shipment
+
 ```bash
 DELETE /api/shipments/:trackingNumber/cancel
 Authorization: Bearer <admin_token>
@@ -149,6 +155,7 @@ Response:
 ### 🔄 Database schema
 
 **Orders table:**
+
 ```sql
 -- New columns
 tracking_number TEXT
@@ -156,6 +163,7 @@ status ENUM('PENDING', 'PROCESSING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCE
 ```
 
 **Shipments table:**
+
 ```sql
 CREATE TABLE shipments (
   id TEXT PRIMARY KEY,
@@ -204,10 +212,12 @@ CREATE TABLE shipments (
 ### Customer Tracking
 
 **Via Email:**
+
 - Customer receives shipment email with tracking link
 - Link opens public tracking page
 
 **Via /track-order page:**
+
 - Enter tracking number
 - View real-time status
 - See delivery timeline
@@ -236,6 +246,7 @@ Alternative paths:
 ## Configuration for Your System
 
 ### Step 1: Get F Ship Account
+
 1. Go to https://fship.in
 2. Sign up for merchant account
 3. Complete kyc/verification
@@ -243,6 +254,7 @@ Alternative paths:
 5. Get API key from dashboard
 
 ### Step 2: Add API Key to Backend
+
 ```env
 # Backend/.env.local or Backend/.env.production
 FSHIP_API_KEY=YOUR_API_KEY_HERE
@@ -250,6 +262,7 @@ FSHIP_BASE_URL=https://api.fship.in/api/v1
 ```
 
 ### Step 3: Test Integration
+
 ```bash
 cd Backend
 npm run dev
@@ -259,6 +272,7 @@ curl -X GET 'http://localhost:8000/api/shipments/rates?pincode=560001&state=Karn
 ```
 
 ### Step 4: Deploy to Production
+
 - Update environment variables on Render
 - Update environment variables on Vercel (if needed for Frontend)
 - Restart services
@@ -266,20 +280,25 @@ curl -X GET 'http://localhost:8000/api/shipments/rates?pincode=560001&state=Karn
 ## Troubleshooting
 
 ### Shipment Creation Fails
+
 **Error:** "F Ship is not configured"
+
 - Solution: Check FSHIP_API_KEY in environment variables
 - Verify API key is valid on F Ship dashboard
 
 **Error:** "Order not found or invalid status"
+
 - Solution: Order must be in CONFIRMED status before shipping
 - Check order status in database
 
 ### Tracking Number Not Found
+
 - Wait 5-10 minutes for F Ship to sync
 - Verify tracking number is correct
 - Check F Ship dashboard for carrier status
 
 ### Email Not Sent
+
 - Check email service configuration
 - Verify customer email is valid in order
 - Check logs for email service errors
@@ -304,10 +323,12 @@ Webhook processing already handled by shipmentService.
 ## Support
 
 For F Ship API documentation:
+
 - Docs: https://docs.fship.in
 - Support: https://support.fship.in
 
 For Orgobloom integration issues:
+
 - Check Backend logs: `npm run dev`
 - Check database: `SELECT * FROM shipments;`
 - Contact development team
