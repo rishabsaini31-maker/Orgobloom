@@ -94,36 +94,45 @@ export default function ProfileDropdown() {
       }
     };
 
-    const handleTouchMove = (e: TouchEvent) => {
-      // Only prevent scroll on the backdrop, not inside the menu
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
-        e.preventDefault();
-      }
-    };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       document.addEventListener("touchstart", handleClickOutside, {
-        passive: false,
+        passive: true,
       });
+
       if (isMobile) {
-        document.addEventListener("touchmove", handleTouchMove, {
+        // Prevent body scroll while modal is open
+        const originalStyle = window.getComputedStyle(document.body).overflow;
+        document.body.style.overflow = "hidden";
+
+        // Intercept touchmove on the entire document and only allow inside scrollable area
+        const handleDocumentTouchMove = (e: TouchEvent) => {
+          const target = e.target as HTMLElement;
+
+          // Check if touch is inside scrollable area
+          if (scrollableRef.current && scrollableRef.current.contains(target)) {
+            // Allow scroll inside menu
+            return;
+          }
+
+          // Prevent scroll everywhere else
+          e.preventDefault();
+        };
+
+        document.addEventListener("touchmove", handleDocumentTouchMove, {
           passive: false,
         });
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
+
+        return () => {
+          document.removeEventListener("touchmove", handleDocumentTouchMove);
+          document.body.style.overflow = originalStyle;
+        };
       }
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
-      document.removeEventListener("touchmove", handleTouchMove);
-      document.body.style.position = "unset";
-      document.body.style.width = "unset";
     };
   }, [isOpen, isMobile]);
 
@@ -265,14 +274,9 @@ export default function ProfileDropdown() {
           className="flex-1 overflow-y-auto px-2 py-2"
           style={{
             minHeight: 0,
-            maxHeight: "calc(70vh - 140px)",
             WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "auto",
-            WebkitTouchCallout: "none",
-            touchAction: "manipulation",
-          }}
-          onTouchMove={(e) => {
-            e.stopPropagation();
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
           }}
         >
           {renderMenuItems()}
