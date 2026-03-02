@@ -2,7 +2,7 @@
 import { Router, Response } from "express";
 import { db } from "../db/index.js";
 import { supportTickets, ticketReplies } from "../db/schema/supportTicket.js";
-import { authenticate, AuthRequest } from "../middleware/auth.js";
+import { authenticate, isAdmin, AuthRequest } from "../middleware/auth.js";
 import { logger } from "../utils/logger.js";
 import { eq, sql } from "drizzle-orm";
 import { sendSMS, smsTemplates } from "../services/sms/smsService.js";
@@ -262,9 +262,9 @@ router.patch(
  */
 router.patch(
   "/:ticketId/assign",
-  authenticateToken,
-  adminOnly,
-  async (req: Request, res: Response) => {
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
     try {
       const { ticketId } = req.params;
       const { adminId } = req.body;
@@ -295,8 +295,8 @@ router.patch(
  */
 router.post(
   "/:ticketId/satisfaction",
-  authenticateToken,
-  async (req: Request, res: Response) => {
+  authenticate,
+  async (req: AuthRequest, res: Response) => {
     try {
       const { ticketId } = req.params;
       const { rating, notes = "" } = req.body;
@@ -344,9 +344,9 @@ router.post(
  */
 router.get(
   "/",
-  authenticateToken,
-  adminOnly,
-  async (req: Request, res: Response) => {
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response) => {
     try {
       const {
         status,
