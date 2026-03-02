@@ -104,14 +104,20 @@ export default function ProfileDropdown() {
       });
 
       if (isMobile) {
-        // Simple approach: lock body scroll while modal is open
-        const originalOverflow = document.body.style.overflow;
-        document.body.style.overflow = "hidden";
+        // Prevent background scroll by setting body position fixed
+        const scrollY = window.scrollY;
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
 
         return () => {
           document.removeEventListener("mousedown", handleClickOutside);
           document.removeEventListener("touchstart", handleClickOutside);
-          document.body.style.overflow = originalOverflow;
+          // Restore body scroll position
+          document.body.style.position = "";
+          document.body.style.top = "";
+          document.body.style.width = "";
+          window.scrollTo(0, scrollY);
         };
       }
     }
@@ -232,33 +238,27 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
-        style={{ touchAction: "none" }}
       />
       <div
         ref={dropdownRef}
         className="fixed left-0 right-0 bottom-0 bg-white z-[9999] flex flex-col"
         style={{
-          height: "50vh",
-          maxHeight: "500px",
-          minHeight: "300px",
+          height: "65vh",
+          maxHeight: "600px",
+          minHeight: "400px",
           borderTopLeftRadius: "20px",
           borderTopRightRadius: "20px",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
         }}
       >
         {/* Handle bar */}
-        <div
-          className="flex justify-center pt-3 pb-1 flex-shrink-0"
-          style={{ touchAction: "none" }}
-        >
+        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
         {/* Header with user info */}
-        <div
-          className="px-6 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50"
-          style={{ touchAction: "none" }}
-        >
+        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0 bg-gradient-to-b from-gray-50 to-white">
+          <p className="text-xs text-gray-500 mb-1">Signed in as</p>
           <p className="text-sm font-semibold text-gray-900 truncate">
             {user.email}
           </p>
@@ -267,16 +267,17 @@ export default function ProfileDropdown() {
           )}
         </div>
 
-        {/* Scrollable menu area - ONLY this area allows scrolling */}
+        {/* Scrollable menu area */}
         <div
           ref={scrollableRef}
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto overflow-x-hidden"
           style={{
             WebkitOverflowScrolling: "touch",
             overscrollBehavior: "contain",
+            minHeight: 0,
           }}
         >
-          <div className="divide-y divide-gray-100">{renderMenuItems()}</div>
+          <div className="py-2">{renderMenuItems()}</div>
         </div>
       </div>
     </>
