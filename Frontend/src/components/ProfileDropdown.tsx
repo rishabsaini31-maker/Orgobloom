@@ -101,31 +101,14 @@ export default function ProfileDropdown() {
       });
 
       if (isMobile) {
-        // Prevent body scroll while modal is open
-        const originalStyle = window.getComputedStyle(document.body).overflow;
+        // Simple approach: lock body scroll while modal is open
+        const originalOverflow = document.body.style.overflow;
         document.body.style.overflow = "hidden";
 
-        // Intercept touchmove on the entire document and only allow inside scrollable area
-        const handleDocumentTouchMove = (e: TouchEvent) => {
-          const target = e.target as HTMLElement;
-
-          // Check if touch is inside scrollable area
-          if (scrollableRef.current && scrollableRef.current.contains(target)) {
-            // Allow scroll inside menu
-            return;
-          }
-
-          // Prevent scroll everywhere else
-          e.preventDefault();
-        };
-
-        document.addEventListener("touchmove", handleDocumentTouchMove, {
-          passive: false,
-        });
-
         return () => {
-          document.removeEventListener("touchmove", handleDocumentTouchMove);
-          document.body.style.overflow = originalStyle;
+          document.removeEventListener("mousedown", handleClickOutside);
+          document.removeEventListener("touchstart", handleClickOutside);
+          document.body.style.overflow = originalOverflow;
         };
       }
     }
@@ -244,45 +227,49 @@ export default function ProfileDropdown() {
   const mobileDropdownContent = (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-[9998] pointer-events-auto"
+        className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
       />
       <div
         ref={dropdownRef}
-        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl flex flex-col overflow-hidden"
+        className="fixed left-0 right-0 bottom-0 bg-white z-[9999] flex flex-col"
         style={{
-          maxHeight: "70vh",
-          minHeight: "280px",
-          WebkitFontSmoothing: "antialiased",
+          height: "50vh",
+          maxHeight: "500px",
+          minHeight: "300px",
+          borderTopLeftRadius: "20px",
+          borderTopRightRadius: "20px",
+          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
         }}
       >
-        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-1 flex-shrink-0">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
-        <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+        {/* Header with user info */}
+        <div className="px-6 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50">
           <p className="text-sm font-semibold text-gray-900 truncate">
             {user.email}
           </p>
           {user.name && (
-            <p className="text-xs text-gray-600 mt-1">{user.name}</p>
+            <p className="text-xs text-gray-600 mt-0.5">{user.name}</p>
           )}
         </div>
 
+        {/* Scrollable menu area - fixed size */}
         <div
           ref={scrollableRef}
-          className="flex-1 overflow-y-auto px-2 py-2"
+          className="flex-1 overflow-y-auto overflow-x-hidden"
           style={{
-            minHeight: 0,
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
-            overscrollBehavior: "contain",
+            scrollBehavior: "smooth",
           }}
         >
-          {renderMenuItems()}
+          <div className="divide-y divide-gray-100">
+            {renderMenuItems()}
+          </div>
         </div>
-
-        <div className="h-4 flex-shrink-0" />
       </div>
     </>
   );
