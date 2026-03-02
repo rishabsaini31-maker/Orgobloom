@@ -20,6 +20,8 @@ export default function OrdersPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const { token } = useAuthStore();
   const [mounted, setMounted] = useState(false);
+  const [isViewLoading, setIsViewLoading] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -87,6 +89,19 @@ export default function OrdersPage() {
       toast.error("Failed to update order status");
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleViewOrder = async (orderId: string) => {
+    setIsViewLoading(true);
+    try {
+      const response = await adminApi.getOrderById(orderId);
+      const order = response.data?.order || response.data;
+      setSelectedOrder(order);
+    } catch (error) {
+      toast.error("Failed to load order details");
+    } finally {
+      setIsViewLoading(false);
     }
   };
 
@@ -301,9 +316,9 @@ export default function OrdersPage() {
                   <td className="px-4 py-3 text-xs">
                     <button
                       className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                      onClick={() => toast.success(`Order ${order.id} details`)}
+                      onClick={() => handleViewOrder(order.id)}
                     >
-                      View
+                      {isViewLoading ? "Loading..." : "View"}
                     </button>
                   </td>
                 </tr>
@@ -315,6 +330,83 @@ export default function OrdersPage() {
               Showing 50 of {filteredOrders.length} orders
             </div>
           )}
+        </div>
+      )}
+
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+              <h2 className="text-lg font-bold text-gray-900">Order Details</h2>
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-gray-500">Order ID</p>
+                  <p className="font-semibold text-gray-900">{selectedOrder.id}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Order Number</p>
+                  <p className="font-semibold text-gray-900">{selectedOrder.orderNumber || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Customer</p>
+                  <p className="font-semibold text-gray-900">{selectedOrder.customerName || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Email</p>
+                  <p className="font-semibold text-gray-900">{selectedOrder.email || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Phone</p>
+                  <p className="font-semibold text-gray-900">{selectedOrder.phone || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Total</p>
+                  <p className="font-semibold text-gray-900">₹{(selectedOrder.total || 0).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-500 mb-1">Shipping Address</p>
+                <div className="bg-gray-50 rounded-lg p-3 text-gray-800">
+                  <p>{selectedOrder.shippingAddress?.fullName || selectedOrder.customerName || "-"}</p>
+                  <p>{selectedOrder.shippingAddress?.addressLine1 || selectedOrder.shippingAddress?.address || "-"}</p>
+                  {selectedOrder.shippingAddress?.addressLine2 && (
+                    <p>{selectedOrder.shippingAddress.addressLine2}</p>
+                  )}
+                  <p>
+                    {selectedOrder.shippingAddress?.city || "-"}, {selectedOrder.shippingAddress?.state || "-"} {selectedOrder.shippingAddress?.pincode || "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-500 mb-1">Items ({selectedOrder.itemsCount || selectedOrder.items?.length || 0})</p>
+                <div className="space-y-2">
+                  {(selectedOrder.items || []).map((item: any) => (
+                    <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                      <div>
+                        <p className="font-medium text-gray-900">{item.productName || item.productId}</p>
+                        <p className="text-xs text-gray-500">Qty: {item.quantity} • Weight: {item.weight}</p>
+                      </div>
+                      <p className="font-semibold text-gray-900">₹{Number(item.price || 0).toLocaleString()}</p>
+                    </div>
+                  ))}
+                  {(!selectedOrder.items || selectedOrder.items.length === 0) && (
+                    <p className="text-gray-500">No items found for this order.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

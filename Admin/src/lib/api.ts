@@ -83,6 +83,7 @@ api.interceptors.response.use(
 // Admin API
 export const adminApi = {
   getOrders: (params?: any) => api.get("/admin/orders", { params }),
+  getOrderById: (id: string) => api.get(`/admin/orders/${id}/detail`),
   updateOrderStatus: (id: string, data: any) =>
     api.patch(`/admin/orders/${id}/status`, data),
   uploadProductImages: (data: FormData) =>

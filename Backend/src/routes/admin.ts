@@ -244,6 +244,71 @@ router.patch(
   },
 );
 
+// Get single order details (admin only)
+router.get(
+  "/orders/:id/detail",
+  authenticate,
+  isAdmin,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const [order] = await db
+        .select({
+          id: orders.id,
+          orderNumber: orders.orderNumber,
+          userId: orders.userId,
+          subtotal: orders.subtotal,
+          shippingCost: orders.shippingCost,
+          tax: orders.tax,
+          total: orders.total,
+          status: orders.status,
+          paymentStatus: orders.paymentStatus,
+          shippingAddress: orders.shippingAddress,
+          trackingNumber: orders.trackingNumber,
+          notes: orders.notes,
+          createdAt: orders.createdAt,
+          updatedAt: orders.updatedAt,
+          customerName: users.name,
+          email: users.email,
+          phone: users.phone,
+        })
+        .from(orders)
+        .leftJoin(users, eq(orders.userId, users.id))
+        .where(eq(orders.id, req.params.id))
+        .limit(1);
+
+      if (!order) {
+        return res.status(404).json({ error: "Order not found" });
+      }
+
+      const items = await db
+        .select()
+        .from(orderItems)
+        .where(eq(orderItems.orderId, order.id));
+
+      let parsedShippingAddress: any = null;
+      try {
+        parsedShippingAddress = order.shippingAddress
+          ? JSON.parse(order.shippingAddress)
+          : null;
+      } catch {
+        parsedShippingAddress = null;
+      }
+
+      res.json({
+        order: {
+          ...order,
+          shippingAddress: parsedShippingAddress,
+          phone: order.phone || parsedShippingAddress?.phone || null,
+          items,
+          itemsCount: items.length,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // ==================== ANALYTICS ====================
 
 // Get basic analytics
