@@ -13,20 +13,7 @@ import crypto from "crypto";
 import rateLimit from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
 import { redisClient } from "../utils/redis.js";
-
-// Helper to get consistent client IP even behind proxy
-function getClientIP(req: any): string {
-  // Check X-Forwarded-For first (for proxy scenarios)
-  const forwardedFor = req.get("x-forwarded-for");
-  if (forwardedFor) {
-    // X-Forwarded-For can have multiple IPs, take the first one
-    const ips = forwardedFor.split(",").map((ip: string) => ip.trim());
-    return ips[0] || "unknown";
-  }
-
-  // Fallback to req.ip
-  return req.ip || req.socket?.remoteAddress || "unknown";
-}
+import { getClientIP } from "../utils/ip.js";
 
 // Cache for Redis stores - created lazily on first use
 const storeCache = new Map<string, RedisStore | null>();
