@@ -244,7 +244,6 @@ export default function ProfileDropdown() {
           borderTopLeftRadius: "20px",
           borderTopRightRadius: "20px",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
-          touchAction: "none",
         }}
       >
         {/* Handle bar */}
@@ -271,10 +270,9 @@ export default function ProfileDropdown() {
         {/* Scrollable menu area - ONLY this area allows scrolling */}
         <div
           ref={scrollableRef}
-          className="flex-1 overflow-y-scroll overflow-x-hidden"
+          className="flex-1 overflow-y-auto"
           style={{
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
             overscrollBehavior: "contain",
           }}
         >
