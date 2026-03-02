@@ -27,21 +27,35 @@ export default function ProfileDropdown() {
     // Set mounted first
     setMounted(true);
 
-    // Detect mobile with media query (more reliable)
+    // Detect mobile with multiple methods for reliability
+    const checkMobile = () => {
+      const isMobileDevice =
+        window.innerWidth < 768 ||
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent,
+        );
+      console.log("[MOBILE CHECK] Width:", window.innerWidth, "Is Mobile:", isMobileDevice);
+      setIsMobile(isMobileDevice);
+    };
+
+    // Check immediately
+    checkMobile();
+
+    // Also use media query
     const mediaQuery = window.matchMedia("(max-width: 767px)");
-
-    // Set initial value
-    setIsMobile(mediaQuery.matches);
-
-    const handleMobileChange = (e: MediaQueryListEvent) => {
+    const handleMediaChange = (e: MediaQueryListEvent) => {
+      console.log("[MEDIA QUERY CHANGE] Is Mobile:", e.matches);
       setIsMobile(e.matches);
     };
 
-    // Listen for changes
-    mediaQuery.addEventListener("change", handleMobileChange);
+    mediaQuery.addEventListener("change", handleMediaChange);
+
+    // Check on resize too
+    window.addEventListener("resize", checkMobile);
 
     return () => {
-      mediaQuery.removeEventListener("change", handleMobileChange);
+      mediaQuery.removeEventListener("change", handleMediaChange);
+      window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
@@ -52,8 +66,16 @@ export default function ProfileDropdown() {
     }
   }, [isMobile]);
 
-  // Calculate dropdown position and max height for mobile
+  // Debug: Log when isMobile changes
   useEffect(() => {
+    console.log("[ProfileDropdown] isMobile state changed to:", isMobile);
+  }, [isMobile]);
+
+  // Calculate dropdown position and max height for DESKTOP ONLY
+  useEffect(() => {
+    // Skip position calculation on mobile - use bottom sheet instead
+    if (isMobile) return;
+    
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
@@ -87,7 +109,7 @@ export default function ProfileDropdown() {
         });
       }, 0);
     }
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
