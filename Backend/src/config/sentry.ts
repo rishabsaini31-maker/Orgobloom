@@ -6,7 +6,9 @@ export function initSentry() {
   const environment = process.env.NODE_ENV || "development";
 
   if (!dsn) {
-    logger.warn("SENTRY_DSN not configured. Error tracking disabled.");
+    if (environment === "development") {
+      logger.warn("SENTRY_DSN not configured. Error tracking disabled.");
+    }
     return;
   }
 
