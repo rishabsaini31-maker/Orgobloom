@@ -221,10 +221,11 @@ export default function ProfileDropdown() {
       />
       <div
         ref={dropdownRef}
-        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl flex flex-col"
+        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl flex flex-col overflow-hidden"
         style={{
           maxHeight: "70vh",
           minHeight: "280px",
+          WebkitFontSmoothing: "antialiased",
         }}
       >
         <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
@@ -241,11 +242,12 @@ export default function ProfileDropdown() {
         </div>
 
         <div
-          className="px-2 py-2 overflow-y-scroll flex-1"
+          className="px-2 py-2 overflow-y-auto flex-1"
           style={{
+            minHeight: 0,
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-y",
             overscrollBehavior: "contain",
+            WebkitTouchCallout: "none",
           }}
         >
           {renderMenuItems()}
@@ -280,7 +282,7 @@ export default function ProfileDropdown() {
       </div>
 
       <div
-        className="overflow-y-scroll py-2"
+        className="overflow-y-auto py-2"
         style={{
           height: dropdownPosition.menuHeight,
           minHeight: 0,
