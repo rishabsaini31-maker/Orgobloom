@@ -1,0 +1,331 @@
+import { db } from "../../db/index.js";
+import { shipments, orders } from "../../db/schema/index.js";
+import { eq, and } from "drizzle-orm";
+import { fShipService } from "./fShipService.js";
+import { logger } from "../../utils/logger.js";
+import { emailService } from "../email/emailService.js";
+
+export class ShipmentService {
+  /**
+   * Create shipment and send to F Ship
+   */
+  async createShipment(
+    orderId: string,
+    preferredCarrier?: string
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    try {
+      logger.info(`[Shipment] Creating shipment for order: ${orderId}`);
+
+      // Get order details
+      const order = await db.query.orders.findFirst({
+        where: eq(orders.id, orderId),
+        with: {
+          items: true,
+          user: true,
+        },
+      });
+
+      if (!order) {
+        return { success: false, error: "Order not found" };
+      }
+
+      if (order.status !== "CONFIRMED") {
+        return {
+          success: false,
+          error: `Cannot create shipment for order with status: ${order.status}`,
+        };
+      }
+
+      // Parse shipping address
+      const shippingAddress = JSON.parse(order.shippingAddress);
+
+      // Prepare F Ship payload
+      const fShipPayload = {
+        order_id: order.orderNumber,
+        customer_name: order.user.name || order.user.email,
+        customer_phone: order.user.phone || "9876543210",
+        customer_email: order.user.email,
+        shipping_address: {
+          address_line1: shippingAddress.addressLine1,
+          address_line2: shippingAddress.addressLine2 || "",
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          pincode: shippingAddress.pincode,
+          country: shippingAddress.country || "India",
+        },
+        order_items: order.items.map((item: any) => ({
+          name: item.productName,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        cod: order.paymentStatus === "PENDING", // COD if not prepaid
+        weight: 2, // Default weight, can be calculated from items
+      };
+
+      // Create shipment with F Ship
+      const fShipResponse = await fShipService.createShipment(fShipPayload);
+
+      if (!fShipResponse.success || !fShipResponse.data) {
+        return {
+          success: false,
+          error: fShipResponse.error || "Failed to create shipment with F Ship",
+        };
+      }
+
+      // Save shipment to database
+      const shipment = await db.insert(shipments).values({
+        orderId,
+        carrier: fShipResponse.data.carrier,
+        carrierCode: fShipResponse.data.carrier.toLowerCase(),
+        trackingNumber: fShipResponse.data.tracking_number,
+        trackingUrl: fShipResponse.data.tracking_url,
+        status: "PICKED_UP",
+        shippingAddress: shippingAddress,
+        estimatedDelivery: new Date(
+          fShipResponse.data.estimated_delivery
+        ),
+        shippedAt: new Date(),
+        trackingEvents: [
+          {
+            timestamp: new Date().toISOString(),
+            status: "PICKED_UP",
+            location: "Warehouse",
+            message: "Order picked up and handed to carrier",
+          },
+        ],
+      });
+
+      // Update order status to SHIPPED
+      await db
+        .update(orders)
+        .set({
+          status: "SHIPPED",
+          trackingNumber: fShipResponse.data.tracking_number,
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, orderId));
+
+      // Send shipment notification email
+      await this.sendShipmentNotificationEmail(
+        order,
+        fShipResponse.data.tracking_number,
+        fShipResponse.data.tracking_url,
+        fShipResponse.data.estimated_delivery
+      );
+
+      logger.info(
+        `[Shipment] Shipment created successfully: ${fShipResponse.data.tracking_number}`
+      );
+
+      return {
+        success: true,
+        data: {
+          shipmentId: shipment[0].id,
+          trackingNumber: fShipResponse.data.tracking_number,
+          trackingUrl: fShipResponse.data.tracking_url,
+          estimatedDelivery: fShipResponse.data.estimated_delivery,
+          carrier: fShipResponse.data.carrier,
+        },
+      };
+    } catch (error: any) {
+      logger.error(`[Shipment] Error creating shipment: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get shipment tracking details
+   */
+  async getTrackingDetails(trackingNumber: string): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
+    try {
+      // Get from database first
+      const shipment = await db.query.shipments.findFirst({
+        where: eq(shipments.trackingNumber, trackingNumber),
+      });
+
+      if (!shipment) {
+        return { success: false, error: "Shipment not found" };
+      }
+
+      // Fetch latest tracking from F Ship
+      const fShipDetails = await fShipService.getTrackingDetails(
+        trackingNumber
+      );
+
+      if (fShipDetails.success && fShipDetails.data) {
+        // Update database with latest status
+        await db
+          .update(shipments)
+          .set({
+            status: fShipDetails.data.status,
+            trackingEvents: fShipDetails.data.events as any,
+            updatedAt: new Date(),
+          })
+          .where(eq(shipments.trackingNumber, trackingNumber));
+      }
+
+      return {
+        success: true,
+        data: {
+          trackingNumber,
+          carrier: shipment.carrier,
+          status: fShipDetails.data?.status || shipment.status,
+          currentLocation:
+            fShipDetails.data?.current_location || "In Transit",
+          estimatedDelivery:
+            fShipDetails.data?.estimated_delivery ||
+            shipment.estimatedDelivery,
+          trackingUrl: shipment.trackingUrl,
+          trackingEvents: fShipDetails.data?.events || shipment.trackingEvents,
+          shippedAt: shipment.shippedAt,
+        },
+      };
+    } catch (error: any) {
+      logger.error(`[Shipment] Error fetching tracking: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get shipping rates for checkout
+   */
+  async getShippingRates(
+    pincode: string,
+    weight: number,
+    state: string
+  ): Promise<{
+    success: boolean;
+    data?: Array<{
+      carrier: string;
+      rate: number;
+      estimatedDeliveryDays: number;
+    }>;
+    error?: string;
+  }> {
+    try {
+      if (!fShipService.isConfigured()) {
+        // Return default rates if F Ship not configured
+        return {
+          success: true,
+          data: [
+            {
+              carrier: "Standard",
+              rate: 50,
+              estimatedDeliveryDays: 5,
+            },
+            {
+              carrier: "Express",
+              rate: 100,
+              estimatedDeliveryDays: 2,
+            },
+          ],
+        };
+      }
+
+      const rates = await fShipService.getShippingRates(
+        pincode,
+        weight,
+        state
+      );
+      return rates as any;
+    } catch (error: any) {
+      logger.error(
+        `[Shipment] Error fetching shipping rates: ${error.message}`
+      );
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Send shipment notification email
+   */
+  private async sendShipmentNotificationEmail(
+    order: any,
+    trackingNumber: string,
+    trackingUrl: string,
+    estimatedDelivery: string
+  ) {
+    try {
+      await emailService.send({
+        to: order.user.email,
+        subject: `Your order ${order.orderNumber} has been shipped!`,
+        template: "shipment-notification",
+        data: {
+          orderNumber: order.orderNumber,
+          trackingNumber,
+          trackingUrl,
+          estimatedDelivery,
+          customerName: order.user.name || "Customer",
+        },
+      });
+
+      logger.info(
+        `[Email] Shipment notification sent to ${order.user.email}`
+      );
+    } catch (error) {
+      logger.error(`[Email] Error sending shipment notification: ${error}`);
+    }
+  }
+
+  /**
+   * Cancel shipment
+   */
+  async cancelShipment(trackingNumber: string): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }> {
+    try {
+      logger.info(`[Shipment] Cancelling shipment: ${trackingNumber}`);
+
+      // Cancel with F Ship
+      const result = await fShipService.cancelShipment(trackingNumber);
+
+      if (!result.success) {
+        return result;
+      }
+
+      // Update database
+      await db
+        .update(shipments)
+        .set({
+          status: "CANCELLED",
+          updatedAt: new Date(),
+        })
+        .where(eq(shipments.trackingNumber, trackingNumber));
+
+      // Update order status
+      const shipment = await db.query.shipments.findFirst({
+        where: eq(shipments.trackingNumber, trackingNumber),
+      });
+
+      if (shipment) {
+        await db
+          .update(orders)
+          .set({
+            status: "CANCELLED",
+            updatedAt: new Date(),
+          })
+          .where(eq(orders.id, shipment.orderId));
+      }
+
+      return { success: true, message: "Shipment cancelled successfully" };
+    } catch (error: any) {
+      logger.error(`[Shipment] Error cancelling shipment: ${error.message}`);
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+export const shipmentService = new ShipmentService();

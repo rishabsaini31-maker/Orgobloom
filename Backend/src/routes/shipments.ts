@@ -5,6 +5,8 @@ import { eq, and } from "drizzle-orm";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
 import { ApiError } from "../middleware/errorHandler.js";
 import { createId } from "@paralleldrive/cuid2";
+import { shipmentService } from "../services/shipment/shipmentService.js";
+import { logger } from "../utils/logger.js";
 
 const router = Router();
 
@@ -93,9 +95,9 @@ router.get("/track/:trackingNumber", async (req, res, next) => {
   }
 });
 
-// Admin: Create shipment for order
+// Admin: Create shipment with F Ship integration
 router.post(
-  "/",
+  "/fship/create",
   authenticate,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -103,89 +105,128 @@ router.post(
         throw new ApiError("Unauthorized", 403);
       }
 
-      const {
+      const { orderId, preferredCarrier } = req.body;
+
+      if (!orderId) {
+        throw new ApiError("Order ID is required", 400);
+      }
+
+      logger.info(`[API] Creating F Ship shipment for order: ${orderId}`);
+
+      const result = await shipmentService.createShipment(
         orderId,
-        carrier,
-        carrierCode,
-        trackingNumber,
-        trackingUrl,
-        shippingAddress,
-        estimatedDelivery,
-        shippingCost,
-        codAmount,
-        weight,
-        dimensions,
-        notes,
-      } = req.body;
+        preferredCarrier
+      );
 
-      // Verify order exists
-      const [order] = await db
-        .select()
-        .from(orders)
-        .where(eq(orders.id, orderId));
-
-      if (!order) {
-        throw new ApiError("Order not found", 404);
+      if (!result.success) {
+        throw new ApiError(result.error || "Failed to create shipment", 400);
       }
-
-      // Check if shipment already exists
-      const [existingShipment] = await db
-        .select()
-        .from(shipments)
-        .where(eq(shipments.orderId, orderId));
-
-      if (existingShipment) {
-        throw new ApiError("Shipment already exists for this order", 400);
-      }
-
-      // Create initial tracking event
-      const initialEvent = {
-        id: createId(),
-        status: "PENDING",
-        description: "Shipment created, awaiting pickup",
-        timestamp: new Date().toISOString(),
-      };
-
-      const [shipment] = await db
-        .insert(shipments)
-        .values({
-          orderId,
-          carrier,
-          carrierCode,
-          trackingNumber,
-          trackingUrl,
-          shippingAddress,
-          status: "PENDING",
-          trackingEvents: [initialEvent],
-          estimatedDelivery: estimatedDelivery
-            ? new Date(estimatedDelivery)
-            : null,
-          shippingCost: shippingCost || "0",
-          codAmount,
-          weight,
-          dimensions,
-          notes,
-          shippedAt: new Date(),
-        })
-        .returning();
-
-      // Update order status to SHIPPED
-      await db
-        .update(orders)
-        .set({
-          status: "SHIPPED",
-          updatedAt: new Date(),
-        })
-        .where(eq(orders.id, orderId));
 
       res.status(201).json({
         success: true,
-        shipment,
+        message: "Shipment created and sent to F Ship successfully",
+        data: result.data,
       });
     } catch (error) {
       next(error);
     }
-  },
+  }
+);
+
+// Get tracking details with F Ship sync
+router.get(
+  "/track/details/:trackingNumber",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { trackingNumber } = req.params;
+
+      if (!trackingNumber) {
+        throw new ApiError("Tracking number is required", 400);
+      }
+
+      logger.info(`[API] Fetching tracking details for: ${trackingNumber}`);
+
+      const result = await shipmentService.getTrackingDetails(trackingNumber);
+
+      if (!result.success) {
+        throw new ApiError(result.error || "Shipment not found", 404);
+      }
+
+      res.json({
+        success: true,
+        data: result.data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Get shipping rates
+router.get(
+  "/rates",
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { pincode, state, weight } = req.query;
+
+      if (!pincode || !state) {
+        throw new ApiError("Pincode and state are required", 400);
+      }
+
+      logger.info(`[API] Fetching shipping rates for pincode: ${pincode}`);
+
+      const result = await shipmentService.getShippingRates(
+        pincode as string,
+        parseFloat(weight as string) || 2,
+        state as string
+      );
+
+      if (!result.success) {
+        throw new ApiError(result.error || "Failed to fetch rates", 400);
+      }
+
+      res.json({
+        success: true,
+        data: result.data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// Admin: Cancel shipment
+router.delete(
+  "/:trackingNumber/cancel",
+  authenticate,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (req.user?.role !== "ADMIN") {
+        throw new ApiError("Unauthorized", 403);
+      }
+
+      const { trackingNumber } = req.params;
+
+      if (!trackingNumber) {
+        throw new ApiError("Tracking number is required", 400);
+      }
+
+      logger.info(`[API] Cancelling shipment: ${trackingNumber}`);
+
+      const result = await shipmentService.cancelShipment(trackingNumber);
+
+      if (!result.success) {
+        throw new ApiError(result.error || "Failed to cancel shipment", 400);
+      }
+
+      res.json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 );
 
 // Admin: Update shipment status
