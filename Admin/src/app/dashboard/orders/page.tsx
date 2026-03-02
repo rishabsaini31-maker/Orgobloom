@@ -27,6 +27,30 @@ export default function OrdersPage() {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    // Prevent body scroll when select dropdown is open on mobile
+    const handleSelectFocus = (e: Event) => {
+      if ((e.target as HTMLSelectElement).tagName === "SELECT") {
+        document.body.style.overflow = "hidden";
+      }
+    };
+
+    const handleSelectBlur = (e: Event) => {
+      if ((e.target as HTMLSelectElement).tagName === "SELECT") {
+        document.body.style.overflow = "";
+      }
+    };
+
+    document.addEventListener("focus", handleSelectFocus, true);
+    document.addEventListener("blur", handleSelectBlur, true);
+
+    return () => {
+      document.removeEventListener("focus", handleSelectFocus, true);
+      document.removeEventListener("blur", handleSelectBlur, true);
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const {
     data: ordersData,
     isLoading,
@@ -241,7 +265,7 @@ export default function OrdersPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto [&_select]:relative [&_select]:z-10">
+        <div className="overflow-x-auto overscroll-contain [&_select]:relative [&_select]:z-10 [&_select]:touch-none">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
@@ -299,7 +323,7 @@ export default function OrdersPage() {
                         handleStatusUpdate(order.id, e.target.value)
                       }
                       disabled={updatingId === order.id}
-                      className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer relative z-20 appearance-none ${getStatusColor(
+                      className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer relative z-20 appearance-none pointer-events-auto will-change-auto ${getStatusColor(
                         order.status,
                       )}`}
                     >
