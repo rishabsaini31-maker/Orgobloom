@@ -116,7 +116,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                     {this.state.error.toString()}
                   </p>
                   {this.state.errorInfo?.componentStack && (
-                    <p className="font-mono text-xs text-gray-600 mt-2 mt-2 break-words">
+                    <p className="font-mono text-xs text-gray-600 mt-2 break-words">
                       {this.state.errorInfo.componentStack}
                     </p>
                   )}

@@ -64,7 +64,7 @@ const envSchema = z
       .optional()
       .transform((v) => v === "true"),
   })
-  .strict()
+  .passthrough()
   .superRefine((data, ctx) => {
     // Production-specific validations
     if (data.NODE_ENV === "production") {
