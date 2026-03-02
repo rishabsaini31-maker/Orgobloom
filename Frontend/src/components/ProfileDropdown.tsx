@@ -11,6 +11,7 @@ export default function ProfileDropdown() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({
     top: 0,
     right: 0,
@@ -24,6 +25,12 @@ export default function ProfileDropdown() {
   // Ensure component is mounted (for portal)
   useEffect(() => {
     setMounted(true);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Calculate dropdown position and max height for mobile
@@ -77,12 +84,18 @@ export default function ProfileDropdown() {
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      // Lock body scroll on mobile when dropdown is open
+      if (isMobile) {
+        document.body.style.overflow = 'hidden';
+      }
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      // Restore body scroll
+      document.body.style.overflow = 'unset';
     };
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
   const handleLogout = () => {
     logout();
@@ -91,6 +104,169 @@ export default function ProfileDropdown() {
 
   if (!user) return null;
 
+  // Mobile version - Bottom sheet with essential items only (no scrolling needed)
+  const mobileDropdownContent = (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-[9998]"
+        onClick={() => setIsOpen(false)}
+      />
+      {/* Bottom Sheet */}
+      <div
+        ref={dropdownRef}
+        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[9999] shadow-2xl transform transition-transform duration-300 ease-out"
+        style={{
+          maxHeight: "70vh",
+        }}
+      >
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-2">
+          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+        </div>
+
+        {/* User Info */}
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center mb-2">
+            <div className="w-12 h-12 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-lg">
+              {user.name?.charAt(0).toUpperCase() ||
+                user.email?.charAt(0).toUpperCase()}
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-semibold text-gray-900">{user.email}</p>
+              {user.name && (
+                <p className="text-xs text-gray-600">{user.name}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Essential Menu Items - NO SCROLL NEEDED */}
+        <div className="px-4 py-3">
+          <Link
+            href="/profile"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-3 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            <span className="text-base font-medium">My Profile</span>
+          </Link>
+
+          <Link
+            href="/orders"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-3 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+              />
+            </svg>
+            <span className="text-base font-medium">My Orders</span>
+          </Link>
+
+          <Link
+            href="/wishlist"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-3 text-primary-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+            <span className="text-base font-medium">Wishlist</span>
+          </Link>
+
+          <Link
+            href="/profile?tab=settings"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-3 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span className="text-base font-medium">Settings</span>
+          </Link>
+
+          <div className="border-t border-gray-100 my-2"></div>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsOpen(false);
+              handleLogout();
+            }}
+            className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            <span className="text-base font-medium">Logout</span>
+          </button>
+        </div>
+
+        {/* Safe area bottom padding */}
+        <div className="h-6"></div>
+      </div>
+    </>
+  );
+
+  // Desktop version - Full dropdown with all sections
   const dropdownContent = (
     <div
       ref={dropdownRef}
@@ -431,7 +607,10 @@ export default function ProfileDropdown() {
       </button>
 
       {/* Render dropdown using portal to escape container constraints */}
-      {isOpen && mounted && createPortal(dropdownContent, document.body)}
+      {isOpen && mounted && createPortal(
+        isMobile ? mobileDropdownContent : dropdownContent, 
+        document.body
+      )}
     </div>
   );
 }
