@@ -18,6 +18,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node patch-paths.cjs && node dist/server.js",
+    "migrate:startup": "tsx src/scripts/runStartupMigrations.ts",
     "setup": "tsx src/setup.ts",
     "update-admin": "tsx src/update-admin.ts",
     "db:generate": "drizzle-kit generate:pg",

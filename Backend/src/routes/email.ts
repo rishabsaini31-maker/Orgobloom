@@ -4,6 +4,26 @@ import { emailTemplates } from "../templates/emailTemplates.js";
 
 const router = Router();
 
+function logEmailEvent(
+  level: "info" | "error",
+  event: string,
+  data: Record<string, unknown>,
+) {
+  const entry = {
+    level,
+    event,
+    at: new Date().toISOString(),
+    ...data,
+  };
+
+  if (level === "error") {
+    console.error(JSON.stringify(entry));
+    return;
+  }
+
+  console.log(JSON.stringify(entry));
+}
+
 // Type for email requests
 interface EmailRequest {
   to: string | string[];
@@ -17,7 +37,14 @@ interface EmailRequest {
  */
 router.post("/send", async (req: Request, res: Response) => {
   try {
+    const requestId = (res.locals.requestId as string) || "unknown";
     const { to, templateType, data } = req.body as EmailRequest;
+
+    logEmailEvent("info", "email.send.request_received", {
+      requestId,
+      templateType,
+      recipientCount: Array.isArray(to) ? to.length : to ? 1 : 0,
+    });
 
     if (!to || !templateType) {
       return res.status(400).json({
@@ -141,6 +168,10 @@ router.post("/send", async (req: Request, res: Response) => {
     });
 
     if (success) {
+      logEmailEvent("info", "email.send.success", {
+        requestId,
+        templateType,
+      });
       return res.status(200).json({
         success: true,
         message: "Email sent successfully",
@@ -148,12 +179,21 @@ router.post("/send", async (req: Request, res: Response) => {
         template: templateType,
       });
     } else {
+      logEmailEvent("error", "email.send.failed", {
+        requestId,
+        templateType,
+        reason: "sendEmail returned false",
+      });
       return res.status(500).json({
         success: false,
         message: "Failed to send email",
       });
     }
   } catch (error) {
+    logEmailEvent("error", "email.send.exception", {
+      requestId: (res.locals.requestId as string) || "unknown",
+      message: error instanceof Error ? error.message : "unknown_error",
+    });
     console.error("Email route error:", error);
     return res.status(500).json({
       success: false,
@@ -169,7 +209,13 @@ router.post("/send", async (req: Request, res: Response) => {
  */
 router.post("/test", async (req: Request, res: Response) => {
   try {
+    const requestId = (res.locals.requestId as string) || "unknown";
     const { to, subject, message } = req.body;
+
+    logEmailEvent("info", "email.test.request_received", {
+      requestId,
+      recipient: to,
+    });
 
     if (!to) {
       return res.status(400).json({
@@ -185,6 +231,10 @@ router.post("/test", async (req: Request, res: Response) => {
     });
 
     if (success) {
+      logEmailEvent("info", "email.test.success", {
+        requestId,
+        recipient: to,
+      });
       return res.status(200).json({
         success: true,
         message: "Test email sent successfully",
@@ -194,6 +244,10 @@ router.post("/test", async (req: Request, res: Response) => {
       throw new Error("Failed to send test email");
     }
   } catch (error) {
+    logEmailEvent("error", "email.test.failed", {
+      requestId: (res.locals.requestId as string) || "unknown",
+      message: error instanceof Error ? error.message : "unknown_error",
+    });
     return res.status(500).json({
       success: false,
       message: "Failed to send test email",

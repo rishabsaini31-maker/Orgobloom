@@ -1,104 +1,34 @@
 import { Router, Response, NextFunction } from "express";
 import { db } from "../db/index.js";
-import { orders, orderItems, addresses, users } from "../db/schema/index.js";
+import { orders, orderItems, users } from "../db/schema/index.js";
 import { eq, and } from "drizzle-orm";
 import { authenticate, AuthRequest } from "../middleware/auth.js";
 import { ApiError } from "../middleware/errorHandler.js";
-import { createId } from "@paralleldrive/cuid2";
+import { orderLimiter } from "../middleware/rateLimiter.js";
 import { sendEmail } from "../utils/emailService.js";
 import { emailTemplates } from "../templates/emailTemplates.js";
-import rateLimit from "express-rate-limit";
-import RedisStore from "rate-limit-redis";
-import { redisClient } from "../utils/redis.js";
-
-// Helper to get consistent client IP even behind proxy
-function getClientIP(req: any): string {
-  // Check X-Forwarded-For first (for proxy scenarios)
-  const forwardedFor = req.get("x-forwarded-for");
-  if (forwardedFor) {
-    const ips = forwardedFor.split(",").map((ip: string) => ip.trim());
-    return ips[0] || "unknown";
-  }
-  return req.ip || req.socket?.remoteAddress || "unknown";
-}
-
-// Cache for Redis stores - created lazily on first use
-const storeCache = new Map<string, RedisStore | null>();
-
-// Helper to get or create Redis store with proper sendCommand
-// Returns undefined if Redis isn't available, falling back to memory store
-function getRedisStore(prefix: string) {
-  // For local development with Upstash, use memory store to avoid connection issues
-  const isUsingUpstash = process.env.REDIS_URL?.includes("upstash.io");
-
-  if (isUsingUpstash && process.env.NODE_ENV !== "production") {
-    console.warn(
-      `⚠️  Local dev with Upstash detected, using memory store for ${prefix}`,
-    );
-    return undefined; // Use memory store
-  }
-
-  // Return cached store if available
-  if (storeCache.has(prefix)) {
-    return storeCache.get(prefix) || undefined;
-  }
-
-  try {
-    // Check if Redis is connected
-    if (!redisClient.isReady) {
-      console.warn(`⚠️  Redis not ready for ${prefix}, using memory store`);
-      storeCache.set(prefix, null);
-      return undefined; // Fallback to memory store
-    }
-
-    const store = new RedisStore({
-      // @ts-expect-error - Redis store types mismatch
-      client: redisClient,
-      prefix: prefix,
-      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
-    });
-
-    console.log(`✅ Created Redis store for ${prefix}`);
-    storeCache.set(prefix, store);
-    return store;
-  } catch (error) {
-    console.warn(`⚠️  Redis store failed for ${prefix}:`, error);
-    storeCache.set(prefix, null);
-    return undefined; // Fallback to memory store
-  }
-}
-
-// Define orderLimiter locally to avoid import issues
-const orderLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 orders per hour per IP
-  message: {
-    error: "Too many orders",
-    message: "Please try again after 1 hour",
-    retryAfter: "1 hour",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  store: getRedisStore("rl:orders:"),
-  keyGenerator: (req, res) => {
-    const ip = getClientIP(req);
-    console.log(`[RATE LIMIT DEBUG] Order attempt from IP: ${ip}`);
-    return ip;
-  },
-  handler: (req, res) => {
-    const ip = getClientIP(req);
-    console.log(
-      `[RATE LIMIT] ❌ Order blocked for IP: ${ip} - Too many attempts`,
-    );
-    res.status(429).json({
-      error: "Too many orders",
-      message: "Please try again after 1 hour",
-      retryAfter: "1 hour",
-    });
-  },
-});
 
 const router = Router();
+
+function logOrderEvent(
+  level: "info" | "error",
+  event: string,
+  data: Record<string, unknown>,
+) {
+  const entry = {
+    level,
+    event,
+    at: new Date().toISOString(),
+    ...data,
+  };
+
+  if (level === "error") {
+    console.error(JSON.stringify(entry));
+    return;
+  }
+
+  console.log(JSON.stringify(entry));
+}
 
 // Create order (with rate limiting)
 router.post(
@@ -107,7 +37,7 @@ router.post(
   orderLimiter,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("[RATE LIMIT] ✅ Passed rate limit check, processing order");
+      const requestId = res.locals.requestId as string;
 
       const userId = req.user?.id;
       if (!userId) {
@@ -123,6 +53,13 @@ router.post(
         deliveryCharge,
         total,
       } = req.body;
+
+      logOrderEvent("info", "order.create.request_received", {
+        requestId,
+        userId,
+        itemCount: Array.isArray(items) ? items.length : 0,
+        paymentMethod,
+      });
 
       // Validate required fields
       if (!items || items.length === 0) {
@@ -216,6 +153,14 @@ router.post(
         text: adminNotificationContent.text,
       }).catch((err) => console.error("Admin notification email failed:", err));
 
+      logOrderEvent("info", "order.create.success", {
+        requestId,
+        userId,
+        orderId: createdOrder.id,
+        orderNumber: createdOrder.orderNumber,
+        total: createdOrder.total,
+      });
+
       res.status(201).json({
         success: true,
         order: {
@@ -227,6 +172,11 @@ router.post(
         },
       });
     } catch (error) {
+      logOrderEvent("error", "order.create.failed", {
+        requestId: (res.locals.requestId as string) || "unknown",
+        userId: req.user?.id || "unknown",
+        message: error instanceof Error ? error.message : "unknown_error",
+      });
       next(error);
     }
   },
