@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
+// import "@/lib/sentry"; // TODO: Fix Sentry initialization for Next.js builds
 
 const inter = Inter({ subsets: ["latin"] });
 

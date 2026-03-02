@@ -461,14 +461,32 @@ router.post(
         throw new ApiError("Product with this slug already exists", 400);
       }
 
+      const insertData: typeof products.$inferInsert = {
+        name: validatedData.name,
+        slug,
+        description: validatedData.description,
+        price: validatedData.price,
+        comparePrice: validatedData.comparePrice ?? null,
+        weight: validatedData.weight,
+        stock: validatedData.stock,
+        imageUrl: validatedData.imageUrl ?? null,
+        imageAltText: validatedData.imageAltText ?? null,
+        images: validatedData.images ?? null,
+        category: validatedData.category,
+        benefits: validatedData.benefits ?? null,
+        usage: validatedData.usage ?? null,
+        composition: validatedData.composition ?? null,
+        metaTitle: validatedData.metaTitle ?? null,
+        metaDescription: validatedData.metaDescription ?? null,
+        isActive: validatedData.isActive ?? true,
+        isFeatured: validatedData.isFeatured ?? false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
       const [product] = await db
         .insert(products)
-        .values({
-          ...validatedData,
-          slug,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
+        .values(insertData)
         .returning();
 
       res.status(201).json({ product });

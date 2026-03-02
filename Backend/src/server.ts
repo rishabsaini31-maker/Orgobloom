@@ -12,8 +12,12 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { connectRedis } from "./utils/redis.js";
 import { initializeSocket } from "./utils/notifications.js";
 import { config } from "./config/env.js";
+import { initSentry, captureException } from "./config/sentry.js";
 
 dotenv.config();
+
+// Initialize Sentry for error tracking
+initSentry();
 
 // Validate environment variables immediately at startup
 // This will throw with detailed errors if required vars are missing
@@ -47,6 +51,11 @@ const shiprocketRoutes = (await import("./routes/shiprocket.js")).default;
 const delhiveryRoutes = (await import("./routes/delhivery.js")).default;
 const refundRoutes = (await import("./routes/refunds.js")).default;
 const fshipRoutes = (await import("./routes/fship.js")).default;
+const smsRoutes = (await import("./routes/sms.js")).default;
+const ticketRoutes = (await import("./routes/tickets.js")).default;
+const loyaltyRoutes = (await import("./routes/loyalty.js")).default;
+const analyticsRoutes = (await import("./routes/analytics.js")).default;
+const fullSearchRoutes = (await import("./routes/fullSearch.js")).default;
 
 const app = express();
 app.set("etag", false);
@@ -190,6 +199,11 @@ app.use("/api/shiprocket", shiprocketRoutes);
 app.use("/api/delhivery", delhiveryRoutes);
 app.use("/api/refunds", refundRoutes);
 app.use("/api/fship", fshipRoutes);
+app.use("/api/sms", smsRoutes);
+app.use("/api/tickets", ticketRoutes);
+app.use("/api/loyalty", loyaltyRoutes);
+app.use("/api/analytics", analyticsRoutes);
+app.use("/api/search", fullSearchRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
