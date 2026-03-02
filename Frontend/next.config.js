@@ -34,8 +34,10 @@ const nextConfig = {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache
   },
-  // Empty turbopack config to silence the warning (Next.js 16 uses Turbopack by default)
-  turbopack: {},
+  // Explicit root avoids lockfile root inference warning in monorepo-like layout
+  turbopack: {
+    root: __dirname,
+  },
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_RAZORPAY_KEY_ID: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,

@@ -24,8 +24,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  // Empty turbopack config to silence the warning (Next.js 16 uses Turbopack by default)
-  turbopack: {},
+  // Explicit root avoids lockfile root inference warning in monorepo-like layout
+  turbopack: {
+    root: __dirname,
+  },
   // Increase webpack timeout for slow connections (used when running with --webpack flag)
   webpack: (config, { dev }) => {
     if (dev) {
