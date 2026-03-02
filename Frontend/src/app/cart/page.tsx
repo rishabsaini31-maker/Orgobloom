@@ -69,6 +69,7 @@ export default function CartPage() {
   const [mounted, setMounted] = useState(false);
   const [pendingOrderId, setPendingOrderId] = useState<string | null>(null);
   const [showPayment, setShowPayment] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [newAddress, setNewAddress] = useState({
     name: "",
     phone: "",
@@ -227,6 +228,8 @@ export default function CartPage() {
       return;
     }
 
+    setIsPlacingOrder(true);
+
     const orderData = {
       items,
       address: selectedAddr,
@@ -266,9 +269,14 @@ export default function CartPage() {
         setPendingOrderId(result.order.id);
         setShowPayment(true);
       } else {
-        toast.success("Order placed successfully! We will confirm it soon.");
+        // For COD, clear cart immediately and show success
         clearCart();
-        router.push("/orders");
+        toast.success("✅ Order placed successfully! We will confirm it soon.");
+        
+        // Redirect after a short delay to ensure cart is cleared
+        setTimeout(() => {
+          router.push("/orders");
+        }, 1500);
       }
     } catch (error) {
       console.error("Order placement error:", error);
@@ -277,14 +285,20 @@ export default function CartPage() {
           ? error.message
           : "Failed to place order. Please try again.",
       );
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
   const handlePaymentSuccess = (paymentId: string, orderId: string) => {
-    toast.success("Payment successful! Order confirmed.");
     clearCart();
     setShowPayment(false);
-    router.push("/orders");
+    toast.success("✅ Payment successful! Order confirmed.");
+    
+    // Redirect to orders page after a short delay
+    setTimeout(() => {
+      router.push("/orders");
+    }, 1500);
   };
 
   const handlePaymentFailure = (error: any) => {
@@ -644,11 +658,14 @@ export default function CartPage() {
                 ) : (
                   <button
                     onClick={handlePlaceOrder}
-                    className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-lg hover:from-primary-700 hover:to-primary-800 transition shadow-md"
+                    disabled={isPlacingOrder}
+                    className="w-full py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white font-bold rounded-lg hover:from-primary-700 hover:to-primary-800 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {paymentMethod === "online"
-                      ? "Proceed to Payment"
-                      : "Place Order"}
+                    {isPlacingOrder
+                      ? "🔄 Placing Order..."
+                      : paymentMethod === "online"
+                        ? "Proceed to Payment"
+                        : "Place Order"}
                   </button>
                 )}
 
