@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { useCartStore } from "@/store/cartStore";
 import { useAuthStore } from "@/store/authStore";
 import RazorpayCheckout from "@/components/RazorpayCheckout";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Helper function to fix localhost URLs for production
 const fixImageUrl = (url: string | undefined): string | undefined => {
@@ -58,7 +59,7 @@ const fixImageUrl = (url: string | undefined): string | undefined => {
   return url;
 };
 
-export default function CartPage() {
+function CartPageContent() {
   const router = useRouter();
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice } =
     useCartStore();
@@ -732,5 +733,13 @@ export default function CartPage() {
       </main>
       <Footer />
     </>
+  );
+}
+
+export default function CartPage() {
+  return (
+    <ErrorBoundary>
+      <CartPageContent />
+    </ErrorBoundary>
   );
 }

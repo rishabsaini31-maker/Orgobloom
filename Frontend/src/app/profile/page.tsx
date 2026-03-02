@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import toast from "react-hot-toast";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 function ProfilePageContent() {
   const router = useRouter();
@@ -307,10 +308,14 @@ function ProfilePageContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense
-      fallback={<div className="container mx-auto px-4 py-16">Loading...</div>}
-    >
-      <ProfilePageContent />
-    </Suspense>
+    <ErrorBoundary>
+      <Suspense
+        fallback={
+          <div className="container mx-auto px-4 py-16">Loading...</div>
+        }
+      >
+        <ProfilePageContent />
+      </Suspense>
+    </ErrorBoundary>
   );
 }
