@@ -51,21 +51,11 @@ function getRedisStore(prefix: string) {
       return undefined; // Fallback to memory store
     }
 
-    // Wrap sendCommand with timeout to prevent hanging
-    const sendCommandWithTimeout = async (...args: string[]) => {
-      return Promise.race([
-        redisClient.sendCommand(args),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Redis timeout")), 2000),
-        ),
-      ]);
-    };
-
     const store = new RedisStore({
       // @ts-expect-error - Redis store types mismatch
       client: redisClient,
       prefix: prefix,
-      sendCommand: (...args: string[]) => sendCommandWithTimeout(...args),
+      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
     });
 
     console.log(`✅ Created Redis store for ${prefix}`);
