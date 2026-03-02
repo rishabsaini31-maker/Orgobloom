@@ -7,6 +7,10 @@ import { ApiError } from "../middleware/errorHandler.js";
 import { orderLimiter } from "../middleware/rateLimiter.js";
 import { sendEmail } from "../utils/emailService.js";
 import { emailTemplates } from "../templates/emailTemplates.js";
+import {
+  createOrderTransaction,
+  getUserOrdersWithItems,
+} from "../services/orderService.js";
 
 const router = Router();
 
@@ -76,42 +80,22 @@ router.post(
       // Store address as JSON string
       const shippingAddressJSON = JSON.stringify(address);
 
-      // Create order
-      const [createdOrder] = await db
-        .insert(orders)
-        .values({
-          orderNumber,
-          userId,
-          subtotal: subtotal || 0,
-          shippingCost: deliveryCharge || 0,
-          tax: tax || 0,
-          total: total || 0,
-          shippingAddress: shippingAddressJSON,
-          status:
-            paymentMethod === "cod"
-              ? ("CONFIRMED" as const)
-              : ("PENDING" as const),
-          paymentStatus: "PENDING",
-        })
-        .returning();
-
-      // Create order items
-      const orderItemsData = items.map((item: any) => ({
-        orderId: createdOrder.id,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        weight: item.weight?.toString() || "1",
-      }));
-
-      await db.insert(orderItems).values(orderItemsData);
-
-      // Fetch user details for email
-      const [orderUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+      // Create order with transaction (atomicity guaranteed)
+      const {
+        order: createdOrder,
+        items: createdItems,
+        user: orderUser,
+      } = await createOrderTransaction({
+        orderNumber,
+        userId,
+        subtotal: subtotal || 0,
+        shippingCost: deliveryCharge || 0,
+        tax: tax || 0,
+        total: total || 0,
+        shippingAddress: shippingAddressJSON,
+        paymentMethod,
+        items,
+      });
 
       // Prepare order items for email
       const orderItemsForEmail = items.map((item: any) => ({
@@ -193,34 +177,8 @@ router.get(
         throw new ApiError("User not authenticated", 401);
       }
 
-      const userOrders = await db
-        .select({
-          id: orders.id,
-          orderNumber: orders.orderNumber,
-          total: orders.total,
-          status: orders.status,
-          paymentStatus: orders.paymentStatus,
-          createdAt: orders.createdAt,
-          shippingAddress: orders.shippingAddress,
-        })
-        .from(orders)
-        .where(eq(orders.userId, userId));
-
-      // Get items for each order
-      const ordersWithItems = await Promise.all(
-        userOrders.map(async (order: (typeof userOrders)[0]) => {
-          const items = await db
-            .select()
-            .from(orderItems)
-            .where(eq(orderItems.orderId, order.id));
-
-          return {
-            ...order,
-            items: items.length,
-            itemsList: items,
-          };
-        }),
-      );
+      // Use optimized batch query service
+      const ordersWithItems = await getUserOrdersWithItems(userId);
 
       res.json({
         orders: ordersWithItems,
