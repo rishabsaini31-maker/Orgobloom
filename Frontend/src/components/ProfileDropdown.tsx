@@ -1,5 +1,8 @@
 "use client";
 
+// Mobile profile dropdown - Chrome-style fixed-size menu
+// Deployed with fixed 50vh height for better mobile scrolling
+
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -266,9 +269,7 @@ export default function ProfileDropdown() {
             scrollBehavior: "smooth",
           }}
         >
-          <div className="divide-y divide-gray-100">
-            {renderMenuItems()}
-          </div>
+          <div className="divide-y divide-gray-100">{renderMenuItems()}</div>
         </div>
       </div>
     </>
