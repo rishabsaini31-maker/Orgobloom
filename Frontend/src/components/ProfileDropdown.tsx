@@ -221,17 +221,17 @@ export default function ProfileDropdown() {
       />
       <div
         ref={dropdownRef}
-        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl"
+        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl flex flex-col"
         style={{
-          maxHeight: "62vh",
-          minHeight: "260px",
+          maxHeight: "70vh",
+          minHeight: "280px",
         }}
       >
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
-        <div className="px-6 py-4 border-b border-gray-100">
+        <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
           <p className="text-sm font-semibold text-gray-900 truncate">
             {user.email}
           </p>
@@ -241,17 +241,17 @@ export default function ProfileDropdown() {
         </div>
 
         <div
-          className="px-2 py-2 overflow-y-auto overscroll-contain"
+          className="px-2 py-2 overflow-y-scroll flex-1"
           style={{
-            maxHeight: "calc(62vh - 96px)",
             WebkitOverflowScrolling: "touch",
+            touchAction: "pan-y",
+            overscrollBehavior: "contain",
           }}
-          onTouchMove={(e) => e.stopPropagation()}
         >
           {renderMenuItems()}
         </div>
 
-        <div className="h-4" />
+        <div className="h-4 flex-shrink-0" />
       </div>
     </>
   );
@@ -280,14 +280,13 @@ export default function ProfileDropdown() {
       </div>
 
       <div
-        className="overflow-y-auto py-2 overscroll-contain"
+        className="overflow-y-scroll py-2"
         style={{
           height: dropdownPosition.menuHeight,
           minHeight: 0,
           WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
         }}
-        onWheel={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
       >
         {renderMenuItems()}
       </div>
