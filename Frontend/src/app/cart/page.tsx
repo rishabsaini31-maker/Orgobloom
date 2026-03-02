@@ -272,7 +272,7 @@ export default function CartPage() {
         // For COD, clear cart immediately and show success
         clearCart();
         toast.success("✅ Order placed successfully! We will confirm it soon.");
-        
+
         // Redirect after a short delay to ensure cart is cleared
         setTimeout(() => {
           router.push("/orders");
@@ -294,7 +294,7 @@ export default function CartPage() {
     clearCart();
     setShowPayment(false);
     toast.success("✅ Payment successful! Order confirmed.");
-    
+
     // Redirect to orders page after a short delay
     setTimeout(() => {
       router.push("/orders");

@@ -29,10 +29,10 @@ export default function ProfileDropdown() {
 
     // Detect mobile with media query (more reliable)
     const mediaQuery = window.matchMedia("(max-width: 767px)");
-    
+
     // Set initial value
     setIsMobile(mediaQuery.matches);
-    
+
     const handleMobileChange = (e: MediaQueryListEvent) => {
       setIsMobile(e.matches);
     };
@@ -44,7 +44,7 @@ export default function ProfileDropdown() {
       mediaQuery.removeEventListener("change", handleMobileChange);
     };
   }, []);
-  
+
   // Close dropdown when switching between mobile and desktop
   useEffect(() => {
     if (isOpen) {
