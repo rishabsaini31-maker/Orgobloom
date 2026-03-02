@@ -10,8 +10,10 @@ dist/
 
 # Environment files
 .env
+.env.example
 .env*.local
 **/.env
+**/.env.example
 **/.env*.local
 
 # Logs

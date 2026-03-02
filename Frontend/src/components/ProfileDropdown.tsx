@@ -248,7 +248,7 @@ export default function ProfileDropdown() {
         }}
       >
         {/* Handle bar */}
-        <div 
+        <div
           className="flex justify-center pt-3 pb-1 flex-shrink-0"
           style={{ touchAction: "none" }}
         >
@@ -256,7 +256,7 @@ export default function ProfileDropdown() {
         </div>
 
         {/* Header with user info */}
-        <div 
+        <div
           className="px-6 py-3 border-b border-gray-100 flex-shrink-0 bg-gray-50"
           style={{ touchAction: "none" }}
         >
