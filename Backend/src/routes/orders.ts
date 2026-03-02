@@ -28,6 +28,16 @@ const storeCache = new Map<string, RedisStore | null>();
 // Helper to get or create Redis store with proper sendCommand
 // Returns undefined if Redis isn't available, falling back to memory store
 function getRedisStore(prefix: string) {
+  // For local development with Upstash, use memory store to avoid connection issues
+  const isUsingUpstash = process.env.REDIS_URL?.includes("upstash.io");
+
+  if (isUsingUpstash && process.env.NODE_ENV !== "production") {
+    console.warn(
+      `⚠️  Local dev with Upstash detected, using memory store for ${prefix}`,
+    );
+    return undefined; // Use memory store
+  }
+
   // Return cached store if available
   if (storeCache.has(prefix)) {
     return storeCache.get(prefix) || undefined;
@@ -41,11 +51,21 @@ function getRedisStore(prefix: string) {
       return undefined; // Fallback to memory store
     }
 
+    // Wrap sendCommand with timeout to prevent hanging
+    const sendCommandWithTimeout = async (...args: string[]) => {
+      return Promise.race([
+        redisClient.sendCommand(args),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Redis timeout")), 2000),
+        ),
+      ]);
+    };
+
     const store = new RedisStore({
       // @ts-expect-error - Redis store types mismatch
       client: redisClient,
       prefix: prefix,
-      sendCommand: (...args: string[]) => redisClient.sendCommand(args),
+      sendCommand: (...args: string[]) => sendCommandWithTimeout(...args),
     });
 
     console.log(`✅ Created Redis store for ${prefix}`);
@@ -97,6 +117,8 @@ router.post(
   orderLimiter,
   async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
+      console.log("[RATE LIMIT] ✅ Passed rate limit check, processing order");
+
       const userId = req.user?.id;
       if (!userId) {
         throw new ApiError("User not authenticated", 401);
