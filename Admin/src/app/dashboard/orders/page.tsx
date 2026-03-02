@@ -5,6 +5,11 @@ import { adminApi } from "@/lib/api";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/authStore";
+import { OrderCardList } from "@/components/OrderCard";
+import { useMediaQuery } from "@/hooks/useResponsive";
+import OrdersDataTable from "@/components/OrdersDataTable";
+import PermissionGate from "@/components/PermissionGate";
+import { exportOrdersToCsv } from "@/utils/csvExport";
 
 export default function OrdersPage() {
   const [filter, setFilter] = useState<
@@ -18,10 +23,12 @@ export default function OrdersPage() {
   >("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const { token } = useAuthStore();
   const [mounted, setMounted] = useState(false);
   const [isViewLoading, setIsViewLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const { isMobile, isTablet } = useMediaQuery();
 
   useEffect(() => {
     setMounted(true);
@@ -105,6 +112,24 @@ export default function OrdersPage() {
       )
     : [];
 
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrderIds((previous) =>
+      previous.includes(orderId)
+        ? previous.filter((id) => id !== orderId)
+        : [...previous, orderId],
+    );
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedOrderIds(
+        filteredOrders.slice(0, 50).map((order: any) => order.id),
+      );
+      return;
+    }
+    setSelectedOrderIds([]);
+  };
+
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     try {
@@ -129,6 +154,31 @@ export default function OrdersPage() {
     } finally {
       setIsViewLoading(false);
     }
+  };
+
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (selectedOrderIds.length === 0) {
+      toast.error("Select at least one order");
+      return;
+    }
+
+    try {
+      await Promise.all(
+        selectedOrderIds.map((orderId) =>
+          adminApi.updateOrderStatus(orderId, { status: newStatus }),
+        ),
+      );
+      toast.success(`Updated ${selectedOrderIds.length} order(s)`);
+      setSelectedOrderIds([]);
+      refetch();
+    } catch {
+      toast.error("Failed to update selected orders");
+    }
+  };
+
+  const handleExportCsv = () => {
+    exportOrdersToCsv(filteredOrders, "orders");
+    toast.success("Orders exported to CSV");
   };
 
   const statusCounts = {
@@ -238,6 +288,45 @@ export default function OrdersPage() {
         />
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <button
+          onClick={handleExportCsv}
+          className="px-3 py-2 text-xs rounded bg-green-100 text-green-700 hover:bg-green-200 transition"
+        >
+          Export CSV
+        </button>
+
+        <PermissionGate
+          allowedRoles={["ADMIN", "SUPER_ADMIN"]}
+          fallback={
+            <span className="text-xs text-gray-500">
+              No permission for bulk updates
+            </span>
+          }
+        >
+          <span className="text-xs text-gray-600">
+            {selectedOrderIds.length} selected
+          </span>
+          <select
+            className="px-3 py-2 text-xs border border-gray-300 rounded"
+            defaultValue=""
+            onChange={(event) => {
+              if (event.target.value) {
+                handleBulkStatusUpdate(event.target.value);
+                event.target.value = "";
+              }
+            }}
+          >
+            <option value="">Bulk status update...</option>
+            {statusOptions.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </PermissionGate>
+      </div>
+
       {/* Orders Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
@@ -264,99 +353,27 @@ export default function OrdersPage() {
             {!Array.isArray(orders) ? "No data available" : "No orders found"}
           </p>
         </div>
+      ) : isMobile || isTablet ? (
+        <OrderCardList
+          orders={filteredOrders}
+          onViewDetails={handleViewOrder}
+          onStatusChange={handleStatusUpdate}
+          updatingId={updatingId}
+          statusOptions={statusOptions}
+          getStatusColor={getStatusColor}
+        />
       ) : (
-        <div className="overflow-x-auto overscroll-contain [&_select]:relative [&_select]:z-10 [&_select]:touch-none">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Order ID
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Customer
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Items
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Total
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.slice(0, 50).map((order: any) => (
-                <tr
-                  key={order.id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition relative"
-                >
-                  <td className="px-4 py-3 text-xs text-gray-900 font-mono">
-                    {order.id?.slice(0, 8)}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
-                    {order.customerName || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
-                    {order.email || "-"}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
-                    {order.itemsCount || 0}
-                  </td>
-                  <td className="px-4 py-3 text-xs font-semibold text-gray-900">
-                    ₹{(order.total || 0).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-xs relative z-20">
-                    <select
-                      value={order.status || "PENDING"}
-                      onChange={(e) =>
-                        handleStatusUpdate(order.id, e.target.value)
-                      }
-                      disabled={updatingId === order.id}
-                      className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer relative z-20 appearance-none pointer-events-auto will-change-auto ${getStatusColor(
-                        order.status,
-                      )}`}
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600">
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-3 text-xs">
-                    <button
-                      className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
-                      onClick={() => handleViewOrder(order.id)}
-                    >
-                      {isViewLoading ? "Loading..." : "View"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filteredOrders.length > 50 && (
-            <div className="px-4 py-3 text-xs text-gray-600 bg-gray-50 border-t border-gray-200">
-              Showing 50 of {filteredOrders.length} orders
-            </div>
-          )}
-        </div>
+        <OrdersDataTable
+          orders={filteredOrders}
+          selectedOrderIds={selectedOrderIds}
+          onToggleOrderSelection={toggleOrderSelection}
+          onToggleSelectAll={toggleSelectAll}
+          onStatusUpdate={handleStatusUpdate}
+          onViewOrder={handleViewOrder}
+          updatingId={updatingId}
+          statusOptions={statusOptions}
+          getStatusColor={getStatusColor}
+        />
       )}
 
       {selectedOrder && (
