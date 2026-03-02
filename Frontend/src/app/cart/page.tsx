@@ -261,13 +261,16 @@ export default function CartPage() {
     try {
       // Call backend API to create order
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         throw new Error("Please login to place an order");
       }
 
-      console.log("[PLACE ORDER] Sending request to:", `${process.env.NEXT_PUBLIC_API_URL}/orders`);
-      
+      console.log(
+        "[PLACE ORDER] Sending request to:",
+        `${process.env.NEXT_PUBLIC_API_URL}/orders`,
+      );
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/orders`,
         {
@@ -287,7 +290,9 @@ export default function CartPage() {
       if (!response.ok) {
         const error = await response.json();
         console.error("[PLACE ORDER] Error response:", error);
-        throw new Error(error.message || error.error || "Failed to place order");
+        throw new Error(
+          error.message || error.error || "Failed to place order",
+        );
       }
 
       const result = await response.json();
