@@ -61,8 +61,8 @@ export default function OrdersPage() {
   const sortOrdersWithCancelledLast = (ordersList: any[]) => {
     return [...ordersList].sort((a, b) => {
       // If one is cancelled and the other isn't, non-cancelled comes first
-      if (a.status === 'CANCELLED' && b.status !== 'CANCELLED') return 1;
-      if (a.status !== 'CANCELLED' && b.status === 'CANCELLED') return -1;
+      if (a.status === "CANCELLED" && b.status !== "CANCELLED") return 1;
+      if (a.status !== "CANCELLED" && b.status === "CANCELLED") return -1;
       // If both have same status regarding cancellation, sort by date (newest first)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
@@ -74,8 +74,10 @@ export default function OrdersPage() {
           (order: any) =>
             order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             order.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
+            order.customerName
+              ?.toLowerCase()
+              .includes(searchTerm.toLowerCase()),
+        ),
       )
     : [];
 
@@ -239,7 +241,7 @@ export default function OrdersPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto [&_select]:relative [&_select]:z-10">
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
@@ -273,7 +275,7 @@ export default function OrdersPage() {
               {filteredOrders.slice(0, 50).map((order: any) => (
                 <tr
                   key={order.id}
-                  className="border-b border-gray-200 hover:bg-gray-50 transition"
+                  className="border-b border-gray-200 hover:bg-gray-50 transition relative"
                 >
                   <td className="px-4 py-3 text-xs text-gray-900 font-mono">
                     {order.id?.slice(0, 8)}
@@ -290,14 +292,14 @@ export default function OrdersPage() {
                   <td className="px-4 py-3 text-xs font-semibold text-gray-900">
                     ₹{(order.total || 0).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-xs">
+                  <td className="px-4 py-3 text-xs relative z-20">
                     <select
                       value={order.status || "PENDING"}
                       onChange={(e) =>
                         handleStatusUpdate(order.id, e.target.value)
                       }
                       disabled={updatingId === order.id}
-                      className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer ${getStatusColor(
+                      className={`px-2 py-1 rounded text-xs font-medium border-0 cursor-pointer relative z-20 appearance-none ${getStatusColor(
                         order.status,
                       )}`}
                     >
@@ -350,58 +352,96 @@ export default function OrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-gray-500">Order ID</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.id}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedOrder.id}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Order Number</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.orderNumber || "-"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedOrder.orderNumber || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Customer</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.customerName || "-"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedOrder.customerName || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Email</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.email || "-"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedOrder.email || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Phone</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.phone || "-"}</p>
+                  <p className="font-semibold text-gray-900">
+                    {selectedOrder.phone || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-gray-500">Total</p>
-                  <p className="font-semibold text-gray-900">₹{(selectedOrder.total || 0).toLocaleString()}</p>
+                  <p className="font-semibold text-gray-900">
+                    ₹{(selectedOrder.total || 0).toLocaleString()}
+                  </p>
                 </div>
               </div>
 
               <div>
                 <p className="text-gray-500 mb-1">Shipping Address</p>
                 <div className="bg-gray-50 rounded-lg p-3 text-gray-800">
-                  <p>{selectedOrder.shippingAddress?.fullName || selectedOrder.customerName || "-"}</p>
-                  <p>{selectedOrder.shippingAddress?.addressLine1 || selectedOrder.shippingAddress?.address || "-"}</p>
+                  <p>
+                    {selectedOrder.shippingAddress?.fullName ||
+                      selectedOrder.customerName ||
+                      "-"}
+                  </p>
+                  <p>
+                    {selectedOrder.shippingAddress?.addressLine1 ||
+                      selectedOrder.shippingAddress?.address ||
+                      "-"}
+                  </p>
                   {selectedOrder.shippingAddress?.addressLine2 && (
                     <p>{selectedOrder.shippingAddress.addressLine2}</p>
                   )}
                   <p>
-                    {selectedOrder.shippingAddress?.city || "-"}, {selectedOrder.shippingAddress?.state || "-"} {selectedOrder.shippingAddress?.pincode || "-"}
+                    {selectedOrder.shippingAddress?.city || "-"},{" "}
+                    {selectedOrder.shippingAddress?.state || "-"}{" "}
+                    {selectedOrder.shippingAddress?.pincode || "-"}
                   </p>
                 </div>
               </div>
 
               <div>
-                <p className="text-gray-500 mb-1">Items ({selectedOrder.itemsCount || selectedOrder.items?.length || 0})</p>
+                <p className="text-gray-500 mb-1">
+                  Items (
+                  {selectedOrder.itemsCount || selectedOrder.items?.length || 0}
+                  )
+                </p>
                 <div className="space-y-2">
                   {(selectedOrder.items || []).map((item: any) => (
-                    <div key={item.id} className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between bg-gray-50 rounded-lg p-3"
+                    >
                       <div>
-                        <p className="font-medium text-gray-900">{item.productName || item.productId}</p>
-                        <p className="text-xs text-gray-500">Qty: {item.quantity} • Weight: {item.weight}</p>
+                        <p className="font-medium text-gray-900">
+                          {item.productName || item.productId}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Qty: {item.quantity} • Weight: {item.weight}
+                        </p>
                       </div>
-                      <p className="font-semibold text-gray-900">₹{Number(item.price || 0).toLocaleString()}</p>
+                      <p className="font-semibold text-gray-900">
+                        ₹{Number(item.price || 0).toLocaleString()}
+                      </p>
                     </div>
                   ))}
-                  {(!selectedOrder.items || selectedOrder.items.length === 0) && (
-                    <p className="text-gray-500">No items found for this order.</p>
+                  {(!selectedOrder.items ||
+                    selectedOrder.items.length === 0) && (
+                    <p className="text-gray-500">
+                      No items found for this order.
+                    </p>
                   )}
                 </div>
               </div>
