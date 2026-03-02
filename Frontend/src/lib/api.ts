@@ -20,22 +20,27 @@ import axios from "axios";
 
 // Use environment variable or fallback based on environment
 const getApiUrl = () => {
-  // First priority: environment variable
+  // First priority: environment variable (set at build time in Vercel)
   if (process.env.NEXT_PUBLIC_API_URL) {
+    console.log(
+      "[API] Using NEXT_PUBLIC_API_URL:",
+      process.env.NEXT_PUBLIC_API_URL,
+    );
     return process.env.NEXT_PUBLIC_API_URL;
   }
-  // Fallback for development - use port 8000
+
+  // For development on localhost, infer backend port
   if (
     typeof window !== "undefined" &&
     window.location.hostname === "localhost"
   ) {
     return "http://localhost:8000/api";
   }
-  // Production fallback
-  console.warn(
-    "NEXT_PUBLIC_API_URL is not set. Please configure it in Vercel environment variables.",
-  );
-  return "https://orgobloom.onrender.com/api";
+
+  // Production fallback - always use Render backend
+  const productionUrl = "https://orgobloom.onrender.com/api";
+  console.log("[API] No env var, using production fallback:", productionUrl);
+  return productionUrl;
 };
 
 const API_URL = getApiUrl();
