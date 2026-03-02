@@ -115,21 +115,16 @@ export default function ProfileDropdown() {
 
       {/* Menu Items - SCROLLABLE */}
       <div
-        className="overflow-y-auto flex-1 py-2 touch-none"
+        className="overflow-y-auto flex-1 py-2"
         style={{
           WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
-          touchAction: "none",
+        }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
         }}
         onWheel={(e) => {
-          const element = e.currentTarget;
-          const isAtTop = element.scrollTop === 0;
-          const isAtBottom =
-            element.scrollTop + element.clientHeight === element.scrollHeight;
-
-          if ((isAtTop && e.deltaY < 0) || (isAtBottom && e.deltaY > 0)) {
-            e.preventDefault();
-          }
+          e.stopPropagation();
         }}
       >
         {/* Account Section */}
