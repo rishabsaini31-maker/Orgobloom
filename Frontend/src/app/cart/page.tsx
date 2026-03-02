@@ -230,8 +230,17 @@ export default function CartPage() {
 
     setIsPlacingOrder(true);
 
+    // Format items for backend with productName field
+    const formattedItems = items.map((item) => ({
+      productId: item.productId,
+      productName: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      weight: item.weight || "1kg",
+    }));
+
     const orderData = {
-      items,
+      items: formattedItems,
       address: selectedAddr,
       paymentMethod,
       subtotal,
@@ -242,9 +251,23 @@ export default function CartPage() {
       status: paymentMethod === "cod" ? "confirmed" : "pending",
     };
 
+    console.log("[PLACE ORDER] Preparing order:", {
+      itemCount: formattedItems.length,
+      total,
+      paymentMethod,
+      address: selectedAddr.city,
+    });
+
     try {
       // Call backend API to create order
       const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("Please login to place an order");
+      }
+
+      console.log("[PLACE ORDER] Sending request to:", `${process.env.NEXT_PUBLIC_API_URL}/orders`);
+      
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/orders`,
         {
@@ -257,12 +280,18 @@ export default function CartPage() {
         },
       );
 
+      console.log("[PLACE ORDER] Response status:", response.status);
+
+      console.log("[PLACE ORDER] Response status:", response.status);
+
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || "Failed to place order");
+        console.error("[PLACE ORDER] Error response:", error);
+        throw new Error(error.message || error.error || "Failed to place order");
       }
 
       const result = await response.json();
+      console.log("[PLACE ORDER] Success:", result);
 
       if (paymentMethod === "online") {
         // For online payment, show Razorpay checkout
@@ -279,7 +308,7 @@ export default function CartPage() {
         }, 1500);
       }
     } catch (error) {
-      console.error("Order placement error:", error);
+      console.error("[PLACE ORDER] Error:", error);
       toast.error(
         error instanceof Error
           ? error.message
