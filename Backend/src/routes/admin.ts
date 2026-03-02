@@ -281,8 +281,18 @@ router.get(
       }
 
       const items = await db
-        .select()
+        .select({
+          id: orderItems.id,
+          orderId: orderItems.orderId,
+          productId: orderItems.productId,
+          productName: products.name,
+          quantity: orderItems.quantity,
+          price: orderItems.price,
+          weight: orderItems.weight,
+          createdAt: orderItems.createdAt,
+        })
         .from(orderItems)
+        .leftJoin(products, eq(orderItems.productId, products.id))
         .where(eq(orderItems.orderId, order.id));
 
       let parsedShippingAddress: any = null;
