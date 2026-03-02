@@ -22,15 +22,24 @@ export default function ProfileDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  // Ensure component is mounted (for portal)
+  // Ensure component is mounted (for portal) and detect mobile
   useEffect(() => {
+    // Set mounted first
     setMounted(true);
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+
+    // Detect mobile with media query (more reliable)
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const handleMobileChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
     };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+
+    // Set initial value
+    setIsMobile(mediaQuery.matches);
+
+    // Listen for changes
+    mediaQuery.addEventListener("change", handleMobileChange);
+
+    return () => mediaQuery.removeEventListener("change", handleMobileChange);
   }, []);
 
   // Calculate dropdown position and max height for mobile
@@ -52,7 +61,7 @@ export default function ProfileDropdown() {
         : Math.min(maxHeightBelow, window.innerHeight * 0.8);
 
       const topPosition = shouldShowAbove
-        ? rect.top - maxHeight - 8
+        ? Math.max(50, rect.top - maxHeight - 8)
         : rect.bottom + 8;
 
       // Calculate menu height: dropdown height minus header height
@@ -115,9 +124,10 @@ export default function ProfileDropdown() {
       {/* Bottom Sheet */}
       <div
         ref={dropdownRef}
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[9999] shadow-2xl transform transition-transform duration-300 ease-out"
+        className="fixed left-0 right-0 bottom-0 bg-white rounded-t-3xl z-[9999] shadow-2xl max-h-[70vh]"
         style={{
-          maxHeight: "70vh",
+          bottom: "0px",
+          top: "auto",
         }}
       >
         {/* Handle bar */}
