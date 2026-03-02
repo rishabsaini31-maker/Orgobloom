@@ -52,7 +52,7 @@ export default function ProfileDropdown() {
       setTimeout(() => {
         const headerHeight = headerRef.current?.offsetHeight || 80;
         const menuHeight = maxHeight - headerHeight;
-        
+
         setDropdownPosition({
           top: Math.max(10, topPosition),
           right: Math.max(10, window.innerWidth - rect.right),
@@ -104,7 +104,10 @@ export default function ProfileDropdown() {
       }}
     >
       {/* User Info */}
-      <div ref={headerRef} className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl flex-shrink-0">
+      <div
+        ref={headerRef}
+        className="px-4 py-4 border-b border-gray-100 bg-gray-50 rounded-t-xl flex-shrink-0"
+      >
         <p className="text-sm text-gray-600">Signed in as</p>
         <p className="text-sm font-semibold text-gray-900">{user.email}</p>
         {user.name && (

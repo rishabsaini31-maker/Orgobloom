@@ -168,7 +168,9 @@ export const passwordResetLimiter = rateLimit({
   },
   handler: (req, res) => {
     const ip = getClientIP(req);
-    console.log(`[RATE LIMIT] ❌ Password reset blocked for IP: ${ip} - Too many attempts`);
+    console.log(
+      `[RATE LIMIT] ❌ Password reset blocked for IP: ${ip} - Too many attempts`,
+    );
     res.status(429).json({
       error: "Too many password reset attempts",
       message: "Please try again after 1 hour",
