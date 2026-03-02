@@ -154,12 +154,14 @@ export default function CartPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5001/api/addresses", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/addresses`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         body: JSON.stringify({
           fullName: newAddress.name,
           phone: newAddress.phone,
