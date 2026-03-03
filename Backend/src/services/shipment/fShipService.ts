@@ -81,11 +81,20 @@ export class FShipService {
 
     try {
       console.log(`[FShip] Creating shipment for order: ${payload.order_id}`);
+      console.log(`[FShip] API Key present: ${!!this.apiKey}`);
+      console.log(`[FShip] Base URL: ${this.baseUrl}`);
 
-      const response = await axios.post(`${this.baseUrl}/shipments/create`, {
-        api_key: this.apiKey,
-        ...payload,
-      });
+      const response = await axios.post(
+        `${this.baseUrl}/shipments/create`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "X-API-Key": this.apiKey,
+          },
+        },
+      );
 
       console.log(
         `[FShip] Shipment created successfully: ${response.data.data?.shipment_id}`,
@@ -146,8 +155,12 @@ export class FShipService {
 
       const response = await axios.get(`${this.baseUrl}/shipments/track`, {
         params: {
-          api_key: this.apiKey,
           tracking_number: trackingNumber,
+        },
+        headers: {
+          Authorization: `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+          "X-API-Key": this.apiKey,
         },
       });
 
@@ -190,10 +203,19 @@ export class FShipService {
     try {
       console.log(`[FShip] Cancelling shipment: ${trackingNumber}`);
 
-      const response = await axios.post(`${this.baseUrl}/shipments/cancel`, {
-        api_key: this.apiKey,
-        tracking_number: trackingNumber,
-      });
+      const response = await axios.post(
+        `${this.baseUrl}/shipments/cancel`,
+        {
+          tracking_number: trackingNumber,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+            "X-API-Key": this.apiKey,
+          },
+        },
+      );
 
       return {
         success: true,
