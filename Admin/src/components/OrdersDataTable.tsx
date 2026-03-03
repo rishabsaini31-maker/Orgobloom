@@ -20,6 +20,7 @@ interface OrdersDataTableProps {
   onToggleSelectAll: (checked: boolean) => void;
   onStatusUpdate: (orderId: string, status: string) => void;
   onViewOrder: (orderId: string) => void;
+  onCreateShipment: (orderId: string) => void;
   updatingId: string | null;
   statusOptions: string[];
   getStatusColor: (status: string) => string;
@@ -32,6 +33,7 @@ export default function OrdersDataTable({
   onToggleSelectAll,
   onStatusUpdate,
   onViewOrder,
+  onCreateShipment,
   updatingId,
   statusOptions,
   getStatusColor,
@@ -154,19 +156,42 @@ export default function OrdersDataTable({
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
-          <button
-            className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition text-xs"
-            onClick={() => onViewOrder(row.original.id)}
-          >
-            View
-          </button>
-        ),
+        cell: ({ row }) => {
+          const order = row.original;
+          const isConfirmed = order.status === "CONFIRMED";
+          const isUpdating = updatingId === order.id;
+
+          return (
+            <div className="flex gap-2">
+              <button
+                className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition text-xs"
+                onClick={() => onViewOrder(order.id)}
+              >
+                View
+              </button>
+              {isConfirmed && (
+                <PermissionGate
+                  allowedRoles={["ADMIN", "SUPER_ADMIN"]}
+                  fallback={null}
+                >
+                  <button
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 transition text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => onCreateShipment(order.id)}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? "Creating..." : "Create Shipment"}
+                  </button>
+                </PermissionGate>
+              )}
+            </div>
+          );
+        },
       },
     ],
     [
       allVisibleSelected,
       getStatusColor,
+      onCreateShipment,
       onStatusUpdate,
       onToggleOrderSelection,
       onToggleSelectAll,

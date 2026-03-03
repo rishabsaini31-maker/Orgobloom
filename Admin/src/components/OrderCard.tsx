@@ -5,6 +5,7 @@ interface OrderCardProps {
   order: any;
   onViewDetails: (orderId: string) => void;
   onStatusChange: (orderId: string, newStatus: string) => void;
+  onCreateShipment?: (orderId: string) => void;
   isUpdating?: boolean;
   statusOptions: string[];
   getStatusColor: (status: string) => string;
@@ -18,6 +19,7 @@ export function OrderCard({
   order,
   onViewDetails,
   onStatusChange,
+  onCreateShipment,
   isUpdating = false,
   statusOptions,
   getStatusColor,
@@ -105,6 +107,21 @@ export function OrderCard({
         </button>
       </div>
 
+      {/* Create Shipment Button for CONFIRMED orders */}
+      {order.status === "CONFIRMED" && onCreateShipment && (
+        <PermissionGate allowedRoles={["ADMIN", "SUPER_ADMIN"]} fallback={null}>
+          <div className="mt-3">
+            <button
+              onClick={() => onCreateShipment(order.id)}
+              disabled={isUpdating}
+              className="w-full px-3 py-2 rounded bg-green-100 text-green-700 hover:bg-green-200 transition text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isUpdating ? "Creating Shipment..." : "Create Shipment"}
+            </button>
+          </div>
+        </PermissionGate>
+      )}
+
       {/* Compact Info Row for quick reference */}
       <div className="mt-2 pt-2 border-t border-gray-100">
         <div className="flex items-center justify-between text-xs text-gray-600">
@@ -132,6 +149,7 @@ export function OrderCardList({
   orders,
   onViewDetails,
   onStatusChange,
+  onCreateShipment,
   updatingId,
   statusOptions,
   getStatusColor,
@@ -139,6 +157,7 @@ export function OrderCardList({
   orders: any[];
   onViewDetails: (orderId: string) => void;
   onStatusChange: (orderId: string, newStatus: string) => void;
+  onCreateShipment?: (orderId: string) => void;
   updatingId: string | null;
   statusOptions: string[];
   getStatusColor: (status: string) => string;
@@ -159,6 +178,7 @@ export function OrderCardList({
           order={order}
           onViewDetails={onViewDetails}
           onStatusChange={onStatusChange}
+          onCreateShipment={onCreateShipment}
           isUpdating={updatingId === order.id}
           statusOptions={statusOptions}
           getStatusColor={getStatusColor}

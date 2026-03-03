@@ -126,6 +126,13 @@ export const adminApi = {
   getInventory: (params?: any) => api.get("/admin/inventory", { params }),
   updateInventory: (productId: string, data: any) =>
     api.patch(`/admin/inventory/${productId}`, data),
+  // Shipment Management
+  createShipment: (data: { orderId: string; preferredCarrier?: string }) =>
+    api.post("/shipments/fship/create", data),
+  getShipmentByOrder: (orderId: string) =>
+    api.get(`/shipments/order/${orderId}`),
+  getTrackingDetails: (trackingNumber: string) =>
+    api.get(`/shipments/track/details/${trackingNumber}`),
 };
 
 // Customers API

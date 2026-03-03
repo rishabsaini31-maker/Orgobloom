@@ -181,6 +181,34 @@ export default function OrdersPage() {
     toast.success("Orders exported to CSV");
   };
 
+  const handleCreateShipment = async (orderId: string) => {
+    if (!orderId) {
+      toast.error("Invalid order ID");
+      return;
+    }
+
+    setUpdatingId(orderId);
+    try {
+      const response = await adminApi.createShipment({ orderId });
+      const shipmentData = response.data?.data || response.data;
+
+      toast.success(
+        `Shipment created! Tracking: ${shipmentData.trackingNumber}`,
+        { duration: 5000 },
+      );
+      refetch();
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create shipment";
+      toast.error(errorMessage);
+      console.error("Shipment creation error:", error);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const statusCounts = {
     pending: orders.filter((o: any) => o.status === "PENDING").length,
     processing: orders.filter((o: any) => o.status === "PROCESSING").length,
@@ -358,6 +386,7 @@ export default function OrdersPage() {
           orders={filteredOrders}
           onViewDetails={handleViewOrder}
           onStatusChange={handleStatusUpdate}
+          onCreateShipment={handleCreateShipment}
           updatingId={updatingId}
           statusOptions={statusOptions}
           getStatusColor={getStatusColor}
@@ -370,6 +399,7 @@ export default function OrdersPage() {
           onToggleSelectAll={toggleSelectAll}
           onStatusUpdate={handleStatusUpdate}
           onViewOrder={handleViewOrder}
+          onCreateShipment={handleCreateShipment}
           updatingId={updatingId}
           statusOptions={statusOptions}
           getStatusColor={getStatusColor}
