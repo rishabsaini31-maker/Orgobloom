@@ -113,20 +113,26 @@ export default function OrdersPage() {
     : [];
 
   const toggleOrderSelection = (orderId: string) => {
-    setSelectedOrderIds((previous) =>
-      previous.includes(orderId)
+    console.log("Toggle order selection:", orderId);
+    console.log("Current selected IDs:", selectedOrderIds);
+    setSelectedOrderIds((previous) => {
+      const updated = previous.includes(orderId)
         ? previous.filter((id) => id !== orderId)
-        : [...previous, orderId],
-    );
+        : [...previous, orderId];
+      console.log("Updated selected IDs:", updated);
+      return updated;
+    });
   };
 
   const toggleSelectAll = (checked: boolean) => {
+    console.log("Toggle select all:", checked);
     if (checked) {
-      setSelectedOrderIds(
-        filteredOrders.slice(0, 50).map((order: any) => order.id),
-      );
+      const allIds = filteredOrders.slice(0, 50).map((order: any) => order.id);
+      console.log("Selecting all:", allIds);
+      setSelectedOrderIds(allIds);
       return;
     }
+    console.log("Deselecting all");
     setSelectedOrderIds([]);
   };
 
@@ -145,28 +151,43 @@ export default function OrdersPage() {
 
   const handleViewOrder = async (orderId: string) => {
     if (!orderId) {
+      console.error("Invalid order ID passed to handleViewOrder");
       toast.error("Invalid order ID");
       return;
     }
 
+    console.log("=== View Order Started ===");
+    console.log("Order ID:", orderId);
+    console.log("Token:", token ? "Present" : "Missing");
+
     setIsViewLoading(true);
     try {
-      console.log("Fetching order details for:", orderId);
+      console.log("Making API call to getOrderById...");
       const response = await adminApi.getOrderById(orderId);
-      console.log("Order details response:", response);
+      console.log("API Response:", response);
+
       const order = response.data?.order || response.data;
+      console.log("Extracted order:", order);
 
       if (!order) {
         throw new Error("Order data not found in response");
       }
 
+      console.log("Setting selected order...");
       setSelectedOrder(order);
+      console.log("=== View Order Completed Successfully ===");
     } catch (error: any) {
-      console.error("Failed to load order details:", error);
+      console.error("=== View Order Failed ===");
+      console.error("Error object:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
+
       const errorMessage =
         error.response?.data?.error ||
         error.message ||
         "Failed to load order details";
+
+      console.error("Showing error toast:", errorMessage);
       toast.error(errorMessage);
     } finally {
       setIsViewLoading(false);
@@ -200,27 +221,43 @@ export default function OrdersPage() {
 
   const handleCreateShipment = async (orderId: string) => {
     if (!orderId) {
+      console.error("Invalid order ID passed to handleCreateShipment");
       toast.error("Invalid order ID");
       return;
     }
 
+    console.log("=== Create Shipment Started ===");
+    console.log("Order ID:", orderId);
+    console.log("Token:", token ? "Present" : "Missing");
+
     setUpdatingId(orderId);
     try {
+      console.log("Making API call to createShipment...");
       const response = await adminApi.createShipment({ orderId });
+      console.log("API Response:", response);
+
       const shipmentData = response.data?.data || response.data;
+      console.log("Shipment data:", shipmentData);
 
       toast.success(
         `Shipment created! Tracking: ${shipmentData.trackingNumber}`,
         { duration: 5000 },
       );
+      console.log("=== Create Shipment Completed Successfully ===");
       refetch();
     } catch (error: any) {
+      console.error("=== Create Shipment Failed ===");
+      console.error("Error object:", error);
+      console.error("Error response:", error.response);
+      console.error("Error message:", error.message);
+
       const errorMessage =
         error.response?.data?.error ||
         error.message ||
         "Failed to create shipment";
+
+      console.error("Showing error toast:", errorMessage);
       toast.error(errorMessage);
-      console.error("Shipment creation error:", error);
     } finally {
       setUpdatingId(null);
     }
