@@ -231,11 +231,14 @@ export default function ProfileDropdown() {
           boxShadow: "0 -4px 12px rgba(0,0,0,0.1)",
           display: "flex",
           flexDirection: "column",
-          maxHeight: "90vh",
+          height: "80vh",
+          maxHeight: "80vh",
         }}
       >
         {/* Handle */}
-        <div style={{ padding: "12px 0 8px", textAlign: "center" }}>
+        <div
+          style={{ padding: "12px 0 8px", textAlign: "center", flexShrink: 0 }}
+        >
           <div
             style={{
               width: "40px",
@@ -288,18 +291,20 @@ export default function ProfileDropdown() {
           )}
         </div>
 
-        {/* Menu - SCROLL ENABLED */}
+        {/* Menu - SCROLLABLE CONTAINER */}
         <div
           ref={scrollableRef}
           style={{
             flex: 1,
-            overflowY: "auto",
+            overflowY: "scroll",
             overflowX: "hidden",
             WebkitOverflowScrolling: "touch",
+            overscrollBehavior: "contain",
             minHeight: 0,
+            paddingRight: "4px",
           }}
         >
-          <div style={{ padding: "4px 0" }}>{renderMenuItems()}</div>
+          <div style={{ padding: "8px 0" }}>{renderMenuItems()}</div>
         </div>
       </div>
     </>
