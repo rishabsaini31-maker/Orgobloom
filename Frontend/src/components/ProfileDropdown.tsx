@@ -102,31 +102,13 @@ export default function ProfileDropdown() {
       document.addEventListener("touchstart", handleClickOutside, {
         passive: true,
       });
-
-      if (isMobile) {
-        // Prevent background scroll by setting body position fixed
-        const scrollY = window.scrollY;
-        document.body.style.position = "fixed";
-        document.body.style.top = `-${scrollY}px`;
-        document.body.style.width = "100%";
-
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-          document.removeEventListener("touchstart", handleClickOutside);
-          // Restore body scroll position
-          document.body.style.position = "";
-          document.body.style.top = "";
-          document.body.style.width = "";
-          window.scrollTo(0, scrollY);
-        };
-      }
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("touchstart", handleClickOutside);
     };
-  }, [isOpen, isMobile]);
+  }, [isOpen]);
 
   const closeDropdown = () => setIsOpen(false);
 
@@ -238,37 +220,86 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
+        style={{ touchAction: "auto" }}
       />
       <div
         ref={dropdownRef}
-        className="fixed left-0 right-0 bottom-0 bg-white z-[9999] flex flex-col"
+        className="fixed left-0 right-0 bottom-0 bg-white z-[9999]"
         style={{
-          height: "auto",
-          maxHeight: "85vh",
-          borderTopLeftRadius: "20px",
-          borderTopRightRadius: "20px",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
+          borderTopLeftRadius: "16px",
+          borderTopRightRadius: "16px",
+          boxShadow: "0 -4px 12px rgba(0,0,0,0.1)",
+          display: "flex",
+          flexDirection: "column",
+          maxHeight: "90vh",
         }}
       >
-        {/* Handle bar */}
-        <div className="flex justify-center pt-2 pb-1.5 flex-shrink-0">
-          <div className="w-12 h-1 bg-gray-300 rounded-full" />
+        {/* Handle */}
+        <div style={{ padding: "12px 0 8px", textAlign: "center" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "4px",
+              backgroundColor: "#d1d5db",
+              borderRadius: "2px",
+              margin: "0 auto",
+            }}
+          />
         </div>
 
-        {/* Header with user info */}
-        <div className="px-4 py-2.5 border-b border-gray-200 flex-shrink-0 bg-gray-50">
-          <p className="text-xs text-gray-500 mb-0.5">Signed in as</p>
-          <p className="text-xs font-semibold text-gray-900 truncate">
+        {/* Header */}
+        <div
+          style={{
+            padding: "12px 16px",
+            borderBottom: "1px solid #e5e7eb",
+            backgroundColor: "#f9fafb",
+            flexShrink: 0,
+          }}
+        >
+          <p style={{ fontSize: "12px", color: "#6b7280", margin: "0 0 4px" }}>
+            Signed in as
+          </p>
+          <p
+            style={{
+              fontSize: "13px",
+              fontWeight: "600",
+              color: "#111827",
+              margin: 0,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
             {user.email}
           </p>
           {user.name && (
-            <p className="text-xs text-gray-600 mt-0.5 truncate">{user.name}</p>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#4b5563",
+                margin: "4px 0 0",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user.name}
+            </p>
           )}
         </div>
 
-        {/* Menu area - NO SCROLL */}
-        <div ref={scrollableRef} className="flex-shrink-0 overflow-hidden">
-          <div className="py-1">{renderMenuItems()}</div>
+        {/* Menu - SCROLL ENABLED */}
+        <div
+          ref={scrollableRef}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            WebkitOverflowScrolling: "touch",
+            minHeight: 0,
+          }}
+        >
+          <div style={{ padding: "4px 0" }}>{renderMenuItems()}</div>
         </div>
       </div>
     </>
