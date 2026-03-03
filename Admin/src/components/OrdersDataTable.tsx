@@ -52,8 +52,12 @@ export default function OrdersDataTable({
           <input
             type="checkbox"
             checked={allVisibleSelected}
-            onChange={(e) => onToggleSelectAll(e.target.checked)}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelectAll(e.target.checked);
+            }}
             aria-label="Select all orders"
+            className="cursor-pointer"
           />
         ),
         cell: ({ row }) => {
@@ -63,8 +67,13 @@ export default function OrdersDataTable({
             <input
               type="checkbox"
               checked={checked}
-              onChange={() => onToggleOrderSelection(order.id)}
+              onChange={(e) => {
+                e.stopPropagation();
+                onToggleOrderSelection(order.id);
+              }}
+              onClick={(e) => e.stopPropagation()}
               aria-label={`Select order ${order.id?.slice(0, 8)}`}
+              className="cursor-pointer"
             />
           );
         },
@@ -162,10 +171,13 @@ export default function OrdersDataTable({
           const isUpdating = updatingId === order.id;
 
           return (
-            <div className="flex gap-2">
+            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
               <button
                 className="px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 transition text-xs"
-                onClick={() => onViewOrder(order.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewOrder(order.id);
+                }}
               >
                 View
               </button>
@@ -176,7 +188,10 @@ export default function OrdersDataTable({
                 >
                   <button
                     className="px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 transition text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => onCreateShipment(order.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCreateShipment(order.id);
+                    }}
                     disabled={isUpdating}
                   >
                     {isUpdating ? "Creating..." : "Create Shipment"}

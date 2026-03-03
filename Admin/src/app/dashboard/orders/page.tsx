@@ -144,13 +144,30 @@ export default function OrdersPage() {
   };
 
   const handleViewOrder = async (orderId: string) => {
+    if (!orderId) {
+      toast.error("Invalid order ID");
+      return;
+    }
+
     setIsViewLoading(true);
     try {
+      console.log("Fetching order details for:", orderId);
       const response = await adminApi.getOrderById(orderId);
+      console.log("Order details response:", response);
       const order = response.data?.order || response.data;
+
+      if (!order) {
+        throw new Error("Order data not found in response");
+      }
+
       setSelectedOrder(order);
-    } catch (error) {
-      toast.error("Failed to load order details");
+    } catch (error: any) {
+      console.error("Failed to load order details:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to load order details";
+      toast.error(errorMessage);
     } finally {
       setIsViewLoading(false);
     }
@@ -406,14 +423,31 @@ export default function OrdersPage() {
         />
       )}
 
+      {isViewLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 shadow-xl">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+              <p className="text-gray-700">Loading order details...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between p-5 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-900">Order Details</h2>
               <button
                 onClick={() => setSelectedOrder(null)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
               >
                 ✕
               </button>
