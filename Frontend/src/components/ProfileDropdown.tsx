@@ -184,7 +184,7 @@ export default function ProfileDropdown() {
       {sections.map((section, index) => (
         <div key={`${section.title}-${index}`}>
           {section.title && (
-            <div className="px-4 py-2">
+            <div className="px-4 py-1.5">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
                 {section.title}
               </p>
@@ -192,7 +192,7 @@ export default function ProfileDropdown() {
           )}
 
           {section.items.map((item) => {
-            const baseClass = `flex items-center px-4 py-2.5 transition-colors ${
+            const baseClass = `flex items-center px-4 py-1.5 transition-colors ${
               item.danger
                 ? "text-red-600 hover:bg-red-50"
                 : "text-gray-700 hover:bg-gray-50"
@@ -206,7 +206,7 @@ export default function ProfileDropdown() {
                   onClick={closeDropdown}
                   className={baseClass}
                 >
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="text-xs font-medium">{item.label}</span>
                 </Link>
               );
             }
@@ -220,13 +220,13 @@ export default function ProfileDropdown() {
                 }}
                 className={`w-full text-left ${baseClass}`}
               >
-                <span className="text-sm font-medium">{item.label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </button>
             );
           })}
 
           {index < sections.length - 1 && (
-            <div className="border-t border-gray-100 my-2"></div>
+            <div className="border-t border-gray-100 my-1"></div>
           )}
         </div>
       ))}
@@ -243,41 +243,32 @@ export default function ProfileDropdown() {
         ref={dropdownRef}
         className="fixed left-0 right-0 bottom-0 bg-white z-[9999] flex flex-col"
         style={{
-          height: "65vh",
-          maxHeight: "600px",
-          minHeight: "400px",
+          height: "auto",
+          maxHeight: "85vh",
           borderTopLeftRadius: "20px",
           borderTopRightRadius: "20px",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.15)",
         }}
       >
         {/* Handle bar */}
-        <div className="flex justify-center pt-3 pb-2 flex-shrink-0">
+        <div className="flex justify-center pt-2 pb-1.5 flex-shrink-0">
           <div className="w-12 h-1 bg-gray-300 rounded-full" />
         </div>
 
         {/* Header with user info */}
-        <div className="px-6 py-4 border-b border-gray-200 flex-shrink-0 bg-gradient-to-b from-gray-50 to-white">
-          <p className="text-xs text-gray-500 mb-1">Signed in as</p>
-          <p className="text-sm font-semibold text-gray-900 truncate">
+        <div className="px-4 py-2.5 border-b border-gray-200 flex-shrink-0 bg-gray-50">
+          <p className="text-xs text-gray-500 mb-0.5">Signed in as</p>
+          <p className="text-xs font-semibold text-gray-900 truncate">
             {user.email}
           </p>
           {user.name && (
-            <p className="text-xs text-gray-600 mt-0.5">{user.name}</p>
+            <p className="text-xs text-gray-600 mt-0.5 truncate">{user.name}</p>
           )}
         </div>
 
-        {/* Scrollable menu area */}
-        <div
-          ref={scrollableRef}
-          className="flex-1 overflow-y-auto overflow-x-hidden"
-          style={{
-            WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
-            minHeight: 0,
-          }}
-        >
-          <div className="py-2">{renderMenuItems()}</div>
+        {/* Menu area - NO SCROLL */}
+        <div ref={scrollableRef} className="flex-shrink-0 overflow-hidden">
+          <div className="py-1">{renderMenuItems()}</div>
         </div>
       </div>
     </>
