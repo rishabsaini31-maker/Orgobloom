@@ -257,12 +257,18 @@ export default function ProfileDropdown() {
           flexDirection: "column",
           height: "80vh",
           maxHeight: "80vh",
-          touchAction: "none",
         }}
       >
         {/* Handle */}
         <div
-          style={{ padding: "12px 0 8px", textAlign: "center", flexShrink: 0 }}
+          className="no-select-mobile"
+          style={{ 
+            padding: "12px 0 8px", 
+            textAlign: "center", 
+            flexShrink: 0,
+            touchAction: "none",
+            cursor: "grab",
+          }}
         >
           <div
             style={{
@@ -282,6 +288,7 @@ export default function ProfileDropdown() {
             borderBottom: "1px solid #e5e7eb",
             backgroundColor: "#f9fafb",
             flexShrink: 0,
+            touchAction: "none",
           }}
         >
           <p style={{ fontSize: "12px", color: "#6b7280", margin: "0 0 4px" }}>
@@ -326,22 +333,8 @@ export default function ProfileDropdown() {
             overflowX: "hidden",
             minHeight: 0,
             paddingRight: "4px",
-          }}
-          onTouchStart={(e) => {
-            // Prevent scroll propagation to body
-            const element = e.currentTarget;
-            const { scrollTop, scrollHeight, clientHeight } = element;
-
-            if (scrollTop === 0 && e.touches[0].clientY > 0) {
-              // At top, prevent overscroll bounce
-              e.currentTarget.scrollTop = 1;
-            } else if (
-              scrollTop + clientHeight >= scrollHeight &&
-              e.touches[0].clientY < 0
-            ) {
-              // At bottom, prevent overscroll bounce
-              e.currentTarget.scrollTop = scrollHeight - clientHeight - 1;
-            }
+            touchAction: "pan-y",
+            WebkitOverflowScrolling: "touch",
           }}
         >
           <div style={{ padding: "8px 0" }}>{renderMenuItems()}</div>
@@ -374,12 +367,10 @@ export default function ProfileDropdown() {
       </div>
 
       <div
-        className="overflow-y-auto py-2"
+        className="overflow-y-auto py-2 dropdown-scroll-container"
         style={{
           height: dropdownPosition.menuHeight,
           minHeight: 0,
-          WebkitOverflowScrolling: "touch",
-          overscrollBehavior: "contain",
         }}
       >
         {renderMenuItems()}

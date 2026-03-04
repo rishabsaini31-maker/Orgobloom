@@ -648,12 +648,14 @@ body.dropdown-open {
 .mobile-dropdown-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-  touch-action: pan-y;
+  touch-action: pan-y !important;
+  will-change: scroll-position;
 }
 
 /* Prevent momentum scrolling from affecting parent */
 .prevent-scroll-propagation {
   overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 /* iOS Safari safe area support for mobile dropdowns */
@@ -669,6 +671,9 @@ body.dropdown-open {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+  overflow-y: auto;
+  overflow-x: hidden;
+  will-change: scroll-position;
 }
 
 .dropdown-scroll-container::-webkit-scrollbar {
