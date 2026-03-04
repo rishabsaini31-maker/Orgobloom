@@ -82,16 +82,16 @@ export default function NotificationBell() {
   useEffect(() => {
     if (isOpen && window.innerWidth <= 768) {
       const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
+      document.body.style.position = "fixed";
       document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.overflow = 'hidden';
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
 
       return () => {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
         window.scrollTo(0, scrollY);
       };
     }
@@ -170,9 +170,7 @@ export default function NotificationBell() {
           </div>
 
           {/* Notifications List */}
-          <div 
-            className="max-h-96 overflow-y-auto dropdown-scroll-container mobile-dropdown-scroll"
-          >
+          <div className="max-h-96 overflow-y-auto dropdown-scroll-container mobile-dropdown-scroll">
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
