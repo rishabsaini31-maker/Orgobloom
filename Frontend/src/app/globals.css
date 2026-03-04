@@ -631,3 +631,84 @@ img {
   width: 1.3em;
   fill: #b4b4b4;
 }
+
+/* ============================================ */
+/* Mobile Dropdown & Scroll Lock Utilities     */
+/* ============================================ */
+
+/* Prevent body scroll bounce on iOS when dropdown is open */
+body.dropdown-open {
+  position: fixed;
+  width: 100%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* Better touch scrolling in mobile dropdowns */
+.mobile-dropdown-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+/* Prevent momentum scrolling from affecting parent */
+.prevent-scroll-propagation {
+  overscroll-behavior: contain;
+}
+
+/* iOS Safari safe area support for mobile dropdowns */
+@supports (padding: max(0px)) {
+  .mobile-dropdown-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Smooth scrolling within dropdowns */
+.dropdown-scroll-container {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+.dropdown-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dropdown-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+
+.dropdown-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(107, 114, 128, 0.5);
+}
+
+/* Prevent text selection on touch/drag in mobile UI */
+.no-select-mobile {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile menu slide animations */
+@keyframes slideInFromBottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.mobile-menu-enter {
+  animation: slideInFromBottom 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}

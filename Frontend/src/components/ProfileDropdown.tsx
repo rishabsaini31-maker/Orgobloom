@@ -84,6 +84,29 @@ export default function ProfileDropdown() {
     });
   }, [isOpen, isMobile]);
 
+  // Lock body scroll when mobile dropdown is open
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+
+      // Lock body scroll
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        // Restore scroll position
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        document.body.style.overflow = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen, isMobile]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
@@ -220,7 +243,8 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
-        style={{ touchAction: "auto" }}
+        onTouchMove={(e) => e.preventDefault()}
+        style={{ touchAction: "none" }}
       />
       <div
         ref={dropdownRef}
@@ -233,6 +257,7 @@ export default function ProfileDropdown() {
           flexDirection: "column",
           height: "80vh",
           maxHeight: "80vh",
+          touchAction: "none",
         }}
       >
         {/* Handle */}
@@ -294,14 +319,29 @@ export default function ProfileDropdown() {
         {/* Menu - SCROLLABLE CONTAINER */}
         <div
           ref={scrollableRef}
+          className="dropdown-scroll-container mobile-dropdown-scroll mobile-dropdown-bottom"
           style={{
             flex: 1,
             overflowY: "scroll",
             overflowX: "hidden",
-            WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
             minHeight: 0,
             paddingRight: "4px",
+          }}
+          onTouchStart={(e) => {
+            // Prevent scroll propagation to body
+            const element = e.currentTarget;
+            const { scrollTop, scrollHeight, clientHeight } = element;
+
+            if (scrollTop === 0 && e.touches[0].clientY > 0) {
+              // At top, prevent overscroll bounce
+              e.currentTarget.scrollTop = 1;
+            } else if (
+              scrollTop + clientHeight >= scrollHeight &&
+              e.touches[0].clientY < 0
+            ) {
+              // At bottom, prevent overscroll bounce
+              e.currentTarget.scrollTop = scrollHeight - clientHeight - 1;
+            }
           }}
         >
           <div style={{ padding: "8px 0" }}>{renderMenuItems()}</div>

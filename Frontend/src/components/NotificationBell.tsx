@@ -78,6 +78,25 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Lock body scroll on mobile when dropdown is open
+  useEffect(() => {
+    if (isOpen && window.innerWidth <= 768) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+      document.body.style.overflow = 'hidden';
+
+      return () => {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = '';
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [isOpen]);
+
   // Show toast on new notification
   useEffect(() => {
     if (notifications.length > 0) {
@@ -151,7 +170,9 @@ export default function NotificationBell() {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-96 overflow-y-auto">
+          <div 
+            className="max-h-96 overflow-y-auto dropdown-scroll-container mobile-dropdown-scroll"
+          >
             {notifications.length === 0 ? (
               <div className="p-8 text-center">
                 <Bell className="w-12 h-12 text-gray-300 mx-auto mb-3" />
