@@ -81,18 +81,26 @@ export default function NotificationBell() {
   // Lock body scroll on mobile when dropdown is open
   useEffect(() => {
     if (isOpen && window.innerWidth <= 768) {
-      const scrollY = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
+      const body = document.body;
+      const currentLocks = Number(body.dataset.scrollLocks || "0");
+      const nextLocks = currentLocks + 1;
+      body.dataset.scrollLocks = String(nextLocks);
+
+      if (nextLocks === 1) {
+        body.style.overflow = "hidden";
+      }
 
       return () => {
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        document.body.style.overflow = "";
-        window.scrollTo(0, scrollY);
+        const locks = Number(body.dataset.scrollLocks || "0");
+        const remainingLocks = Math.max(0, locks - 1);
+
+        if (remainingLocks === 0) {
+          body.style.overflow = "";
+          delete body.dataset.scrollLocks;
+          return;
+        }
+
+        body.dataset.scrollLocks = String(remainingLocks);
       };
     }
   }, [isOpen]);

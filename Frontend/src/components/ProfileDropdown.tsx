@@ -40,6 +40,31 @@ export default function ProfileDropdown() {
   const headerRef = useRef<HTMLDivElement>(null);
   const scrollableRef = useRef<HTMLDivElement>(null);
 
+  const lockBodyScroll = () => {
+    const body = document.body;
+    const currentLocks = Number(body.dataset.scrollLocks || "0");
+    const nextLocks = currentLocks + 1;
+    body.dataset.scrollLocks = String(nextLocks);
+
+    if (nextLocks === 1) {
+      body.style.overflow = "hidden";
+    }
+  };
+
+  const unlockBodyScroll = () => {
+    const body = document.body;
+    const currentLocks = Number(body.dataset.scrollLocks || "0");
+    const nextLocks = Math.max(0, currentLocks - 1);
+
+    if (nextLocks === 0) {
+      body.style.overflow = "";
+      delete body.dataset.scrollLocks;
+      return;
+    }
+
+    body.dataset.scrollLocks = String(nextLocks);
+  };
+
   useEffect(() => {
     setMounted(true);
 
@@ -87,22 +112,10 @@ export default function ProfileDropdown() {
   // Lock body scroll when mobile dropdown is open
   useEffect(() => {
     if (isOpen && isMobile) {
-      // Save current scroll position
-      const scrollY = window.scrollY;
-
-      // Lock body scroll
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
+      lockBodyScroll();
 
       return () => {
-        // Restore scroll position
-        document.body.style.position = "";
-        document.body.style.top = "";
-        document.body.style.width = "";
-        document.body.style.overflow = "";
-        window.scrollTo(0, scrollY);
+        unlockBodyScroll();
       };
     }
   }, [isOpen, isMobile]);
@@ -243,12 +256,6 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
-        onTouchMove={(e) => {
-          // Only prevent if touching backdrop directly, not bubbled events
-          if (e.target === e.currentTarget) {
-            e.preventDefault();
-          }
-        }}
       />
       <div
         ref={dropdownRef}
@@ -336,6 +343,7 @@ export default function ProfileDropdown() {
             WebkitOverflowScrolling: "touch",
             overscrollBehavior: "contain",
             position: "relative",
+            touchAction: "pan-y",
           }}
         >
           <div style={{ padding: "8px 0", minHeight: "100px" }}>
