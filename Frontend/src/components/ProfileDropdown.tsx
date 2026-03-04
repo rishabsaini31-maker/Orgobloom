@@ -243,8 +243,12 @@ export default function ProfileDropdown() {
       <div
         className="fixed inset-0 bg-black/50 z-[9998]"
         onClick={closeDropdown}
-        onTouchMove={(e) => e.preventDefault()}
-        style={{ touchAction: "none" }}
+        onTouchMove={(e) => {
+          // Only prevent if touching backdrop directly, not bubbled events
+          if (e.target === e.currentTarget) {
+            e.preventDefault();
+          }
+        }}
       />
       <div
         ref={dropdownRef}
@@ -257,17 +261,16 @@ export default function ProfileDropdown() {
           flexDirection: "column",
           height: "80vh",
           maxHeight: "80vh",
+          pointerEvents: "auto",
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Handle */}
         <div
-          className="no-select-mobile"
-          style={{ 
-            padding: "12px 0 8px", 
-            textAlign: "center", 
+          style={{
+            padding: "12px 0 8px",
+            textAlign: "center",
             flexShrink: 0,
-            touchAction: "none",
-            cursor: "grab",
           }}
         >
           <div
@@ -288,7 +291,6 @@ export default function ProfileDropdown() {
             borderBottom: "1px solid #e5e7eb",
             backgroundColor: "#f9fafb",
             flexShrink: 0,
-            touchAction: "none",
           }}
         >
           <p style={{ fontSize: "12px", color: "#6b7280", margin: "0 0 4px" }}>
@@ -326,18 +328,19 @@ export default function ProfileDropdown() {
         {/* Menu - SCROLLABLE CONTAINER */}
         <div
           ref={scrollableRef}
-          className="dropdown-scroll-container mobile-dropdown-scroll mobile-dropdown-bottom"
           style={{
             flex: 1,
-            overflowY: "scroll",
+            overflowY: "auto",
             overflowX: "hidden",
             minHeight: 0,
-            paddingRight: "4px",
-            touchAction: "pan-y",
             WebkitOverflowScrolling: "touch",
+            overscrollBehavior: "contain",
+            position: "relative",
           }}
         >
-          <div style={{ padding: "8px 0" }}>{renderMenuItems()}</div>
+          <div style={{ padding: "8px 0", minHeight: "100px" }}>
+            {renderMenuItems()}
+          </div>
         </div>
       </div>
     </>
