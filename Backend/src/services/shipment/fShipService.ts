@@ -81,18 +81,19 @@ export class FShipService {
 
     try {
       console.log(`[FShip] Creating shipment for order: ${payload.order_id}`);
-      console.log(`[FShip] API Key present: ${!!this.apiKey}`);
-      console.log(`[FShip] Base URL: ${this.baseUrl}`);
+      console.log(`[FShip] API Base URL: ${this.baseUrl}`);
+      console.log(`[FShip] Using API Key: ${this.apiKey.substring(0, 8)}...`);
+      console.log(`[FShip] Payload:`, JSON.stringify(payload, null, 2));
 
       const response = await axios.post(
         `${this.baseUrl}/shipments/create`,
         payload,
         {
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            "X-API-KEY": this.apiKey,
             "Content-Type": "application/json",
-            "X-API-Key": this.apiKey,
           },
+          timeout: 10000,
         },
       );
 
@@ -113,14 +114,27 @@ export class FShipService {
         },
       };
     } catch (error: any) {
-      console.error(
-        `[FShip] Error creating shipment: ${error.message}`,
-        error.response?.data,
-      );
+      console.error(`[FShip] ❌ Error creating shipment:`);
+      console.error(`[FShip] Status Code: ${error.response?.status}`);
+      console.error(`[FShip] Error Message: ${error.response?.statusText}`);
+      console.error(`[FShip] Error Data:`, error.response?.data);
+      console.error(`[FShip] Full Error:`, error.message);
+
+      // Specific error handling for 401
+      if (error.response?.status === 401) {
+        console.error(`[FShip] ⚠️  AUTHENTICATION FAILED - Check your API key`);
+        console.error(`[FShip] Please verify:`);
+        console.error(`[FShip]   - API key is valid and not expired`);
+        console.error(`[FShip]   - API key has correct permissions`);
+        console.error(
+          `[FShip]   - Environment variable FSHIP_API_KEY is set correctly`,
+        );
+      }
+
       return {
         success: false,
         error: error.message,
-        message: "Failed to create shipment",
+        message: `Failed to create shipment: ${error.response?.data?.message || error.message}`,
       };
     }
   }
@@ -158,10 +172,10 @@ export class FShipService {
           tracking_number: trackingNumber,
         },
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
+          "X-API-KEY": this.apiKey,
           "Content-Type": "application/json",
-          "X-API-Key": this.apiKey,
         },
+        timeout: 10000,
       });
 
       return {
@@ -210,10 +224,10 @@ export class FShipService {
         },
         {
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            "X-API-KEY": this.apiKey,
             "Content-Type": "application/json",
-            "X-API-Key": this.apiKey,
           },
+          timeout: 10000,
         },
       );
 
@@ -264,11 +278,15 @@ export class FShipService {
 
       const response = await axios.get(`${this.baseUrl}/shipments/rates`, {
         params: {
-          api_key: this.apiKey,
           pincode,
           weight,
           destination_state,
         },
+        headers: {
+          "X-API-KEY": this.apiKey,
+          "Content-Type": "application/json",
+        },
+        timeout: 10000,
       });
 
       return {

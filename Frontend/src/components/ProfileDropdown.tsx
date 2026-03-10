@@ -336,7 +336,7 @@ export default function ProfileDropdown() {
         <div
           ref={scrollableRef}
           style={{
-            flex: 1,
+            height: "70vh",
             overflowY: "auto",
             overflowX: "hidden",
             minHeight: 0,
@@ -344,6 +344,7 @@ export default function ProfileDropdown() {
             overscrollBehavior: "contain",
             position: "relative",
             touchAction: "pan-y",
+            background: "#fff",
           }}
         >
           <div style={{ padding: "8px 0", minHeight: "100px" }}>
