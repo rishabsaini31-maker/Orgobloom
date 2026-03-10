@@ -109,13 +109,22 @@ export default function ProfileDropdown() {
     });
   }, [isOpen, isMobile]);
 
-  // Lock body scroll when mobile dropdown is open
+  // Advanced scroll lock for mobile: prevent background scroll, allow dropdown scroll
   useEffect(() => {
     if (isOpen && isMobile) {
-      lockBodyScroll();
-
+      const preventScroll = (e: TouchEvent) => {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(e.target as Node)
+        ) {
+          e.preventDefault();
+        }
+      };
+      document.body.style.overscrollBehavior = "none";
+      document.addEventListener("touchmove", preventScroll, { passive: false });
       return () => {
-        unlockBodyScroll();
+        document.body.style.overscrollBehavior = "";
+        document.removeEventListener("touchmove", preventScroll);
       };
     }
   }, [isOpen, isMobile]);
