@@ -10,6 +10,7 @@
   },
   "description": "Orgobloom E-Commerce Platform",
   "dependencies": {
+    "body-scroll-lock": "^4.0.0-beta.0",
     "cloudinary": "^1.41.3",
     "module-alias": "^2.3.4",
     "multer": "^2.0.2",

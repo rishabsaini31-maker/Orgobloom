@@ -8,6 +8,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
+import {
+  disableBodyScroll,
+  enableBodyScroll,
+  clearAllBodyScrollLocks,
+} from "body-scroll-lock";
 
 type MenuItem = {
   label: string;
@@ -109,24 +114,20 @@ export default function ProfileDropdown() {
     });
   }, [isOpen, isMobile]);
 
-  // Advanced scroll lock for mobile: prevent background scroll, allow dropdown scroll
+  // Use body-scroll-lock for robust mobile scroll lock
   useEffect(() => {
-    if (isOpen && isMobile) {
-      const preventScroll = (e: TouchEvent) => {
-        if (
-          dropdownRef.current &&
-          !dropdownRef.current.contains(e.target as Node)
-        ) {
-          e.preventDefault();
-        }
-      };
-      document.body.style.overscrollBehavior = "none";
-      document.addEventListener("touchmove", preventScroll, { passive: false });
+    if (isOpen && isMobile && dropdownRef.current) {
+      disableBodyScroll(dropdownRef.current, { reserveScrollBarGap: true });
       return () => {
-        document.body.style.overscrollBehavior = "";
-        document.removeEventListener("touchmove", preventScroll);
+        enableBodyScroll(dropdownRef.current!);
+        clearAllBodyScrollLocks();
       };
     }
+    // Clean up on close
+    return () => {
+      if (dropdownRef.current) enableBodyScroll(dropdownRef.current);
+      clearAllBodyScrollLocks();
+    };
   }, [isOpen, isMobile]);
 
   useEffect(() => {
