@@ -165,6 +165,17 @@ export default function ProfileDropdown() {
 
   if (!user) return null;
 
+  // Main navigation links for mobile drawer
+  const navLinks = [
+    { label: "Home", href: "/" },
+    { label: "Shop", href: "/products" },
+    { label: "Blog", href: "/blog" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
+    { label: "Support", href: "/support" },
+  ];
+
+  // Grouped sections for drawer
   const sections: MenuSection[] = [
     {
       title: "Account",
@@ -183,13 +194,6 @@ export default function ProfileDropdown() {
     },
     {
       title: "Preferences",
-      items: [
-        { label: "Saved Addresses", href: "/addresses" },
-        { label: "Wishlist", href: "/wishlist" },
-      ],
-    },
-    {
-      title: "Support",
       items: [
         { label: "Help & Support", href: "/help" },
         { label: "Contact Us", href: "/contact" },
@@ -261,105 +265,89 @@ export default function ProfileDropdown() {
     </>
   );
 
+  // Mobile drawer: right-side panel
   const mobileDropdownContent = (
     <>
       <div
-        className="fixed inset-0 bg-black/50 z-[9998]"
+        className="fixed inset-0 bg-black/40 z-[9998]"
         onClick={closeDropdown}
       />
       <div
         ref={dropdownRef}
-        className="fixed left-0 right-0 bottom-0 bg-white z-[9999]"
-        style={{
-          borderTopLeftRadius: "16px",
-          borderTopRightRadius: "16px",
-          boxShadow: "0 -4px 12px rgba(0,0,0,0.1)",
-          display: "flex",
-          flexDirection: "column",
-          height: "80vh",
-          maxHeight: "80vh",
-          pointerEvents: "auto",
-        }}
+        className="fixed top-0 right-0 h-full w-4/5 max-w-xs bg-white z-[9999] shadow-xl flex flex-col"
+        style={{ borderTopLeftRadius: 16, borderBottomLeftRadius: 16 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Handle */}
-        <div
-          style={{
-            padding: "12px 0 8px",
-            textAlign: "center",
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              width: "40px",
-              height: "4px",
-              backgroundColor: "#d1d5db",
-              borderRadius: "2px",
-              margin: "0 auto",
-            }}
-          />
-        </div>
-
-        {/* Header */}
-        <div
-          style={{
-            padding: "12px 16px",
-            borderBottom: "1px solid #e5e7eb",
-            backgroundColor: "#f9fafb",
-            flexShrink: 0,
-          }}
-        >
-          <p style={{ fontSize: "12px", color: "#6b7280", margin: "0 0 4px" }}>
-            Signed in as
-          </p>
-          <p
-            style={{
-              fontSize: "13px",
-              fontWeight: "600",
-              color: "#111827",
-              margin: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {user.email}
-          </p>
+        {/* User Info */}
+        <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+          <p className="text-xs text-gray-500 mb-1">Signed in as</p>
+          <p className="text-sm font-semibold text-gray-900 truncate">{user.email}</p>
           {user.name && (
-            <p
-              style={{
-                fontSize: "12px",
-                color: "#4b5563",
-                margin: "4px 0 0",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {user.name}
-            </p>
+            <p className="text-xs text-gray-600 mt-1 truncate">{user.name}</p>
           )}
         </div>
-
-        {/* Menu - SCROLLABLE CONTAINER */}
+        {/* Main Nav Links */}
+        <div className="flex flex-col gap-1 px-5 py-3 border-b border-gray-100">
+          {navLinks.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={closeDropdown}
+              className="text-sm text-gray-700 py-2 hover:text-primary-600 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+        {/* Scrollable Menu Sections */}
         <div
           ref={scrollableRef}
-          style={{
-            height: "70vh",
-            overflowY: "auto",
-            overflowX: "hidden",
-            minHeight: 0,
-            WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
-            position: "relative",
-            touchAction: "pan-y",
-            background: "#fff",
-          }}
+          className="flex-1 overflow-y-auto px-2 py-2"
+          style={{ minHeight: 0, WebkitOverflowScrolling: "touch" }}
         >
-          <div style={{ padding: "8px 0", minHeight: "100px" }}>
-            {renderMenuItems()}
-          </div>
+          {sections.map((section, idx) => (
+            <div key={section.title + idx} className="mb-2">
+              {section.title && (
+                <div className="px-3 py-1">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    {section.title}
+                  </p>
+                </div>
+              )}
+              {section.items.map((item) => {
+                const baseClass = `flex items-center px-4 py-2 rounded transition-colors ${
+                  item.danger
+                    ? "text-red-600 hover:bg-red-50"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`;
+                if (item.href) {
+                  return (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      onClick={closeDropdown}
+                      className={baseClass + " text-sm"}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                }
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      closeDropdown();
+                      item.onClick?.();
+                    }}
+                    className={baseClass + " text-sm w-full text-left"}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+              {idx < sections.length - 1 && <div className="border-t border-gray-100 my-1"></div>}
+            </div>
+          ))}
         </div>
       </div>
     </>
