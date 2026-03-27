@@ -285,7 +285,7 @@ export default function Header() {
 
       {/* Mobile Menu */}
       <div
-        className={`lg:hidden border-t border-gray-200 bg-white overflow-hidden transition-all duration-500 ease-out fixed top-16 left-0 right-0 z-40 shadow-lg ${mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
+        className={`lg:hidden border-t border-gray-200 bg-white overflow-y-auto transition-all duration-500 ease-out fixed top-16 left-0 right-0 z-40 shadow-lg ${mobileMenuOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"}`}
       >
         <nav className="container mx-auto px-4 py-4">
           <div className="space-y-1">
