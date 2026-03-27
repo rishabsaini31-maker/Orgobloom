@@ -281,7 +281,9 @@ export default function ProfileDropdown() {
         {/* User Info */}
         <div className="px-5 py-4 border-b border-gray-100 bg-gray-50 flex-shrink-0">
           <p className="text-xs text-gray-500 mb-1">Signed in as</p>
-          <p className="text-sm font-semibold text-gray-900 truncate">{user.email}</p>
+          <p className="text-sm font-semibold text-gray-900 truncate">
+            {user.email}
+          </p>
           {user.name && (
             <p className="text-xs text-gray-600 mt-1 truncate">{user.name}</p>
           )}
@@ -345,7 +347,9 @@ export default function ProfileDropdown() {
                   </button>
                 );
               })}
-              {idx < sections.length - 1 && <div className="border-t border-gray-100 my-1"></div>}
+              {idx < sections.length - 1 && (
+                <div className="border-t border-gray-100 my-1"></div>
+              )}
             </div>
           ))}
         </div>

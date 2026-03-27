@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 // import "@/lib/sentry"; // TODO: Fix Sentry initialization for Next.js builds
 
 const inter = Inter({ subsets: ["latin"] });
@@ -22,7 +24,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          {children}
+          <Header />
+          <main className="pt-20 min-h-screen bg-gray-50">{children}</main>
+          <Footer />
           <Toaster position="top-right" />
         </Providers>
       </body>
