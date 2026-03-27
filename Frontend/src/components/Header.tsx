@@ -364,6 +364,27 @@ export default function Header() {
                   My Orders
                 </Link>
                 <Link
+                  href="/track-order"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3"
+                    />
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+                  </svg>
+                  Track Order
+                </Link>
+                <Link
                   href="/addresses"
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg"
