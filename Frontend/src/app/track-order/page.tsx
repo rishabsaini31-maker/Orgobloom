@@ -102,7 +102,10 @@ export default function TrackOrderPage() {
                 Enter your order number to track its status
               </p>
 
-              <form onSubmit={handleSearch} className="flex gap-3">
+              <form
+                onSubmit={handleSearch}
+                className="flex flex-col gap-3 sm:flex-row"
+              >
                 <input
                   type="text"
                   placeholder="Enter order number (e.g., ORD-2024-001)"
@@ -113,7 +116,7 @@ export default function TrackOrderPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition-colors"
+                  className="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-400 text-white font-medium px-8 py-3 rounded-lg transition-colors w-full sm:w-auto"
                 >
                   {loading ? "Searching..." : "Track"}
                 </button>
